@@ -466,9 +466,9 @@ body.m-pc .barra::before{color:#fff!important}
 <section class="vista" id="v-admin">
   <header class="cab">
     <div class="marca"><b>Administración</b></div>
-    <div class="titulo-inicio"><p>Usuarios, bitácora de consultas y actualización de datos.</p></div>
+    <div class="titulo-inicio"><p>Seguimiento de evaluaciones, usuarios, bitácora y datos.</p></div>
   </header>
-  <div class="pestanas" id="adm-tab"><button data-k="u" class="on">Usuarios</button><button data-k="b">Bitácora</button><button data-k="d">Datos</button></div>
+  <div class="pestanas" id="adm-tab"><button data-k="e" class="on">Por evaluar</button><button data-k="u">Usuarios</button><button data-k="b">Bitácora</button><button data-k="d">Datos</button></div>
   <div class="bloque" id="adm-cont"></div>
 </section>
 
@@ -1060,10 +1060,19 @@ function menuUsuario(){
 }
 
 /* ---------- administración ---------- */
-let admTab='u';
+let admTab='e',limEv=60;
 $('#adm-tab').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;admTab=b.dataset.k;$('#adm-tab').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));pintarAdmin()});
 async function pintarAdmin(){
   const c=$('#adm-cont');
+  if(admTab==='e'){
+    const L=Object.values(W).filter(w=>w.e==='ACTIVO'&&AN[w.d].n>0&&!AN[w.d].evaluado)
+      .sort((p,q)=>{const a=AN[p.d],b=AN[q.d];const o={r:0,a:1,v:2,n:3};return (o[a.s]-o[b.s])||(b.toca-a.toca)||(b.score-a.score)});
+    const cnt={r:0,a:0,v:0};L.forEach(w=>{const s=AN[w.d].s;if(cnt[s]!=null)cnt[s]++});
+    c.innerHTML=`<div class="panel" style="margin:0 0 12px"><h3>Pendientes de evaluación de percepción de riesgo</h3><p>Trabajadores activos con actos este año que aún no tienen evaluación (ni sus capacitaciones). Es un paso obligatorio de la escalera. Al registrarse la evaluación salen solos de esta lista.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><span class="chip r">${cnt.r} urgentes</span><span class="chip a">${cnt.a} vigilar</span><span class="chip v">${cnt.v} estables</span><span class="chip">${L.length} en total</span></div></div>
+      <div class="lista">${L.slice(0,limEv).map(w=>filaPersona(w,[[ 'Corresponde: '+ESC_C[AN[w.d].toca-1],AN[w.d].toca>=3?'r':'a'],...AN[w.d].mot.filter(m=>m[0]!=='Evaluación pendiente').slice(0,1)])).join('')}${L.length>limEv?`<button class="mas" onclick="limEv+=60;pintarAdmin()">Ver ${Math.min(60,L.length-limEv)} más</button>`:''}</div>`;
+    return;
+  }
   if(!navigator.onLine){c.innerHTML='<div class="vacio">La administración necesita señal.</div>';return}
   c.innerHTML='<div class="vacio">Cargando…</div>';
   if(admTab==='u'){
