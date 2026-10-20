@@ -467,6 +467,13 @@ function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clea
 let W={};
 function indexar(){
   W={};DATA.W.forEach(w=>{w.key=norm(w.n);W[w.d]=w;w.A=[];w.E=[]});
+  // evaluaciones: examen web (servidor) + evaluaciones en papel (lotes digitalizados)
+  DATA.EV=DATA.EV||{};const DIMN={PR:'Percepción del peligro',TDA:'Atención y vigilancia',BARRATT:'Autocontrol de la conducta',STAI:'Manejo emocional',TMMS:'Inteligencia emocional'};
+  (DATA.EVP||[]).forEach(e=>{const L=(DATA.EV[e.d]=DATA.EV[e.d]||[]);if(L.some(x=>x.f===e.f&&x.s===e.s))return;
+    L.push({f:e.f||'s/f',m:e.m,s:e.s,p:e.p,dim:(e.dr||'').split(/[,;]/).map(x=>DIMN[norm(x).trim()]||x.trim()).filter(x=>x&&x!=='—').join(', '),
+      cur:(e.cu||'').split(';').map(x=>x.trim()).filter(Boolean).map(x=>({c:x.split(' ')[0],n:x.split(' ').slice(1).join(' ')})),fu:'papel'})});
+  const fd2=f=>{const m=String(f||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);return m?new Date(+m[3],+m[2]-1,+m[1]).getTime():0};
+  for(const k in DATA.EV)DATA.EV[k].sort((a,b)=>fd2(a.f)-fd2(b.f));
   DATA.A.forEach((a,i)=>{a.i=i;a.dt=fdate(a.f);a.key=a.s+'|'+a.f+'|'+norm(a.h).replace(/[^A-Z0-9]/g,'').slice(0,40);});
   DATA.E.forEach((e,i)=>{e.i=i;e.dt=e.f?fdate(e.f):null;(e.ps||[]).forEach(([d,rol])=>{if(W[d])W[d].E.push({e,rol})})});
   LABORES={};Object.values(W).forEach(w=>{if(w.ds&&w.ds.lb&&w.e==='ACTIVO'){(LABORES[w.ds.lb]=LABORES[w.ds.lb]||[]).push(w)}});
@@ -480,6 +487,7 @@ function asignar(){
   DATA.A.forEach(a=>{
     const c=CONF[a.key];
     if(c){ if(c!=='x'&&W[c]) W[c].A.push({a,c:'U'}); return; }
+    if(a.x)return;
     for(const d in (a.w||{})) if(W[d]&&!(a.w[d]==='P'&&SUPERF.test(norm(a.l)))) W[d].A.push({a,c:a.w[d]});
   });
 }
@@ -489,6 +497,24 @@ const hallazgoC=(h,rp)=>{let x=h;if(rp){const n=norm(rp);const u=norm(x);if(u.st
 const reporto=a=>a.v?(ADMIN?'Psicología (tú)':'Psicología SBC'):a.rp?a.rp:(/GARITA/.test(norm(a.l))?'Garita de control':'sin nombre');
 const MED={GC_SUSP:['Gestión de consecuencias','r'],GC:['Gestión de consecuencias','r'],RETRO:['Retroalimentación','a'],CORR:['Corrección en sitio',''],OTRA:['Otra medida','']};
 const ESC=['Retroalimentación + evaluación','Amonestación escrita','Suspensión','Evaluación de permanencia'];
+function evDe(w){const L=(DATA.EV||{})[w.d];return L&&L.length?L[L.length-1]:null}
+const SEMC={VERDE:'v',AMARILLO:'a',ROJO:'r'};
+function panelEval(w){
+  const L=(DATA.EV||{})[w.d]||[];
+  if(!L.length)return `<div class="panel"><h3>Evaluación de percepción de riesgo</h3><p>Sin evaluación registrada en el examen web.</p></div><div class="panel"><h3>Capacitaciones</h3><p>Sin capacitaciones asignadas.</p></div>`;
+  const e=L[L.length-1];const c=SEMC[e.s]||'';
+  const hist=L.length>1?`<p style="margin-top:6px">Evaluaciones anteriores: ${L.slice(0,-1).map(x=>`${esc(x.f)} (${esc(tit(x.s))})`).join(', ')}</p>`:'';
+  const det=ADMIN&&(e.p!=null||e.dim)?`<dl style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin-top:10px;font-size:14px">${e.p!=null?`<dt style="color:var(--gris)">Puntaje global</dt><dd>${esc(e.p)}%</dd>`:''}${e.dim?`<dt style="color:var(--gris)">Dimensión más débil</dt><dd>${esc(e.dim)}</dd>`:''}${e.ver?`<dt style="color:var(--gris)">Veredicto</dt><dd>${esc(e.ver)}</dd>`:''}</dl>`:'';
+  const cur=(e.cur||[]);
+  const curH=cur.length?`<div class="lista" style="margin-top:8px">${cur.map((k,i)=>{const hecho=(DATA.CAP||{})[w.d+'|'+k.c];return `<div class="usr" style="box-shadow:none;background:var(--papel)"><div><div class="nm" style="font-size:14.5px">${esc(k.c)} · ${esc(k.n)}</div><div class="sub">${hecho?'Completada el '+esc(hecho):'Pendiente'}</div></div>${ADMIN?`<button class="mini ${hecho?'':'v'}" onclick="marcarCurso('${w.d}','${esc(k.c)}',${!hecho})">${hecho?'Desmarcar':'Completada'}</button>`:`<span class="chip ${hecho?'v':'a'}">${hecho?'Completada':'Pendiente'}</span>`}</div>`}).join('')}</div>`:'<p>Sin capacitaciones asignadas.</p>';
+  return `<div class="panel"><h3>Evaluación de percepción de riesgo</h3><div class="fila" style="display:flex;gap:10px;align-items:center;margin-top:8px"><span class="sello ${c||'n'}">${esc(tit(e.s||'Sin dato'))}</span><span style="font-size:14px;color:var(--gris)">${esc(e.f)} · ${esc(e.m||'')}</span></div>${det}${hist}</div>
+  <div class="panel"><h3>Capacitaciones asignadas</h3>${curH}</div>`;
+}
+async function marcarCurso(d,c,on){
+  DATA.CAP=DATA.CAP||{};const k=d+'|'+c;const hoy=new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'});
+  if(on)DATA.CAP[k]=hoy;else delete DATA.CAP[k];abrirFicha(d);
+  const r=await api({a:'curso',dni:d,curso:c,hecho:on});if(r&&r.ok){DATA_RAW.CAP=r.cap;guardarCache();toast(on?'Capacitación marcada como completada':'Marca retirada')}else toast((r&&r.error)||'Sin señal: inténtalo con conexión');
+}
 const ESC_C=['Retro + evaluación','Amonestación','Suspensión','Permanencia'];
 const SUPERF=/PTARD|PETARD|PRESA|PLANTA|CAMPAMENTO|COMEDOR|LABORATORIO|OFICINA|GARITA|BALSA/;
 function ausencia(w){const d=w.ds;if(!d)return '';if(/AUSENTISMO/.test(norm(d.lo))){const e=norm(d.et);return tit(e&&e!=='GLB'?d.et:d.lb)}return ''}
@@ -507,18 +533,22 @@ function analizar(w){
   const mismo={}; acts.forEach(x=>{const k=x.a.t;mismo[k]=(mismo[k]||0)+1});
   const rep=Math.max(0,...Object.values(mismo));
   const mot=[]; let s='v';
-  if(n90>=3){mot.push([`${n90} actos en 90 días`,'r']);s='r'}
-  if(reinc>0){mot.push([`Reincidió ${reinc}× tras sanción`,'r']);s='r'}
+  if(n90>=4){mot.push([`${n90} actos en 90 días`,'r']);s='r'}
   if(n>=1&&acc.length){mot.push([`Accidente ${acc[0].e.f.slice(0,5)}`,'r']);s='r'}
-  else if(n>=1&&ev.length){mot.push([`Incidente ${ev[0].e.f.slice(0,5)}`,'r']);s='r'}
-  if(s!=='r'){ if(n>=2){mot.push([`${n} actos en el año`,'a']);s='a'} else if(!n&&ev.length){mot.push([acc.length?'Accidentado':'Involucrado en incidente','a']);s='a'} }
+  if(reinc>0)mot.push([`Reincidió ${reinc}× tras sanción`,s==='r'?'r':'a']);
+  if(s!=='r'){
+    if(n>=2||reinc>0||ev.length){s='a';if(n>=2&&n90<4)mot.push([`${n} actos en el año`,'a'])}
+    if(!acc.length&&ev.length)mot.push([`Incidente ${ev[0].e.f.slice(0,5)}`,'a']);else if(!n&&acc.length)mot.push(['Accidentado','a']);
+  }
+  const evl=DATA&&DATA.EV&&DATA.EV[w.d];const ul=evl&&evl.length?evl[evl.length-1]:null;
+  if(ul&&ul.s==='ROJO'){mot.push(['Evaluación en rojo','r']);if(s==='v'||s==='n')s='a'}
   if(n===1&&s==='v')mot.push(['1 acto en el año','v']);
   if(!n&&!ev.length)s='n';
   const vic=acts.filter(x=>x.a.v).length+regs.length;
   let gl=0; gcs.forEach(x=>gl=Math.max(gl,x.a.m==='GC_SUSP'?3:2)); regs.forEach(r=>{const k=ESC.indexOf(r.med)+1;gl=Math.max(gl,k)});
   const alc=Math.max(Math.min(vic,4),gl);
   const toca=alc===0?1:Math.min(alc+1,4);
-  const evid=[n>0,gcs.some(x=>x.a.m==='GC')||regs.some(r=>r.med===ESC[1]),gcs.some(x=>x.a.m==='GC_SUSP')||regs.some(r=>r.med===ESC[2]),regs.some(r=>r.med===ESC[3])];
+  const evid=[n>0||!!(DATA&&DATA.EV&&(DATA.EV[w.d]||[]).length),gcs.some(x=>x.a.m==='GC')||regs.some(r=>r.med===ESC[1]),gcs.some(x=>x.a.m==='GC_SUSP')||regs.some(r=>r.med===ESC[2]),regs.some(r=>r.med===ESC[3])];
   const score=n90*3+n+reinc*4+acc.length*5+ev.length*2;
   return {acts,regs,n,n90,ev,acc,gcs,reinc,mot,s,vic,alc,toca,score,rep,evid};
 }
@@ -552,7 +582,7 @@ function filaPersona(w,extra){
 function pintarInicio(){
   const base=Object.values(W).filter(w=>w.e==='ACTIVO'&&(!F.mina||minaDe(w)===F.mina)&&(!F.zona||zonaDe(w)===F.zona)&&(!F.gd||guardiaDe(w)===F.gd));
   const c={r:[],a:[],v:[]};base.forEach(w=>{const s=AN[w.d].s;if(c[s])c[s].push(w)});
-  const T={r:['Urgente','Buscar en esta guardia'],a:['Vigilar','Seguimiento preventivo'],v:['Estable','Un solo acto en el año']};
+  const T={r:['Urgente','4 o más actos en 90 días o accidente'],a:['Vigilar','Seguimiento preventivo'],v:['Estable','Un solo acto en el año']};
   $('#semaforo').innerHTML=['r','a','v'].map(k=>`<button class="luz ${k} ${F.sem===k?'on':''}" data-s="${k}"><span class="dot"></span><div class="n">${c[k].length}</div><div class="t">${T[k][0]}</div></button>`).join('');
   const L=c[F.sem].sort((p,q)=>AN[q.d].score-AN[p.d].score);
   $('#lista-tit').firstChild.textContent=T[F.sem][0]+' ';
@@ -611,9 +641,9 @@ function tarjActo(x){
   const a=x.a,m=MED[a.m];const prob=x.c==='P';
   return `<div class="tarj ${a.v?'k-sbc':a.m.startsWith('GC')?'k-gc':''}" onclick="this.classList.toggle('abierta')">
   <div class="t1"><div><div class="tt">${esc(hallazgoC(a.h,a.rp))}</div><div class="sb">${esc(a.l)} · reportó ${esc(reporto(a))}</div></div></div>
-  <div class="motivos">${a.v?'<span class="chip b">Hallazgo SBC</span>':'<span class="chip">GRISLI</span>'}<span class="chip">${esc(tipoC(a.t))}</span><span class="chip ${m[1]}">${m[0]}${a.m==='GC_SUSP'?' · suspensión':''}</span>${prob?'<span class="chip a">Identificación probable</span>':''}</div>
+  <div class="motivos">${a.v?'<span class="chip b">Hallazgo SBC</span>':'<span class="chip">GRISLI</span>'}<span class="chip">${esc(tipoC(a.t))}</span><span class="chip ${m[1]}">${m[0]}${a.m==='GC_SUSP'?' · suspensión':''}</span>${prob?'<span class="chip a">Identificación probable</span>':''}${x.c==='S'?'<span class="chip b">Asignado por similitud</span>':''}${x.c==='A'?'<span class="chip b">Asignado por similitud</span>':''}</div>
   <div class="det"><q>${esc(a.h)}</q><dl><dt>Código SAM</dt><dd>${esc(a.s)}</dd><dt>Acción</dt><dd>${esc(a.ac)}</dd><dt>Potencial</dt><dd>${esc(a.p)}</dd><dt>Cargó</dt><dd>${esc(a.g)}</dd></dl>
-  ${prob&&ADMIN?`<div class="conf"><button class="ok" onclick="event.stopPropagation();confirmar('${a.key}','${fichaD}')">Sí es él</button><button class="no" onclick="event.stopPropagation();confirmar('${a.key}','x')">No es él</button></div>`:''}</div></div>`;
+  ${(prob||x.c==='S')&&ADMIN?`<div class="conf"><button class="ok" onclick="event.stopPropagation();confirmar('${a.key}','${fichaD}')">Sí es él</button><button class="no" onclick="event.stopPropagation();confirmar('${a.key}','x')">No es él</button></div>`:''}</div></div>`;
 }
 function tarjEvento(e,rol){
   return `<div class="tarj ${e.k==='A'?'k-acc':'k-ev'}" onclick="this.classList.toggle('abierta')"><div class="tt">${e.k==='A'?'Accidente: ':'Incidente: '}${esc(e.t)}</div><div class="sb">${esc(e.l)} · ${esc(e.mi)} · ${esc(rol||'')}</div>
@@ -643,8 +673,7 @@ function abrirFicha(d){
   ${ADMIN?`<div class="acciones" style="grid-template-columns:1fr"><button class="btn pri" onclick="informe('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Generar Informe de Reincidencia</button></div>`:''}
   <div class="pestanas" id="pest">${[['todo','Todo'],['sbc','Psicología'],['grisli','GRISLI'],['ev','Eventos']].map(([k,t])=>`<button data-k="${k}" class="${fichaTab===k?'on':''}">${t}<em>${cnt[k]}</em></button>`).join('')}</div>
   <div class="tl" id="tl"></div>
-  <div class="panel"><h3>Evaluación de percepción de riesgo</h3><p>${ADMIN?'Sin resultado en la app todavía. Se conectará con el examen web SBC (semáforo y dimensión más débil).':'Sin evaluación registrada. Cuando la tenga, aquí verás su semáforo.'}</p></div>
-  <div class="panel"><h3>Capacitaciones</h3><p>Sin registro de capacitaciones completadas.</p></div>`;
+  ${panelEval(w)}`;
   registrar('Consultó ficha',w.n);
   const pintarTL=()=>{const f=L.filter(x=>fichaTab==='todo'||x.k===fichaTab||(fichaTab==='grisli'&&x.k==='gc'));
     $('#tl').innerHTML=f.length?f.map(x=>`<div class="ev"><div class="fe">${x.dt.getDate()}<small>${MES[x.dt.getMonth()]}</small></div>${x.html}</div>`).join(''):'<div class="vacio">Sin registros en esta sección.</div>'};
@@ -761,7 +790,8 @@ table{width:100%;border-collapse:collapse;font-size:7.8pt}th{background:#141C2F;
 <table><thead><tr><th style="width:16mm">Fecha</th><th style="width:30mm">Labor / SAM</th><th style="width:22mm">Reportó</th><th>Hallazgo (texto original)</th><th style="width:36mm">Medida tomada</th></tr></thead><tbody>${conf.slice().sort((a,b)=>a.a.dt-b.a.dt).map(fila).join('')}${regRows}</tbody></table>
 <p class="nota">Fuente: Sistema de Acciones de Mejora (GRISLI) y registros de Psicología SBC. Solo se incluyen reportes con identificación confirmada (nombre completo, DNI o validados por Psicología)${excl?`; ${excl} reporte(s) con identificación probable quedan fuera hasta ser confirmados en la app`:''}.</p>
 ${evs?`<h2>5. Incidentes y accidentes</h2><table><thead><tr><th style="width:16mm">Fecha</th><th style="width:30mm">Lugar</th><th style="width:28mm">Tipo / rol</th><th>Descripción</th><th style="width:28mm">Clasificación</th></tr></thead><tbody>${evs}</tbody></table>`:''}
-<h2>${evs?'6':'5'}. Conclusión y recomendación</h2>
+${(()=>{const e=evDe(w);return `<h2>${evs?'6':'5'}. Evaluación de percepción de riesgo y capacitación</h2><p>${e?`Evaluado el <b>${esc(e.f)}</b> (${esc(e.m||'')}): resultado <b>${esc(e.s)}</b>${e.dim?`; dimensión más débil: ${esc(e.dim)}`:''}. Capacitaciones asignadas: ${(e.cur||[]).map(k=>`${esc(k.c)} ${esc(k.n)} (${(DATA.CAP||{})[w.d+'|'+k.c]?'completada':'pendiente'})`).join(', ')||'ninguna'}.`:'Sin evaluación de percepción de riesgo registrada.'}</p>`})()}
+<h2>${evs?'7':'6'}. Conclusión y recomendación</h2>
 <div class="concl"><div class="top">MEDIDA QUE CORRESPONDE: ${ESC[an.toca-1].toUpperCase()} (ESCALÓN ${an.toca})</div><div class="bd">Desde Psicología SBC se recomienda:<ul><li><b>Operaciones:</b> aplicar la medida indicada conforme al Reglamento Interno de Trabajo.</li><li><b>Supervisión directa:</b> verificación al inicio de la tarea de las conductas reportadas mientras se resuelve el caso.</li><li><b>Psicología SBC:</b> seguimiento conductual en labor y evaluación/reevaluación de percepción de riesgo.</li></ul></div></div>
 <div class="firma"><div>Víctor Hugo Piñas Huarcaya<small>Psicólogo – Programa SBC · COPSEM</small></div><div>Recibido por Operaciones<small>Nombre, firma y fecha</small></div></div>
 <button class="print" onclick="print()">Guardar como PDF</button></body></html>`;
