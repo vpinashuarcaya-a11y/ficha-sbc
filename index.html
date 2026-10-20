@@ -105,7 +105,7 @@ button{cursor:pointer;border:0;background:none}
 .estado-ficha .motivos{margin-top:10px}
 .escalera{margin-top:16px}
 .escalera h3{font-size:14px;font-weight:600;color:var(--gris)}
-.rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:8px}
+.rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:8px}
 .paso{border-radius:10px;padding:9px 8px 8px;background:var(--papel);min-height:84px;position:relative}
 .paso .k{font-family:"Barlow Condensed";font-weight:700;font-size:20px;color:#A3ADC2;line-height:1}
 .paso .h{font-family:'Barlow Condensed';font-size:14px;font-weight:600;hyphens:none;margin-top:4px;line-height:1.15;color:var(--gris)}
@@ -348,6 +348,8 @@ body.wide .cab .yo{display:none}
 .sep-ces{font-family:"Barlow Condensed";font-size:19px;margin:18px 2px 4px;display:flex;align-items:baseline;gap:8px}.sep-ces small{font-family:Barlow;font-size:12.5px;color:var(--gris);font-weight:500}
 
 /* ===== Tema Cielo COPSEM ===== */
+.paso.pend{background:var(--ambar-s)!important;border:1.5px dashed var(--ambar)!important;color:var(--ambar-t)!important}.paso.pend .k,.paso.pend .h{color:var(--ambar-t)!important}.paso .h small{font-size:10.5px;font-weight:600}
+@media (max-width:480px){.rail .h{font-size:11px!important}}
 .disp::before{display:none!important}
 .disp-in p,.opc small{color:rgba(255,255,255,.9)!important}
 .opc button{background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.4)!important;backdrop-filter:blur(6px)}
@@ -587,7 +589,8 @@ const tipoC=t=>{const u=norm(t);for(const [r,v] of TIPO_C)if(r.test(u))return v;
 const hallazgoC=(h,rp)=>{let x=h;if(rp){const n=norm(rp);const u=norm(x);if(u.startsWith(n)){x=x.slice(rp.length).replace(/^[\s:;.,\-]+/,'')}}x=x.replace(/^\s*(inspecci[oó]n\s+)?[A-Za-zÁÉÍÓÚÑáéíóúñïÏ\. ]{3,40}?\s*[:;.]\s+/,'');const up=(x.match(/[A-ZÁÉÍÓÚÑ]/g)||[]).length,lo=(x.match(/[a-záéíóúñ]/g)||[]).length;if(up>lo)x=x.toLowerCase();x=x.charAt(0).toUpperCase()+x.slice(1);return x.length>120?x.slice(0,117).replace(/\s\S*$/,'')+'…':x};
 const reporto=a=>a.v?(ADMIN?'Psicología (tú)':'Psicología SBC'):a.rp?a.rp:(/GARITA/.test(norm(a.l))?'Garita de control':'sin nombre');
 const MED={GC_SUSP:['Gestión de consecuencias','r'],GC:['Gestión de consecuencias','r'],RETRO:['Retroalimentación','a'],CORR:['Corrección en sitio',''],OTRA:['Otra medida','']};
-const ESC=['Retroalimentación + evaluación','Amonestación escrita','Suspensión','Evaluación de permanencia'];
+const ESC=['Retroalimentación','Evaluación de percepción de riesgo + capacitaciones','Amonestación escrita','Suspensión','Evaluación de permanencia'];
+function medidaPor(l,p){if(l===0||p==='Bajo')return 1;if(p==='Alto')return Math.min(5,Math.max(4,l+1));return Math.min(5,Math.max(3,l+1))}
 function evDe(w){const L=(DATA.EV||{})[w.d];return L&&L.length?L[L.length-1]:null}
 const SEMC={VERDE:'v',AMARILLO:'a',ROJO:'r'};
 function panelEval(w){
@@ -606,7 +609,7 @@ async function marcarCurso(d,c,on){
   if(on)DATA.CAP[k]=hoy;else delete DATA.CAP[k];abrirFicha(d);
   const r=await api({a:'curso',dni:d,curso:c,hecho:on});if(r&&r.ok){DATA_RAW.CAP=r.cap;guardarCache();toast(on?'Capacitación marcada como completada':'Marca retirada')}else toast((r&&r.error)||'Sin señal: inténtalo con conexión');
 }
-const ESC_C=['Retro + evaluación','Amonestación','Suspensión','Permanencia'];
+const ESC_C=['Retroalimentación','Evaluación + capacitación','Amonestación','Suspensión','Permanencia'];
 const SUPERF=/PTARD|PETARD|PRESA|PLANTA|CAMPAMENTO|COMEDOR|LABORATORIO|OFICINA|GARITA|BALSA/;
 function ausencia(w){const d=w.ds;if(!d)return '';if(/AUSENTISMO/.test(norm(d.lo))){const e=norm(d.et);return tit(e&&e!=='GLB'?d.et:d.lb)}return ''}
 
@@ -636,12 +639,17 @@ function analizar(w){
   if(n===1&&s==='v')mot.push(['1 acto en el año','v']);
   if(!n&&!ev.length)s='n';
   const vic=acts.filter(x=>x.a.v).length+regs.length;
-  let gl=0; gcs.forEach(x=>gl=Math.max(gl,x.a.m==='GC_SUSP'?3:2)); regs.forEach(r=>{const k=ESC.indexOf(r.med)+1;gl=Math.max(gl,k)});
-  const alc=Math.max(Math.min(vic,4),gl);
-  const toca=alc===0?1:Math.min(alc+1,4);
-  const evid=[n>0||!!(DATA&&DATA.EV&&(DATA.EV[w.d]||[]).length),gcs.some(x=>x.a.m==='GC')||regs.some(r=>r.med===ESC[1]),gcs.some(x=>x.a.m==='GC_SUSP')||regs.some(r=>r.med===ESC[2]),regs.some(r=>r.med===ESC[3])];
+  const evaluado=!!(DATA&&DATA.EV&&(DATA.EV[w.d]||[]).length);
+  let lvl=0,ult=0;
+  acts.forEach(x=>{const m=medidaPor(lvl,x.a.p);ult=m;lvl=Math.max(lvl,m);if(x.a.m==='GC_SUSP')lvl=Math.max(lvl,4);else if(x.a.m&&x.a.m.startsWith('GC'))lvl=Math.max(lvl,3)});
+  regs.forEach(r=>{const k=ESC.indexOf(r.med)+1;if(k>0){lvl=Math.max(lvl,k);ult=Math.max(ult,k)}});
+  const alc=lvl;
+  const toca=ult||1;
+  const evid=[n>0,evaluado,gcs.some(x=>x.a.m==='GC')||regs.some(r=>r.med===ESC[2]),gcs.some(x=>x.a.m==='GC_SUSP')||regs.some(r=>r.med===ESC[3]),regs.some(r=>r.med===ESC[4])];
+  const prox={Bajo:medidaPor(lvl,'Bajo'),Medio:medidaPor(lvl,'Medio'),Alto:medidaPor(lvl,'Alto')};
+  if(n>0&&!evaluado)mot.push(['Evaluación pendiente','a']);
   const score=n90*3+n+reinc*4+acc.length*5+ev.length*2;
-  return {acts,regs,n,n90,ev,acc,gcs,reinc,mot,s,vic,alc,toca,score,rep,evid};
+  return {acts,regs,n,n90,ev,acc,gcs,reinc,mot,s,vic,alc,toca,score,rep,evid,evaluado,prox};
 }
 let AN={};
 function recalcular(){asignar();AN={};Object.values(W).forEach(w=>AN[w.d]=analizar(w))}
@@ -795,7 +803,7 @@ function abrirFicha(d){
   const L=eventosFicha(w,an);
   const cnt={todo:L.length,sbc:L.filter(x=>x.k==='sbc').length,grisli:L.filter(x=>x.k==='grisli'||x.k==='gc').length,ev:L.filter(x=>x.k==='ev').length};
   const ST={r:'Urgente',a:'Vigilar',v:'Estable',n:'Sin registros'};
-  const pasos=ESC_C.map((t,i)=>{const k=i+1;const cl=k===an.toca&&!(an.alc===4&&an.evid[3])?'ahora':(an.evid[i]?'hecho':(k<an.toca?'omit':''));return `<div class="paso ${cl}"><div class="k">${k}</div><div class="h">${t}${cl==='omit'?'<br><small>no aplicado</small>':''}</div></div>`}).join('');
+  const pasos=ESC_C.map((t,i)=>{const k=i+1;let cl=an.evid[i]?'hecho':'';if(k===2&&!an.evaluado&&an.n>0)cl='pend';else if(k===an.toca)cl='ahora';else if(!cl&&k<an.toca&&k!==2)cl='omit';return `<div class="paso ${cl}"><div class="k">${k}</div><div class="h">${t}${cl==='omit'?'<br><small>no aplicado</small>':cl==='pend'?'<br><small>obligatoria · pendiente</small>':''}</div></div>`}).join('');
   $('#v-ficha').innerHTML=`
   <header class="ficha-cab">
     <button class="volver" onclick="ir(vistaAnterior)">‹ Volver</button>
@@ -807,7 +815,7 @@ function abrirFicha(d){
     <div class="fila"><span class="sello ${an.s}">${ST[an.s]}</span><span style="font-size:14px;color:var(--gris)">${an.n} actos 2026 · ${an.ev.length} eventos</span></div>
     ${an.mot.length?`<div class="motivos">${an.mot.map(([t,c])=>`<span class="chip ${c}">${esc(t)}</span>`).join('')}</div>`:''}
     <div class="escalera"><h3>Escalera SBC 2026</h3><div class="rail">${pasos}</div>
-      <p class="nota">Si hoy lo encuentras en una desviación, corresponde: <b>${ESC[an.toca-1]}</b>.</p></div>
+      <p class="nota">Medida por su último acto: <b>${ESC[an.toca-1]}</b>. Si comete otro acto, según su potencial en GRISLI: Bajo → <b>${ESC_C[an.prox.Bajo-1]}</b> · Medio → <b>${ESC_C[an.prox.Medio-1]}</b> · Alto → <b>${ESC_C[an.prox.Alto-1]}</b>.${an.n>0&&!an.evaluado?' <b style="color:var(--ambar-t)">Falta la evaluación de percepción de riesgo y sus capacitaciones (obligatoria).</b>':''}</p></div>
   </div>
   ${ADMIN?`<div class="acciones" style="grid-template-columns:1fr"><button class="btn pri" onclick="informe('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Generar Informe de Reincidencia</button></div>`:''}
   <div class="pestanas" id="pest">${[['todo','Todo'],['sbc','Psicología'],['grisli','GRISLI'],['ev','Eventos']].map(([k,t])=>`<button data-k="${k}" class="${fichaTab===k?'on':''}">${t}<em>${cnt[k]}</em></button>`).join('')}</div>
@@ -899,7 +907,7 @@ function informe(d){
   const regRows=an.regs.map(r=>`<tr><td>${new Date(r.ts).toLocaleDateString('es-PE')}</td><td>${esc(r.labor)}</td><td>Psicología SBC</td><td class="q">“${esc(r.desc)}”</td><td><span class="tag t-r">${esc(r.med)}</span><br>${esc(r.retro)}</td></tr>`).join('');
   const fila=x=>{const a=x.a,m=MED[a.m];return `<tr><td>${a.f}</td><td>${esc(a.l)}<span class="sam">${esc(a.s)}</span></td><td>${esc(a.v?'Psicología SBC':reporto(a))}</td><td class="q">“${esc(a.h)}”</td><td><span class="tag ${m[1]==='r'?'t-r':m[1]==='a'?'t-a':'t-g'}">${m[0]}</span><br>${esc(a.ac.slice(0,140))}</td></tr>`};
   const evs=w.E.map(({e,rol})=>`<tr><td>${e.f}</td><td>${esc(e.l)}</td><td>${e.k==='A'?'Accidente':'Incidente'} · ${esc(rol)}</td><td class="q">${esc(e.de.slice(0,260))}</td><td>${esc(e.cl)}</td></tr>`).join('');
-  const pasos=ESC.map((t,i)=>{const k=i+1;const c=k===an.toca?'now':(an.evid[i]?'ok':'no');return `<div class="st ${c}"><div class="p">${c==='ok'?'✓ Aplicado':c==='now'?'▶ Corresponde':(k<an.toca?'— No aplicado':'Pendiente')}</div><div class="h">${k}. ${t}</div></div>`}).join('');
+  const pasos=ESC.map((t,i)=>{const k=i+1;let c=an.evid[i]?'ok':'no';if(k===an.toca&&k!==2)c='now';const lab=c==='ok'?'✓ Aplicado':c==='now'?'▶ Corresponde':(k===2?(an.n>0?'⚠ Obligatoria · pendiente':'Pendiente'):(k<an.toca?'— No aplicado':'Pendiente'));return `<div class="st ${c}"><div class="p">${lab}</div><div class="h">${k}. ${t}</div></div>`}).join('');
   const html=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de Reincidencia - ${esc(w.n)}</title><meta name="viewport" content="width=device-width,initial-scale=1">
 <style>${FONTS}</style>
 <style>@page{size:A4;margin:12mm 13mm}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Barlow,sans-serif;color:#16203A;font-size:9.4pt;line-height:1.42;-webkit-print-color-adjust:exact;print-color-adjust:exact;max-width:190mm;margin:0 auto;padding:6mm 0}
@@ -910,7 +918,7 @@ h2{font-family:"Barlow Condensed";font-size:12.5pt;color:#141C2F;margin:5mm 0 2m
 .ficha{display:grid;grid-template-columns:repeat(4,1fr);gap:2mm 4mm;border:1px solid #E1E6EF;border-radius:2mm;padding:3mm}.ficha .nm{grid-column:1/-1;font-family:"Barlow Condensed";font-size:16pt;font-weight:700;color:#141C2F}.ficha small{display:block;color:#5E6A82;font-size:7pt}.ficha b{font-weight:600}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:2.5mm;margin-top:3mm}.k{border:1px solid #E1E6EF;border-top:3px solid #1577EE;border-radius:1.5mm;padding:2.4mm 3mm}.k b{font-family:"Barlow Condensed";font-size:18pt;display:block;line-height:1;color:#141C2F}.k.r{border-top-color:#D64545}.k.r b{color:#D64545}.k span{font-size:7.4pt;color:#5E6A82}
 .res{background:#E7F0FD;border-left:3px solid #1577EE;padding:3mm 3.5mm;text-align:justify}
-.esc{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #E1E6EF;border-radius:1.5mm;overflow:hidden}.st{padding:2.6mm}.st+.st{border-left:1px solid #E1E6EF}.st .p{font-size:7pt;font-weight:700;color:#8a93a6}.st .h{font-weight:700;font-size:8.8pt;margin-top:.6mm}.st.ok{background:#E3F4EC}.st.ok .p{color:#2E9E6A}.st.now{background:#FDF3DC;box-shadow:inset 0 0 0 2px #E8A317}.st.now .p{color:#9A6500}
+.esc{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid #E1E6EF;border-radius:1.5mm;overflow:hidden}.st{padding:2.6mm}.st+.st{border-left:1px solid #E1E6EF}.st .p{font-size:7pt;font-weight:700;color:#8a93a6}.st .h{font-weight:700;font-size:8.8pt;margin-top:.6mm}.st.ok{background:#E3F4EC}.st.ok .p{color:#2E9E6A}.st.now{background:#FDF3DC;box-shadow:inset 0 0 0 2px #E8A317}.st.now .p{color:#9A6500}
 table{width:100%;border-collapse:collapse;font-size:7.8pt}th{background:#141C2F;color:#fff;text-align:left;padding:1.8mm 2mm;font-weight:600}td{padding:1.6mm 2mm;border-bottom:1px solid #E1E6EF;vertical-align:top}tr{page-break-inside:avoid}td.q{font-style:italic}.sam{display:block;color:#5E6A82;font-size:6.8pt}
 .tag{display:inline-block;font-size:6.8pt;font-weight:700;padding:.4mm 1.6mm;border-radius:4mm}.t-r{background:#FCEBEB;color:#A92F2F}.t-a{background:#FDF3DC;color:#9A6500}.t-g{background:#EEF1F6;color:#475063}
 .concl{border:2px solid #D64545;border-radius:2mm;overflow:hidden;page-break-inside:avoid}.concl .top{background:#D64545;color:#fff;padding:2.4mm 3.5mm;font-family:"Barlow Condensed";font-size:12pt;font-weight:700}.concl .bd{padding:3mm 3.5mm;text-align:justify}.concl li{margin:1mm 0 0 4mm}
