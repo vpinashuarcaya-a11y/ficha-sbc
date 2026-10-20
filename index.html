@@ -986,20 +986,32 @@ addEventListener('online',enviarPendientes);
 function verPw(id,b){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'Ver':'Ocultar'}
 function mostrar(id,on){$('#'+id).classList.toggle('on',on)}
 function cargando(t){if(t){$('#carga-t').textContent=t;mostrar('carga',true)}else mostrar('carga',false)}
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function guardarOff(dni,pw){try{const salt=(crypto.randomUUID?crypto.randomUUID():String(Math.random()));store.set('fsbc_off',{dni,salt,h:await sha(salt+'|'+dni+'|'+pw)})}catch(e){}}
+async function okOff(dni,pw){const o=store.get('fsbc_off',null);if(!o||o.dni!==dni)return false;try{return (await sha(o.salt+'|'+dni+'|'+pw))===o.h}catch(e){return false}}
+async function entrar(){
+  const c=await idbGet('datos');
+  if(c&&c.data&&c.dni===USER.dni){DATA_RAW=c.data;VER=c.ver;MAPA=c.mapa||[];CONF=c.conf||{};usarDatos();if(navigator.onLine)descargar(false,true)}
+  else await descargar(true);
+}
+let OCULTO=0;
+document.addEventListener('visibilitychange',()=>{if(document.hidden){OCULTO=Date.now()}else if(OCULTO&&USER&&Date.now()-OCULTO>5*60e3){$('#l-pw').value='';$('#l-err').textContent='Por seguridad, vuelve a ingresar tu contraseña.';mostrar('acceso',true)}});
 $('#f-login').addEventListener('submit',async e=>{
   e.preventDefault();const dni=$('#l-dni').value.trim(),pw=$('#l-pw').value;
   $('#l-err').textContent='';
   if(!/^\d{8}$/.test(dni)){$('#l-err').textContent='Escribe tu DNI de 8 dígitos.';return}
   if(!pw){$('#l-err').textContent='Escribe tu contraseña.';return}
-  if(!navigator.onLine){$('#l-err').textContent='Necesitas señal para ingresar la primera vez.';return}
+  const ses=store.get('fsbc_ses',null);
+  const offline=async()=>{if(ses&&ses.token&&ses.user&&ses.user.dni===dni&&await okOff(dni,pw)){TOKEN=ses.token;USER=ses.user;$('#l-pw').value='';mostrar('acceso',false);aplicarUsuario();if(!DATA)await entrar();toast('Sin señal: usando los últimos datos descargados');return true}return false};
+  if(!navigator.onLine){if(!(await offline()))$('#l-err').textContent='Sin señal. Si es tu primer ingreso en este equipo, hazlo con señal; si no, revisa tu contraseña.';return}
   $('#l-btn').disabled=true;$('#l-btn').textContent='Verificando…';
   const r=await api({a:'login',dni,pw,disp:store.get('fsbc_disp','')});
   $('#l-btn').disabled=false;$('#l-btn').textContent='Ingresar';
-  if(!r.ok){$('#l-err').textContent=r.error||'No se pudo ingresar.';return}
-  TOKEN=r.token;USER=r.user;store.set('fsbc_ses',{token:TOKEN,user:USER});$('#l-pw').value='';
+  if(!r.ok){if(/señal|conex|red|fetch/i.test(r.error||'')&&await offline())return;$('#l-err').textContent=r.error||'No se pudo ingresar.';return}
+  TOKEN=r.token;USER=r.user;store.set('fsbc_ses',{token:TOKEN,user:USER});await guardarOff(dni,pw);$('#l-pw').value='';
   mostrar('acceso',false);aplicarUsuario();
   if(USER.cambiar){abrirCambio(true);return}
-  await descargar(true);
+  if(!DATA||!DATA_RAW)await entrar();else descargar(false,true);
 });
 function abrirCambio(obligatorio){
   $('#c-hola').textContent=obligatorio?`Hola, ${pila(USER.nombre)}. Es tu primer ingreso: reemplaza la contraseña temporal por una que solo tú conozcas.`:'Cambia tu contraseña. Necesitas señal.';
@@ -1013,7 +1025,7 @@ $('#f-cambio').addEventListener('submit',async e=>{
   if(n1===a){$('#c-err').textContent='La contraseña nueva debe ser distinta de la actual.';return}
   $('#c-btn').disabled=true;const r=await api({a:'cambiar',actual:a,nueva:n1});$('#c-btn').disabled=false;
   if(!r.ok){$('#c-err').textContent=r.error||'No se pudo guardar.';return}
-  USER=r.user;store.set('fsbc_ses',{token:TOKEN,user:USER});mostrar('cambio',false);toast('Contraseña guardada');
+  USER=r.user;store.set('fsbc_ses',{token:TOKEN,user:USER});await guardarOff(USER.dni,n1);mostrar('cambio',false);toast('Contraseña guardada');
   if(!DATA)await descargar(true);
 });
 const pila=n=>{const t=(n||'').split(' ');return tit(t[2]||t[0]||'')};
@@ -1044,7 +1056,7 @@ function usarDatos(){
 async function salir(msg){
   if(msg!==undefined)toast(msg||'Sesión cerrada');
   else api({a:'salir'});
-  store.set('fsbc_ses',null);TOKEN=null;USER=null;DATA=null;DATA_RAW=null;await idbDel('datos');
+  store.set('fsbc_ses',null);store.set('fsbc_off',null);TOKEN=null;USER=null;DATA=null;DATA_RAW=null;await idbDel('datos');
   setTimeout(()=>location.reload(),msg?1800:300);
 }
 function menuUsuario(){
@@ -1116,14 +1128,10 @@ addEventListener('resize',()=>{if(document.body.classList.contains('vmapa'))ajus
 (async function(){
   const f=store.get('fsbc_f',null);if(f){F={...F,...f};['mina','gd'].forEach(k=>{const id=k==='mina'?'#f-mina':'#f-gd';$(id).querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===(F[k]||'')))})}
   const m=store.get('fsbc_disp',null);setDisp(m||sugerido());est();
-  const ses=store.get('fsbc_ses',null);
-  if(!ses||!ses.token){mostrar('acceso',true);if(!m)mostrarDisp();return}
-  TOKEN=ses.token;USER=ses.user;aplicarUsuario();
-  if(USER.cambiar){abrirCambio(true);return}
-  const c=await idbGet('datos');
-  if(c&&c.data&&c.dni===USER.dni){DATA_RAW=c.data;VER=c.ver;MAPA=c.mapa||[];CONF=c.conf||{};usarDatos();descargar(false,true)}
-  else await descargar(true);
   if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+  const ses=store.get('fsbc_ses',null);
+  if(ses&&ses.user&&ses.user.dni)$('#l-dni').value=ses.user.dni;
+  mostrar('acceso',true);if(!m)mostrarDisp();
 })();
 
 </script>
