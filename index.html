@@ -288,8 +288,8 @@ body.m-pc #v-ficha .datos{grid-template-columns:repeat(3,1fr)}
 @media (prefers-reduced-motion:reduce){.spin{animation-duration:3s}}
 .yo{width:38px;height:38px;border-radius:12px;background:var(--ambar);color:#2b1d00;font-family:"Barlow Condensed";font-weight:800;font-size:16px}
 body:not(.es-admin) .solo-admin{display:none!important}
-.barra{grid-template-columns:repeat(3,1fr)}
-body.es-admin .barra{grid-template-columns:repeat(5,1fr)}
+.barra{grid-template-columns:repeat(2,1fr)}
+body.es-admin .barra{grid-template-columns:repeat(4,1fr)}
 .zonas{display:flex;gap:6px;margin-top:8px;position:relative;z-index:1;overflow-x:auto;scrollbar-width:none}
 .zonas button{flex:none;padding:6px 11px;border-radius:9px;font-size:13.5px;font-weight:600;color:#AEB9CF;background:var(--socavon-2)}
 .zonas button.on{background:var(--ambar);color:#2b1d00}
@@ -387,7 +387,6 @@ body.wide .cab .yo{display:none}
 <nav class="barra" id="barra">
   <button data-v="inicio" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="2.6"/><circle cx="12" cy="12.5" r="2.6"/><circle cx="12" cy="19" r="2.6"/><rect x="7" y="2" width="10" height="20" rx="4"/></svg>Seguimiento</button>
   <button data-v="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar</button>
-  <button data-v="mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Mapa</button>
   <button data-v="pend" class="solo-admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Confirmar<span class="badge" id="badge-p" hidden></span></button>
   <button data-v="admin" class="solo-admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6"/><path d="m16 19 2 2 4-4"/></svg>Admin</button>
   <button class="cuenta" onclick="menuUsuario()"><i id="yo-ini2">··</i><span id="yo-n2">Mi cuenta</span></button>
@@ -926,7 +925,7 @@ async function pintarAdmin(){
     c.innerHTML=r.filas.length?`<div class="panel" style="margin:0">${r.filas.map(f=>`<div class="bit"><small>${esc(f.f)}</small><div><b>${esc(tit(f.n))}</b> · ${esc(f.a)}${f.d?`<br><small>${esc(tit(f.d))}</small>`:''}</div></div>`).join('')}</div>`:'<div class="vacio">Aún no hay movimientos.</div>';
   } else {
     c.innerHTML=`<div class="panel" style="margin:0"><h3>Datos cargados</h3><p>Corte: <b>${esc(DATA?DATA.gen:'—')}</b><br>Fuentes: ${esc(DATA&&DATA.src?DATA.src.join(' · '):'—')}<br>${DATA?`${DATA.W.length} trabajadores · ${DATA.A.length} actos · ${DATA.E.length} eventos`:''}</p></div>
-    <div class="panel" style="margin:10px 0 0"><h3>Subir datos nuevos</h3><p>Normalmente lo hace Claude cuando le avisas «ya actualicé el reporte GRISLI». Si hace falta hacerlo a mano, elige el archivo <b>ficha_sbc_datos.json</b> (y opcionalmente <b>ficha_sbc_mapa.json</b>).</p>
+    <div class="panel" style="margin:10px 0 0"><h3>Subir datos nuevos</h3><p>Normalmente lo hace Claude cuando le avisas «ya actualicé el reporte GRISLI». Si hace falta hacerlo a mano, elige el archivo <b>ficha_sbc_datos.json</b>.</p>
       <input type="file" id="up-f" accept=".json,application/json" multiple style="margin-top:10px">
       <button class="btn pri ancho" style="margin-top:10px" onclick="subirDatos()">Subir y actualizar</button></div>`;
   }
