@@ -187,6 +187,35 @@ button{cursor:pointer;border:0;background:none}
 .toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);background:var(--socavon);color:#fff;padding:12px 16px;border-radius:12px;font-weight:600;font-size:14.5px;opacity:0;transition:.2s;z-index:50;max-width:90%;text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
+
+/* ---------- tablero ---------- */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 16px 0}
+.kpi{background:var(--blanco);border-radius:var(--r-m);padding:12px;box-shadow:var(--sombra)}
+.kpi .n{font-family:"Barlow Condensed";font-size:30px;font-weight:700;line-height:1}
+.kpi .t{font-size:12.5px;color:var(--gris);margin-top:4px}
+.kpi .d{font-size:12.5px;font-weight:700;margin-top:4px}
+.kpi .d.up{color:var(--rojo)}.kpi .d.down{color:var(--verde)}
+.barras{margin-top:10px;display:flex;flex-direction:column;gap:7px}
+.br{display:grid;grid-template-columns:minmax(90px,38%) 1fr 34px;gap:8px;align-items:center;font-size:13.5px}
+.br .lb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.br .tr{height:12px;border-radius:6px;background:var(--papel);overflow:hidden}
+.br .tr i{display:block;height:100%;border-radius:6px;background:var(--ambar)}
+.br .tr i.r{background:var(--rojo)}
+.br b{text-align:right;font-variant-numeric:tabular-nums}
+.tend{display:flex;align-items:flex-end;gap:5px;height:120px;margin-top:12px}
+.tend div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--gris)}
+.tend span.b{width:100%;background:var(--socavon-3);border-radius:5px 5px 0 0;min-height:2px}
+.tend div.ul span.b{background:var(--ambar)}
+.tend small{font-size:10.5px;margin-top:3px;white-space:nowrap}
+.tend em{font-style:normal;font-size:11px;font-weight:700;color:var(--socavon);margin-bottom:2px}
+#v-tab .filtros{flex-wrap:wrap;gap:8px}
+#v-tab .seg button{white-space:nowrap}
+.dos{display:grid;grid-template-columns:1fr;gap:0}
+body.wide.vtab #v-ficha{display:none}
+body.wide #v-tab.on{grid-column:2 / 4}
+body.wide #v-tab .dos{grid-template-columns:1fr 1fr}
+body.wide #v-tab .kpis{grid-template-columns:repeat(6,1fr)}
+@media (max-width:380px){.kpis{grid-template-columns:repeat(2,1fr)}}
 /* ---------- mapa ---------- */
 .mapa-wrap{margin:14px 16px 0;border-radius:var(--r-l);overflow:hidden;background:var(--socavon);position:relative;height:58vh;min-height:360px;box-shadow:var(--sombra);touch-action:none}
 .mapa-wrap svg{width:100%;height:100%;display:block}
@@ -288,8 +317,8 @@ body.m-pc #v-ficha .datos{grid-template-columns:repeat(3,1fr)}
 @media (prefers-reduced-motion:reduce){.spin{animation-duration:3s}}
 .yo{width:38px;height:38px;border-radius:12px;background:var(--ambar);color:#2b1d00;font-family:"Barlow Condensed";font-weight:800;font-size:16px}
 body:not(.es-admin) .solo-admin{display:none!important}
-.barra{grid-template-columns:repeat(2,1fr)}
-body.es-admin .barra{grid-template-columns:repeat(4,1fr)}
+.barra{grid-template-columns:repeat(3,1fr)}
+body.es-admin .barra{grid-template-columns:repeat(5,1fr)}
 .zonas{display:flex;gap:6px;margin-top:8px;position:relative;z-index:1;overflow-x:auto;scrollbar-width:none}
 .zonas button{flex:none;padding:6px 11px;border-radius:9px;font-size:13.5px;font-weight:600;color:#AEB9CF;background:var(--socavon-2)}
 .zonas button.on{background:var(--ambar);color:#2b1d00}
@@ -334,6 +363,27 @@ body.wide .cab .yo{display:none}
   </header>
   <div class="semaforo" id="semaforo"></div>
   <div class="bloque"><h2 id="lista-tit">Urgente <small id="lista-n"></small></h2><div class="lista" id="lista-sem"></div></div>
+</section>
+
+<!-- ================= TABLERO ================= -->
+<section class="vista" id="v-tab">
+  <header class="cab">
+    <div class="marca"><b>Tablero</b></div>
+    <div class="titulo-inicio"><h1>Tendencia de actos</h1><p id="tab-sub">Actos COPSEM reportados en GRISLI.</p></div>
+    <div class="filtros">
+      <div class="seg" id="t-per"><button data-v="7" class="on">Semana</button><button data-v="30">30 días</button><button data-v="90">90 días</button><button data-v="365">Año</button></div>
+      <div class="seg" id="t-mina"><button data-v="" class="on">Todas</button><button data-v="ACCHILLA">Acchilla</button><button data-v="ESTELA">Estela</button></div>
+    </div>
+  </header>
+  <div class="kpis" id="t-kpi"></div>
+  <div class="panel"><h3>Actos por semana</h3><p>Últimas 12 semanas</p><div class="tend" id="t-tend"></div></div>
+  <div class="dos">
+    <div class="panel"><h3>Tipos de acto más frecuentes</h3><div class="barras" id="t-tipo"></div></div>
+    <div class="panel"><h3>Ranking por labor</h3><p>Según la labor actual del trabajador</p><div class="barras" id="t-lab"></div></div>
+    <div class="panel"><h3>Ranking por nivel</h3><div class="barras" id="t-nv"></div></div>
+    <div class="panel"><h3>Ranking por guardia</h3><div class="barras" id="t-gd"></div></div>
+  </div>
+  <div style="height:24px"></div>
 </section>
 
 <!-- ================= BUSCAR ================= -->
@@ -387,6 +437,7 @@ body.wide .cab .yo{display:none}
 <nav class="barra" id="barra">
   <button data-v="inicio" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="2.6"/><circle cx="12" cy="12.5" r="2.6"/><circle cx="12" cy="19" r="2.6"/><rect x="7" y="2" width="10" height="20" rx="4"/></svg>Seguimiento</button>
   <button data-v="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar</button>
+  <button data-v="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Tablero</button>
   <button data-v="pend" class="solo-admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Confirmar<span class="badge" id="badge-p" hidden></span></button>
   <button data-v="admin" class="solo-admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6"/><path d="m16 19 2 2 4-4"/></svg>Admin</button>
   <button class="cuenta" onclick="menuUsuario()"><i id="yo-ini2">··</i><span id="yo-n2">Mi cuenta</span></button>
@@ -559,6 +610,7 @@ let vistaAnterior='inicio';
 const ANCHO=()=>document.body.classList.contains('wide');
 function ir(v){
   document.body.classList.toggle('vmapa',v==='mapa');
+  document.body.classList.toggle('vtab',v==='tab');
   document.querySelectorAll(ANCHO()?'.vista:not(#v-ficha)':'.vista').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
   document.querySelectorAll('.barra button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   if(v!=='ficha')vistaAnterior=v;
@@ -566,6 +618,7 @@ function ir(v){
   if(v==='pend')pintarPend();
   if(v==='admin')pintarAdmin();
   if(v==='mapa')pintarMapa();
+  if(v==='tab')pintarTab();
 }
 $('#barra').addEventListener('click',e=>{const b=e.target.closest('button');if(b)ir(b.dataset.v)});
 
@@ -595,6 +648,51 @@ document.addEventListener('click',e=>{
   if(e.target.id==='ver-mas'){limite+=25;pintarInicio();return}
   const p=e.target.closest('.persona[data-d]');if(p)abrirFicha(p.dataset.d);
 });
+
+
+/* ---------- tablero ---------- */
+let TF={per:7,mina:''};
+function pintarTab(){
+  if(!DATA)return;
+  const DIA=864e5;let mxd=0;DATA.A.forEach(a=>{const t=a.dt&&a.dt.getTime();if(t&&t>mxd&&t<=HOY.getTime())mxd=t});const ref=new Date(mxd||HOY.getTime()),fin=new Date(ref.getFullYear(),ref.getMonth(),ref.getDate()+1).getTime();
+  const per=TF.per, ini=fin-per*DIA, iniA=ini-per*DIA;
+  // actos asignados (una vez por acto) con su trabajador
+  const vistos=new Set(), L=[];
+  Object.values(W).forEach(w=>{if(TF.mina&&minaDe(w)!==TF.mina)return;w.A.forEach(x=>{const k=x.a.i+'|'+w.d;L.push({a:x.a,w});})});
+  const actos=new Map();L.forEach(o=>{if(!actos.has(o.a.i))actos.set(o.a.i,o)});
+  const unicos=[...actos.values()];
+  const en=(o,a,b)=>{const t=o.a.dt.getTime();return t>=a&&t<b};
+  const cur=unicos.filter(o=>en(o,ini,fin)), ant=unicos.filter(o=>en(o,iniA,ini));
+  const pers=new Set(L.filter(o=>en(o,ini,fin)).map(o=>o.w.d));
+  const rojos=Object.values(W).filter(w=>w.e==='ACTIVO'&&(!TF.mina||minaDe(w)===TF.mina)&&AN[w.d].s==='r').length;
+  const gc=cur.filter(o=>o.a.m&&o.a.m.startsWith('GC')).length;
+  const dlt=(a,b)=>{if(!b)return a?'<div class="d up">nuevo</div>':'<div class="d">sin cambio</div>';const p=Math.round((a-b)/b*100);return `<div class="d ${p>0?'up':p<0?'down':''}">${p>0?'▲ +':p<0?'▼ ':''}${p}% vs anterior</div>`};
+  const nom={7:'última semana',30:'últimos 30 días',90:'últimos 90 días',365:'último año'}[per];
+  $('#tab-sub').textContent=`Actos COPSEM reportados en GRISLI · ${nom} · último reporte ${ref.toLocaleDateString('es-PE')}`;
+  $('#t-kpi').innerHTML=[
+    [cur.length,'Actos '+nom,dlt(cur.length,ant.length)],
+    [ant.length,'Periodo anterior',''],
+    [pers.size,'Trabajadores con actos',''],
+    [gc,'Con gestión de consecuencias',''],
+    [rojos,'En rojo (urgente)',''],
+    [Object.values(W).filter(w=>w.e==='ACTIVO'&&(!TF.mina||minaDe(w)===TF.mina)).length,'Trabajadores activos','']
+  ].map(([n,tx,d])=>`<div class="kpi"><div class="n">${n}</div><div class="t">${tx}</div>${d}</div>`).join('');
+  // tendencia 12 semanas
+  const sem=[];for(let i=11;i>=0;i--){const b=fin-i*7*DIA,a=b-7*DIA;sem.push({a,b,n:unicos.filter(o=>en(o,a,b)).length})}
+  const mx=Math.max(1,...sem.map(s=>s.n));
+  $('#t-tend').innerHTML=sem.map((s,i)=>{const d=new Date(s.a);return `<div class="${i===11?'ul':''}" title="${s.n} actos"><em>${s.n}</em><span class="b" style="height:${Math.round(s.n/mx*85)}%"></span><small>${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}</small></div>`}).join('');
+  const barras=(sel,cnt,top,rojo)=>{const e=Object.entries(cnt).filter(([k])=>k&&k!=='undefined').sort((p,q)=>q[1]-p[1]).slice(0,top);const m=Math.max(1,...e.map(x=>x[1]));
+    $(sel).innerHTML=e.length?e.map(([k,n],i)=>`<div class="br"><span class="lb" title="${esc(k)}">${esc(k)}</span><span class="tr"><i class="${rojo&&i<3?'r':''}" style="width:${Math.round(n/m*100)}%"></i></span><b>${n}</b></div>`).join(''):'<p>Sin actos en este periodo.</p>'};
+  const c1={};cur.forEach(o=>{const k=tipoC(o.a.t);c1[k]=(c1[k]||0)+1});barras('#t-tipo',c1,8,true);
+  const pc=L.filter(o=>en(o,ini,fin));
+  const c2={},c3={},c4={};
+  pc.forEach(o=>{const d=o.w.ds||{};const lb=d.lb&&!/SIN LABOR/.test(d.lb)?d.lb:'';if(lb)c2[lb]=(c2[lb]||0)+1;
+    const z=zonaDe(o.w);if(z){const k=(minaDe(o.w)==='ACCHILLA'?'Acchilla ':'Estela ')+z;c3[k]=(c3[k]||0)+1}
+    const g=guardiaDe(o.w);if(g)c4['Guardia '+g]=(c4['Guardia '+g]||0)+1});
+  barras('#t-lab',c2,10,true);barras('#t-nv',c3,8,true);barras('#t-gd',c4,4,false);
+}
+function segT(id,key){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$(id).querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));TF[key]=key==='per'?+b.dataset.v:b.dataset.v;pintarTab()})}
+segT('#t-per','per');segT('#t-mina','mina');
 
 /* ---------- buscar ---------- */
 let modoB='p';
@@ -890,6 +988,7 @@ function usarDatos(){
   indexar();pintarZonas();pintarInicio();actualizarBadge();est();
   if(fichaD&&W[fichaD]&&$('#v-ficha').classList.contains('on'))abrirFicha(fichaD);else if(ANCHO())fichaVacia();
   if(document.body.classList.contains('vmapa'))pintarMapa();
+  if(document.body.classList.contains('vtab'))pintarTab();
 }
 async function salir(msg){
   if(msg!==undefined)toast(msg||'Sesión cerrada');
