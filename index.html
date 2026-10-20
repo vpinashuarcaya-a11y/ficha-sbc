@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#141C2F">
+<meta name="theme-color" content="#1070E8">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -346,6 +346,41 @@ body.wide .cab .yo{display:none}
 .tag-ces{display:inline-block;vertical-align:middle;font-family:Barlow;font-size:11.5px;font-weight:800;letter-spacing:.04em;background:#5B6476;color:#fff;border-radius:6px;padding:2px 7px;margin-left:6px}
 .persona.ces{opacity:.75}
 .sep-ces{font-family:"Barlow Condensed";font-size:19px;margin:18px 2px 4px;display:flex;align-items:baseline;gap:8px}.sep-ces small{font-family:Barlow;font-size:12.5px;color:var(--gris);font-weight:500}
+
+/* ===== Tema Cielo COPSEM ===== */
+.disp::before{display:none!important}
+.disp-in p,.opc small{color:rgba(255,255,255,.9)!important}
+.opc button{background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.4)!important;backdrop-filter:blur(6px)}
+.opc button:hover,.opc button:focus-visible{border-color:#fff!important;background:rgba(255,255,255,.26)!important}
+.opc svg{stroke:#fff!important}
+
+:root{--papel:#F2F7FF}
+.cab,.ficha-cab{background:linear-gradient(135deg,#0B5FD6 0%,#1070E8 45%,#63B6FF 100%)!important}
+.cab::before,.cab::after,.ficha-cab::before,.ficha-cab::after{display:none!important}
+.acceso,.disp{background:radial-gradient(circle at 85% 5%,rgba(255,255,255,.28),transparent 45%),linear-gradient(135deg,#0B5FD6 0%,#1070E8 45%,#63B6FF 100%)!important}
+.acceso::before{display:none}
+.acceso .lema,.acceso label,.acceso .pie,.acceso .ver,.btn.link{color:rgba(255,255,255,.92)!important}
+.acceso input{background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.45)!important}
+.acceso input::placeholder{color:rgba(255,255,255,.7)}
+.acceso input:focus{border-color:#fff!important;background:rgba(255,255,255,.24)!important}
+.acceso .err{color:#FFE1E1!important}
+.acceso .btn.pri{background:#fff!important;color:#0B4FB8!important}
+body.wide .barra{background:linear-gradient(180deg,#0B4FB8,#1070E8 70%,#3D95F5)!important}
+body.wide .barra button{color:rgba(255,255,255,.85)!important}
+body.wide .barra button.on{background:rgba(255,255,255,.2)!important;color:#fff!important}
+body.m-pc .barra::before{color:#fff!important}
+.seg{background:rgba(255,255,255,.18)!important}
+.seg button{color:rgba(255,255,255,.92)!important}
+.seg button.on{background:#fff!important;color:#0B4FB8!important}
+.zonas button{background:rgba(255,255,255,.18)!important;color:#fff!important}
+.zonas button.on{background:#fff!important;color:#0B4FB8!important}
+.estado{background:rgba(255,255,255,.2)!important;color:#fff!important}
+.titulo-inicio p,.ficha-top p,.volver{color:rgba(255,255,255,.9)!important}
+.datos{background:rgba(255,255,255,.25)!important}
+.datos div,.hoy{background:rgba(255,255,255,.16)!important;color:#fff!important}
+.datos small{color:rgba(255,255,255,.8)!important}
+.ficha-top .av{background:rgba(255,255,255,.22)!important}
+.ficha-top .av::after{border-color:#1070E8!important}
 </style>
 </head>
 <body>
@@ -493,7 +528,7 @@ body.wide .cab .yo{display:none}
   <div class="opc" id="opc">
     <button data-m="cel"><svg viewBox="0 0 64 64" fill="none" stroke-width="3" stroke-linecap="round"><rect x="20" y="6" width="24" height="52" rx="5"/><path d="M29 51h6"/></svg><div class="txt"><b>Celular</b><br><small>En mina, sin señal, una mano</small></div><span class="rec">Recomendado</span></button>
     <button data-m="tab"><svg viewBox="0 0 64 64" fill="none" stroke-width="3" stroke-linecap="round"><rect x="10" y="8" width="44" height="48" rx="5"/><path d="M28 50h8"/></svg><div class="txt"><b>Tablet</b><br><small>Lista y ficha lado a lado</small></div><span class="rec">Recomendado</span></button>
-    <button data-m="pc"><svg viewBox="0 0 64 64" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="12" width="44" height="30" rx="3"/><path d="M4 50h56l-4-8H8z"/></svg><div class="txt"><b>Computadora / laptop</b><br><small>Oficina: análisis, mapa e informes</small></div><span class="rec">Recomendado</span></button>
+    <button data-m="pc"><svg viewBox="0 0 64 64" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="12" width="44" height="30" rx="3"/><path d="M4 50h56l-4-8H8z"/></svg><div class="txt"><b>Computadora / laptop</b><br><small>Oficina: análisis, tablero e informes</small></div><span class="rec">Recomendado</span></button>
   </div></div></div>
 <div class="velo" id="velo"></div>
 <div class="hoja" id="hoja"></div>
