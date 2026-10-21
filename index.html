@@ -463,6 +463,16 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 .turno.td{background:#FFF4D6;color:#8A5A00}.turno.tn{background:#E4E9FF;color:#2E3F9E}.turno.dl{background:#E9EDF3;color:#5E6A82}
 .turnos-hoy{margin-top:8px!important;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:rgba(255,255,255,.9)}
 .turnos-hoy .turno{margin-left:0;font-size:12px;padding:3px 8px}
+
+/* ===== v20 ===== */
+.tg-hoy{margin-top:8px;background:rgba(255,255,255,.18);color:#fff;border-radius:20px;padding:6px 12px;font-size:13px;font-weight:700;position:relative;z-index:1}
+.tg-hoy.on{background:#fff;color:#0B4FB8}
+.retorno{display:flex;align-items:center;gap:10px;width:calc(100% - 32px);margin:10px 16px 0;padding:11px 14px;border-radius:var(--r-m);background:#EEF4FF;border:1.5px solid #BBD2FB;color:#1D3E7A;font-size:14px;text-align:left}
+.retorno .ic{font-size:20px;flex:none}.retorno small{display:block;font-size:12.5px;color:#4A5F86;margin-top:2px}.retorno .ver{margin-left:auto;font-weight:700;color:#0B4FB8;flex:none}
+.ruta-t{font-family:"Barlow Condensed";font-size:20px;margin:14px 0 6px}.ruta-g{margin:10px 0}.ruta-g>b{display:block;font-size:13.5px;color:var(--gris);margin-bottom:6px}
+.vis{border-left:3px solid var(--verde);padding:6px 10px;margin-top:8px;background:var(--papel);border-radius:0 10px 10px 0}.vis b{font-size:13.5px}.vis p{margin-top:2px!important;color:var(--tinta)!important}
+.rec-g{display:grid;gap:2px;padding:9px 12px;border-radius:10px;background:var(--verde-s);margin-top:8px}.rec-g.dl{background:var(--ambar-s)}
+.rec-g span{font-size:13.5px}.rec-g em{font-style:normal;font-size:12.5px;color:var(--gris)}
 </style>
 </head>
 <body>
@@ -474,7 +484,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
     <div class="marca"><b>Alerta <span>SBC</span></b><div style="display:flex;gap:6px;align-items:center"><div class="estado" id="estado"><i></i><span>Datos</span></div><button class="btn-act" id="btn-act" onclick="actualizarTodo()" title="Actualizar app y datos" aria-label="Actualizar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><span>Actualizar</span></button><span id="disp-l" hidden></span><button class="yo" id="yo" onclick="menuUsuario()" aria-label="Mi cuenta"><span id="yo-ini">··</span></button></div></div>
     <div class="titulo-inicio">
       <h1 id="saludo">¿A quién buscar hoy?</h1>
-      <p id="sub-inicio">¿A quién buscar hoy? Según actos, eventos y medidas del año.</p><p id="turnos-hoy" class="turnos-hoy"></p>
+      <p id="sub-inicio">¿A quién buscar hoy? Según actos, eventos y medidas del año.</p><p id="turnos-hoy" class="turnos-hoy"></p><button type="button" class="tg-hoy" id="f-hoy" onclick="F.hoy=!F.hoy;this.classList.toggle('on',!!F.hoy);limite=25;pintarInicio()">📍 Solo en mina hoy</button>
     </div>
     <div class="filtros">
       <div class="seg" id="f-mina"><button data-v="" class="on">Todas</button><button data-v="ACCHILLA">Acchilla</button><button data-v="ESTELA">Estela</button></div>
@@ -483,6 +493,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
     <div class="zonas" id="f-zona"></div>
   </header>
   <div id="nuevos-rojos"></div>
+  <div id="retorno"></div>
   <div class="semaforo" id="semaforo"></div>
   <div class="bloque"><h2 id="lista-tit">Urgente <small id="lista-n"></small></h2><div class="lista" id="lista-sem"></div></div>
 </section>
@@ -505,6 +516,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
     <div class="panel"><h3>Ranking por labor</h3><p>Según la labor actual del trabajador</p><div class="barras" id="t-lab"></div></div>
     <div class="panel"><h3>Ranking por nivel</h3><div class="barras" id="t-nv"></div></div>
     <div class="panel"><h3>Ranking por guardia</h3><div class="barras" id="t-gd"></div></div>
+    <div class="panel"><h3>Actos por turno</h3><p>Según el ruster de su guardia el día del acto.</p><div id="t-turno" style="margin-top:6px"></div></div>
     <div class="panel"><h3>Parejas de riesgo</h3><p>Trabajadores reportados juntos en un mismo acto este año.</p><div id="t-par" style="margin-top:8px"></div></div>
     <div class="panel"><h3>Refuerzo positivo</h3><p id="t-ref-p"></p><div class="lista" id="t-ref" style="margin-top:8px"></div></div>
   </div>
@@ -776,8 +788,9 @@ function filaPersona(w,extra){
   return `<button class="persona${w.e!=='ACTIVO'?' ces':''}" data-d="${w.d}"><div class="av ${w.e!=='ACTIVO'?'n':an.s}">${ini(w.n)}</div><div><div class="nm">${esc(tit(w.n))}${w.e!=='ACTIVO'?' <span class="tag-ces">CESADO</span>':''}</div><div class="sub">${esc(tit(w.c))} · Gdia ${esc(guardiaDe(w))}${turnoTag(w)}${zonaDe(w)?' · '+(minaDe(w)==='ACCHILLA'?'Acchilla ':'Estela ')+zonaDe(w):''}${lab?' · '+esc(lab):''}</div>${chips?`<div class="motivos">${chips}</div>`:''}</div><div class="num-act"><b>${an.n}</b><span>actos</span></div></button>`;
 }
 function pintarInicio(){
+  try{pintarRetorno()}catch(e){}
   try{$('#turnos-hoy').innerHTML='Hoy: '+turnoHoyTxt()}catch(e){}
-  const base=Object.values(W).filter(w=>w.e==='ACTIVO'&&(!F.mina||minaDe(w)===F.mina)&&(!F.zona||zonaDe(w)===F.zona)&&(!F.gd||guardiaDe(w)===F.gd));
+  const base=Object.values(W).filter(w=>w.e==='ACTIVO'&&(!F.mina||minaDe(w)===F.mina)&&(!F.zona||zonaDe(w)===F.zona)&&(!F.gd||guardiaDe(w)===F.gd)&&(!F.hoy||enMinaHoy(w)));
   const c={r:[],a:[],v:[]};base.forEach(w=>{const s=AN[w.d].s;if(c[s])c[s].push(w)});
   const T={r:['Urgente','4 o más actos en 90 días o accidente'],a:['Vigilar','Seguimiento preventivo'],v:['Estable','Un solo acto en el año']};
   $('#semaforo').innerHTML=['r','a','v'].map(k=>`<button class="luz ${k} ${F.sem===k?'on':''}" data-s="${k}"><span class="dot"></span><div class="n">${c[k].length}</div><div class="t">${T[k][0]}</div></button>`).join('');
@@ -795,6 +808,52 @@ document.addEventListener('click',e=>{
 });
 
 
+
+
+/* ===== v20: turnos en campo ===== */
+const enMinaHoy=w=>{const tt=turnoDe(guardiaDe(w));return !!tt&&tt.k!=='DL'&&!ausencia(w)};
+const dd=d=>String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+function retornos(){return ['A','B','C'].map(g=>{const x=turnoDe(g);if(!x||x.k!=='DL')return null;const vuelve=new Date(x.fin.getFullYear(),x.fin.getMonth(),x.fin.getDate()+1);const dias=Math.round((vuelve-new Date(HOY.getFullYear(),HOY.getMonth(),HOY.getDate()))/864e5);const t2=turnoDe(g,vuelve);
+  const ws=activos().filter(w=>guardiaDe(w)===g&&(!F.mina||minaDe(w)===F.mina));const urg=ws.filter(w=>AN[w.d].s==='r');const sinEv=ws.filter(w=>AN[w.d].n>0&&!AN[w.d].evaluado);
+  return {g,vuelve,dias,turno:t2?t2.k:'TD',urg,sinEv}}).filter(Boolean)}
+function pintarRetorno(){const el=$('#retorno');if(!el||!DATA)return;const R=retornos();
+  el.innerHTML=R.map(r=>`<button class="retorno" onclick="verRetorno('${r.g}')"><span class="ic">↩</span><span><b>${r.dias<=1?'Mañana':'En '+r.dias+' días'} (${dd(r.vuelve)}) regresa la Guardia ${r.g}</b> · turno ${r.turno==='TN'?'noche':'día'}<small>${r.urg.length} urgente${r.urg.length!==1?'s':''} · ${r.sinEv.length} sin evaluación${ADMIN?' · prepara retroalimentación y evaluaciones al ingreso':''}</small></span><span class="ver">Ver</span></button>`).join('')}
+function verRetorno(g){const r=retornos().find(x=>x.g===g);if(!r)return;const L=[...new Set([...r.urg,...r.sinEv.filter(w=>AN[w.d].toca>=3)])];
+  abrirHoja(`<div class="hoja-cab"><h2>Regresa la Guardia ${g} · ${dd(r.vuelve)}</h2><p>Turno ${r.turno==='TN'?'noche':'día'}. Trabajadores a atender al ingreso: urgentes y quienes, sin evaluación, ya están en amonestación o más.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><div class="lista">${L.sort((a,b)=>AN[b.d].score-AN[a.d].score).map(w=>filaPersona(w)).join('')||'<p>Nadie pendiente en esta guardia.</p>'}</div></div>`)}
+// Ruta de campo (admin)
+function verRuta(){const hoy=activos().filter(w=>enMinaHoy(w)&&(!F.mina||minaDe(w)===F.mina));
+  const pri=hoy.filter(w=>{const a=AN[w.d];return a.s==='r'||NUEVOS_ROJOS.includes(w.d)||(!a.evaluado&&a.toca>=4&&a.n90>=2)});
+  const grupos={};pri.forEach(w=>{const t=turnoDe(guardiaDe(w)).k;const ds=w.ds||{};const k=t+'|'+(minaDe(w)==='ACCHILLA'?'Acchilla':'Estela')+'|'+(zonaDe(w)||ds.nv||'—')+'|'+(ds.lb||'Sin labor asignada');(grupos[k]=grupos[k]||[]).push(w)});
+  const ks=Object.keys(grupos).sort();let h='',tAnt='';
+  ks.forEach(k=>{const [t,m,z,lb]=k.split('|');if(t!==tAnt){h+=`<h3 class="ruta-t">${t==='TD'?'☀ Turno día':'🌙 Turno noche'} · Gdia ${['A','B','C'].find(g=>turnoDe(g).k===t)}</h3>`;tAnt=t}
+    h+=`<div class="ruta-g"><b>${esc(m)} · Nv. ${esc(z)} · ${esc(lb)}</b><div class="lista">${grupos[k].sort((a,b)=>AN[b.d].score-AN[a.d].score).map(w=>filaPersona(w)).join('')}</div></div>`});
+  abrirHoja(`<div class="hoja-cab"><h2>Ruta de campo · ${dd(HOY)}</h2><p>${pri.length} trabajadores prioritarios que hoy están en mina, agrupados por turno, mina, nivel y labor: urgentes, recién pasados a rojo y sin evaluación con suspensión o más y actos recientes.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">${h||'<p>Nadie prioritario en mina hoy.</p>'}</div>`)}
+// Actos por turno (Tablero)
+function pintarTurnoActos(){const el=$('#t-turno');if(!el||!DATA)return;const ref=refFecha();const fin=new Date(ref.getFullYear(),ref.getMonth(),ref.getDate()+1).getTime(),ini=fin-TF.per*864e5;
+  const c={TD:0,TN:0,DL:0};const vistos=new Set();
+  activos().forEach(w=>{if(TF.mina&&minaDe(w)!==TF.mina)return;w.A.forEach(x=>{const t=x.a.dt.getTime();if(t<ini||t>=fin)return;const k=x.a.i+'|'+w.d;if(vistos.has(k))return;vistos.add(k);const tt=turnoDe(guardiaDe(w),x.a.dt);if(tt)c[tt.k]++})});
+  const tot=c.TD+c.TN+c.DL||1;const m=Math.max(1,c.TD,c.TN,c.DL);const row=(l,n,cl)=>`<div class="br"><span class="lb">${l}</span><span class="tr"><i class="${cl}" style="width:${Math.round(n/m*100)}%"></i></span><b>${n}</b></div>`;
+  el.innerHTML=`<div class="barras">${row('☀ Turno día',c.TD,'')}${row('🌙 Turno noche',c.TN,'r')}${c.DL?row('En días libres*',c.DL,''):''}</div><p style="margin-top:8px">${c.TN>c.TD?`De noche se reportan <b>${Math.round(c.TN/tot*100)}%</b> de los actos: refuerza charlas de fatiga y atención en el turno noche.`:`De día se reportan <b>${Math.round(c.TD/tot*100)}%</b> de los actos (en el día también hay más supervisión que reporta).`}${c.DL?' *Actos con fecha en días libres de su guardia: posible cambio de guardia o fecha mal registrada.':''}</p>`}
+// Visitas de campo "Lo vi hoy" (admin): se guardan en la bitácora del servidor y en el equipo
+const VIS_TIPOS=['Retroalimentación en campo','Observación de la tarea','Refuerzo positivo','Conversación de seguimiento'];
+let VIS_SRV=null;
+function visitasDe(d){const loc=store.get('fsbc_vis',[]).filter(v=>v.d===d);const srv=(VIS_SRV||[]).filter(v=>v.d===d);const all=[...srv];loc.forEach(v=>{if(!all.some(s=>s.t===v.t&&s.n===v.n))all.push(v)});return all.sort((a,b)=>b.ts-a.ts)}
+async function cargarVisitas(){if(!ADMIN||!navigator.onLine||VIS_SRV)return;const r=await api({a:'bitacora',n:5000});if(!r||!r.ok)return;
+  VIS_SRV=r.filas.filter(f=>f.a==='Visita de campo').map(f=>{const m=String(f.d||'').match(/^(\d{8}) \| ([^|]*) \| (.*?)( \(sin señal\))?$/);if(!m)return null;const ts=new Date(f.f).getTime()||0;return {d:m[1],t:m[2].trim(),n:m[3].trim(),ts}}).filter(Boolean);
+  if(fichaD&&$('#vis-'+fichaD))pintarVisitas(fichaD)}
+function pintarVisitas(d){const el=$('#vis-'+d);if(!el)return;const L=visitasDe(d);
+  el.innerHTML=L.length?L.slice(0,12).map(v=>`<div class="vis"><b>${new Date(v.ts).toLocaleDateString('es-PE')} · ${esc(v.t)}</b>${v.n?`<p>${esc(v.n)}</p>`:''}</div>`).join(''):'<p>Aún no registras visitas de campo a este trabajador.</p>';cargarVisitas()}
+function loVi(d){const w=W[d];abrirHoja(`<div class="hoja-cab"><h2>Lo vi hoy</h2><p>${esc(tit(w.n))} · registra tu visita de seguimiento conductual. Funciona sin señal: se envía cuando haya conexión.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">
+  <label>Tipo de visita</label><div class="opciones" id="vis-tipo">${VIS_TIPOS.map((t,i)=>`<button type="button" class="${i?'':'on'}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+  <label for="vis-nota" style="margin-top:12px;display:block">Nota (opcional)</label><textarea id="vis-nota" rows="4" style="width:100%;border-radius:12px;border:1.5px solid var(--linea);padding:10px;font:inherit" placeholder="Qué observaste, qué conversaron, compromiso del trabajador…"></textarea>
+  <button class="btn pri ancho" style="margin-top:12px" onclick="guardarVisita('${d}')">Guardar visita</button></div>`);
+  $('#vis-tipo').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#vis-tipo').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))})}
+function guardarVisita(d){const t=($('#vis-tipo .on')||{}).dataset?$('#vis-tipo .on').dataset.t:VIS_TIPOS[0];const n=($('#vis-nota').value||'').replace(/\s+/g,' ').replace(/\|/g,'/').trim().slice(0,400);
+  const q=store.get('fsbc_vis',[]);q.push({d,t,n,ts:Date.now()});store.set('fsbc_vis',q.slice(-500));registrar('Visita de campo',`${d} | ${t} | ${n}`);cerrarHoja();toast('Visita registrada');pintarVisitas(d)}
+// Recordatorio de capacitaciones por guardia (admin)
+function capPorGuardia(){return ['A','B','C'].map(g=>{const x=turnoDe(g);let pend=0,ws=0;activos().forEach(w=>{if(guardiaDe(w)!==g)return;const e=ultEval(w);if(!e)return;const p=(e.cur||[]).filter(k=>!(DATA.CAP||{})[w.d+'|'+k.c]).length;if(p){pend+=p;ws++}});
+  let txt;if(x.k==='DL'){const v=new Date(x.fin.getFullYear(),x.fin.getMonth(),x.fin.getDate()+1);txt=`De días libres · regresa el ${dd(v)}: programa sus capacitaciones para el ingreso`}else txt=`En mina (${x.k==='TD'?'turno día':'turno noche'}) hasta el ${dd(x.fin)}: buen momento para capacitar`;
+  return {g,k:x.k,txt,pend,ws}})}
 
 /* ===== v15: análisis para Psicología y Seguridad ===== */
 const pf=f=>{const m=String(f||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);return m?new Date(+m[3],+m[2]-1,+m[1]):null};
@@ -818,7 +877,7 @@ function calcNuevosRojos(){const ref=refFecha();const lim=new Date(ref.getTime()
 function pintarNuevosRojos(){const el=$('#nuevos-rojos');if(!el||!DATA)return;
   const ref=refFecha();const P=parejas(F.mina||'').length,R=refuerzo(F.mina||'').L.length;
   el.innerHTML=(NUEVOS_ROJOS.length?`<button class="alerta-roja" onclick="verNuevosRojos()"><span class="dot"></span><span><b>${NUEVOS_ROJOS.length} ${NUEVOS_ROJOS.length===1?'trabajador pasó':'trabajadores pasaron'} a rojo</b> en las últimas 2 semanas (al ${ref.toLocaleDateString('es-PE')})</span><span class="ver">Ver</span></button>`:`<div class="alerta-ok">✓ Nadie pasó a rojo en las últimas 2 semanas</div>`)+
-  `<div class="atajos"><button onclick="verParejas()"><b>${P}</b><span>Parejas de riesgo</span></button><button onclick="verRefuerzo()"><b>${R}</b><span>Refuerzo positivo</span></button>${ADMIN?`<button class="adm" onclick="informeComite()"><b>PDF</b><span>Informe para el comité</span></button>`:''}</div>`}
+  `<div class="atajos"><button onclick="verParejas()"><b>${P}</b><span>Parejas de riesgo</span></button><button onclick="verRefuerzo()"><b>${R}</b><span>Refuerzo positivo</span></button>${ADMIN?`<button onclick="verRuta()"><b>🧭</b><span>Ruta de campo de hoy</span></button><button class="adm" onclick="informeComite()"><b>PDF</b><span>Informe para el comité</span></button>`:''}</div>`}
 
 function verNuevosRojos(){abrirHoja(`<div class="hoja-cab"><h2>Pasaron a rojo</h2><p>Están en urgente hoy y hace 2 semanas no lo estaban. Revisa su ficha y la medida que corresponde.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><div class="lista">${NUEVOS_ROJOS.map(d=>filaPersona(W[d])).join('')}</div></div>`)}
 function verParejas(){const P=parejas(F.mina||'');abrirHoja(`<div class="hoja-cab"><h2>Parejas de riesgo</h2><p>Trabajadores reportados juntos en 2 o más actos este año. Conviene separarlos o intervenir a ambos.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">${P.slice(0,30).map(([k,n])=>{const [a,b]=k.split('|').map(d=>W[d]);const junt=a.ds&&b.ds&&a.ds.lb&&a.ds.lb===b.ds.lb&&guardiaDe(a)===guardiaDe(b);return `<div class="par-h"><div><button class="lnk2" onclick="cerrarHoja();abrirFicha('${a.d}')">${esc(tit(a.n))}</button> + <button class="lnk2" onclick="cerrarHoja();abrirFicha('${b.d}')">${esc(tit(b.n))}</button><small>${junt?'⚠ Hoy siguen juntos en '+esc(a.ds.lb)+' · Gdia '+esc(guardiaDe(a)):'Hoy en labores distintas'}</small></div><b>${n}<small>actos juntos</small></b></div>`}).join('')||'<p>No hay parejas con actos repetidos.</p>'}</div>`)}
@@ -840,7 +899,8 @@ function pintarCap(c){const s=capStats();const pct=s.asig?Math.round(s.comp/s.as
   const porW={};s.rows.forEach(r=>{const o=porW[r.w.d]=porW[r.w.d]||{w:r.w,n:0,dias:0};o.n++;o.dias=Math.max(o.dias,r.dias)});
   const L=Object.values(porW).sort((a,b)=>b.dias-a.dias||b.n-a.n);
   const cursos=Object.entries(s.porCurso).sort((a,b)=>(b[1].a-b[1].c)-(a[1].a-a[1].c));
-  c.innerHTML=kpiH([[s.asig,'Capacitaciones asignadas'],[s.comp,'Completadas','verde'],[s.asig-s.comp,'Pendientes','ambar-t'],[s.atr,'Atrasadas (+30 días)','rojo']])+
+  const CG=capPorGuardia();const recH=`<div class="panel" style="margin:0 0 12px"><h3>Recordatorio por guardia</h3>${CG.map(x=>`<div class="rec-g ${x.k==='DL'?'dl':''}"><b>Guardia ${x.g}</b><span>${x.txt}</span><em>${x.ws} trabajadores · ${x.pend} cursos pendientes</em></div>`).join('')}</div>`;
+  c.innerHTML=recH+kpiH([[s.asig,'Capacitaciones asignadas'],[s.comp,'Completadas','verde'],[s.asig-s.comp,'Pendientes','ambar-t'],[s.atr,'Atrasadas (+30 días)','rojo']])+
   `<div class="panel" style="margin:0 0 12px"><h3>Avance general: ${pct}%</h3><div class="tr" style="height:14px;border-radius:7px;background:var(--papel);overflow:hidden;margin-top:8px"><i style="display:block;height:100%;width:${pct}%;background:var(--verde)"></i></div></div>
   <div class="panel" style="margin:0 0 12px"><h3>Por curso</h3><p>Toca un curso para ver quién lo tiene pendiente y quién ya lo completó.</p><div class="cursos">${cursos.map(([k,v])=>`<button class="curso" onclick="verCurso('${esc(k.split(' · ')[0])}')"><span class="nm">${esc(k)}</span><span class="tr"><i style="width:${v.a?Math.round(v.c/v.a*100):0}%"></i></span><span class="ct"><b>${v.a-v.c}</b> pendientes · ${v.c} de ${v.a} completadas</span></button>`).join('')||'<p>Sin capacitaciones asignadas.</p>'}</div></div>
   <div class="bloque" style="padding:6px 0 0"><h2>Con capacitaciones pendientes <small>${L.length} trabajadores</small></h2><div class="lista">${L.slice(0,80).map(o=>filaPersona(o.w,[[`${o.n} pendiente${o.n>1?'s':''}`,o.dias>30?'r':'a'],[`${o.dias} días desde su evaluación`,o.dias>30?'r':'']])).join('')||'<div class="vacio">Todas las capacitaciones están completadas.</div>'}</div></div>`}
@@ -998,6 +1058,7 @@ function pintarTab(){
     const g=guardiaDe(o.w);if(g)c4['Guardia '+g]=(c4['Guardia '+g]||0)+1});
   barras('#t-lab',c2,10,true);barras('#t-nv',c3,8,true);barras('#t-gd',c4,4,false);
   pintarSeguridadExtra();
+  pintarTurnoActos();
 }
 function segT(id,key){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$(id).querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));TF[key]=key==='per'?+b.dataset.v:b.dataset.v;pintarTab()})}
 segT('#t-per','per');segT('#t-mina','mina');
@@ -1083,10 +1144,11 @@ function abrirFicha(d){
         ${an.n>0&&!an.evaluado?'<div class="m-alerta">⚠ <b>Falta su evaluación de percepción de riesgo y sus capacitaciones.</b> Es obligatoria, aunque no frena la escalera.</div>':''}
       </div></div>
   </div>
-  ${ADMIN?`<div class="acciones" style="grid-template-columns:1fr"><button class="btn pri" onclick="informe('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Generar Informe de Reincidencia</button><button class="btn" style="margin-top:8px;${an.n>0&&!an.evaluado?'background:var(--ambar);color:#2b1d00':'background:#fff;color:#0B4FB8;border:1.5px solid #1070E8'}" onclick="evaluarPR('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>${an.n>0&&!an.evaluado?'Evaluar percepción de riesgo (pendiente)':'Evaluar percepción de riesgo'}</button></div>`:''}
+  ${ADMIN?`<div class="acciones" style="grid-template-columns:1fr"><button class="btn pri" onclick="informe('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Generar Informe de Reincidencia</button><button class="btn" style="margin-top:8px;${an.n>0&&!an.evaluado?'background:var(--ambar);color:#2b1d00':'background:#fff;color:#0B4FB8;border:1.5px solid #1070E8'}" onclick="evaluarPR('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>${an.n>0&&!an.evaluado?'Evaluar percepción de riesgo (pendiente)':'Evaluar percepción de riesgo'}</button><button class="btn" style="margin-top:8px;background:#fff;color:#1F7650;border:1.5px solid var(--verde)" onclick="loVi('${d}')">👁 Lo vi hoy · registrar visita de campo</button></div>`:''}
   <div class="pestanas" id="pest">${[['todo','Todo'],['sbc','Psicología'],['grisli','GRISLI'],['ev','Eventos']].map(([k,t])=>`<button data-k="${k}" class="${fichaTab===k?'on':''}">${t}<em>${cnt[k]}</em></button>`).join('')}</div>
   <div class="tl" id="tl"></div>
-  ${panelEval(w)}`;
+  ${panelEval(w)}${ADMIN?`<div class="panel"><h3>Visitas de campo</h3><div id="vis-${d}" style="margin-top:6px"></div></div>`:''}`;
+  if(ADMIN)setTimeout(()=>pintarVisitas(d),0);
   registrar('Consultó ficha',w.n);
   const pintarTL=()=>{const f=L.filter(x=>fichaTab==='todo'||x.k===fichaTab||(fichaTab==='grisli'&&x.k==='gc'));
     $('#tl').innerHTML=f.length?f.map(x=>`<div class="ev"><div class="fe">${x.dt.getDate()}<small>${MES[x.dt.getMonth()]}</small></div>${x.html}</div>`).join(''):'<div class="vacio">Sin registros en esta sección.</div>'};
