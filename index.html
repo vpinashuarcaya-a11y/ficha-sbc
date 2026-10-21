@@ -484,6 +484,22 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 .dds-paso p{font-size:14.5px;margin-top:6px!important;color:var(--tinta)!important;line-height:1.45}.dds-paso ul{margin:6px 0 0 18px;font-size:14.5px;line-height:1.45}.dds-paso li{margin:3px 0}
 .dds-paso.tema{background:#FFF8E6;border:1.5px solid #F1C75B}.dds-paso.tema>b{color:#8A5A00;font-size:19px}
 .dds-lema{margin-top:12px;text-align:center;font-family:"Barlow Condensed";font-size:21px;font-weight:700;color:#fff;background:linear-gradient(135deg,#0B5FD6,#1070E8);border-radius:12px;padding:12px}.dds-lema small{display:block;font-family:Barlow;font-size:12.5px;font-weight:500;opacity:.9}
+
+/* ===== v23: autorizaciones ===== */
+.barra{grid-template-columns:repeat(4,1fr)!important}body.es-admin .barra{grid-template-columns:repeat(6,1fr)!important}
+@media (max-width:560px){body.es-admin .barra button{font-size:10.5px}body.es-admin .barra button svg{width:21px;height:21px}}
+.sel-tipo{margin-top:8px;width:100%;height:40px;border-radius:11px;border:0;padding:0 10px;font:inherit;font-size:14px;background:rgba(255,255,255,.92);color:#0B4FB8;font-weight:600;position:relative;z-index:1}
+#v-aut .filtros{flex-wrap:wrap;gap:8px}
+.aut-tabla{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.aut-fila{display:grid;grid-template-columns:1fr 38px 38px 38px;gap:6px;align-items:center;text-align:left;background:var(--papel);border-radius:10px;padding:8px 10px;border:1.5px solid transparent;font-size:13.5px}
+.aut-fila.on{border-color:#1070E8;background:#EEF4FF}.aut-fila .n{font-weight:600}.aut-fila .sb{grid-column:2/5;font-size:12px;color:var(--gris);text-align:right}
+.aut-fila .c{text-align:center;font-weight:800;border-radius:7px;padding:3px 0;font-size:13px}.aut-fila .c.v{background:var(--verde-s);color:#1F7650}.aut-fila .c.a{background:var(--ambar-s);color:var(--ambar-t)}.aut-fila .c.r{background:#FCEBEB;color:#A92F2F}
+.ley{font-size:12px!important;margin-top:8px!important;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.ley i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:3px}.ley i.v{background:var(--verde)}.ley i.a{background:var(--ambar)}.ley i.r{background:var(--rojo)}
+.aut-it{border-top:1px solid var(--linea);padding:10px 0}.aut-it:first-of-type{border-top:0}.aut-it .tp{display:flex;justify-content:space-between;align-items:center;gap:8px}.aut-it .tp b{font-size:14.5px}
+.aut-it .dt{font-size:13.5px;margin-top:3px}.aut-it .src{font-size:12.5px;color:var(--gris);margin-top:3px}.aut-it .acc{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.aut-form label{display:block;font-size:13px;font-weight:600;color:var(--gris);margin:10px 0 4px}.aut-form select,.aut-form input:not([type=file]){width:100%;height:44px;border-radius:11px;border:1.5px solid var(--linea);padding:0 10px;font:inherit;background:#fff}
+.dos-c{display:grid;grid-template-columns:1fr 1fr;gap:8px}.foto-btn{display:flex!important;align-items:center;justify-content:center;height:46px;border-radius:12px;background:#EEF4FF;color:#0B4FB8!important;font-size:15px!important;cursor:pointer}
+.foto-prev{width:100%;border-radius:12px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -532,6 +548,24 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
     <div class="panel"><h3>Parejas de riesgo</h3><p>Trabajadores reportados juntos en un mismo acto este año.</p><div id="t-par" style="margin-top:8px"></div></div>
     <div class="panel"><h3>Refuerzo positivo</h3><p id="t-ref-p"></p><div class="lista" id="t-ref" style="margin-top:8px"></div></div>
   </div>
+  <div style="height:24px"></div>
+</section>
+
+<!-- ================= AUTORIZACIONES ================= -->
+<section class="vista" id="v-aut">
+  <header class="cab">
+    <div class="marca"><b>Autorizaciones</b></div>
+    <div class="titulo-inicio"><p>Estado de autorizaciones por trabajador. Base SIG + verificación en campo.</p></div>
+    <div class="buscador"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="aq" type="search" inputmode="search" autocomplete="off" placeholder="Nombre, DNI o N.° de lámpara"></div>
+    <div class="filtros">
+      <div class="seg" id="af-est"><button data-v="" class="on">Todos</button><button data-v="venc">Vencidas</button><button data-v="porv">Por vencer</button><button data-v="sin">Sin registro</button></div>
+      <button type="button" class="tg-hoy" id="af-hoy">📍 Solo en mina hoy</button>
+    </div>
+    <select id="af-tipo" class="sel-tipo"></select>
+  </header>
+  <div id="aut-res"></div>
+  <div class="bloque" style="padding-top:8px"><h2 id="aut-tit">Trabajadores <small id="aut-n"></small></h2><div class="lista" id="aut-lista"></div></div>
   <div style="height:24px"></div>
 </section>
 
@@ -587,6 +621,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 <nav class="barra" id="barra">
   <button data-v="inicio" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="2.6"/><circle cx="12" cy="12.5" r="2.6"/><circle cx="12" cy="19" r="2.6"/><rect x="7" y="2" width="10" height="20" rx="4"/></svg>Seguimiento</button>
   <button data-v="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar</button>
+  <button data-v="aut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M6 16c.6-1.5 1.7-2.2 3-2.2s2.4.7 3 2.2M14 10h4M14 13.5h3"/></svg>Autoriz.</button>
   <button data-v="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Tablero</button>
   <button data-v="pend" class="solo-admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Confirmar<span class="badge" id="badge-p" hidden></span></button>
   <button data-v="admin" class="solo-admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6"/><path d="m16 19 2 2 4-4"/></svg>Admin</button>
@@ -780,6 +815,7 @@ function ir(v){
   if(v==='admin')pintarAdmin();
   if(v==='mapa')pintarMapa();
   if(v==='tab')pintarTab();
+  if(v==='aut')pintarAut();
 }
 $('#barra').addEventListener('click',e=>{const b=e.target.closest('button');if(b)ir(b.dataset.v)});
 
@@ -823,6 +859,85 @@ document.addEventListener('click',e=>{
 
 
 
+
+
+/* ===== v23: autorizaciones (base SIG + verificación en campo) ===== */
+const AUT_C={JACK:'Jack leg',AYMOT:'Ayudante motorista',ALT:'Trabajos en altura',LOCO:'Locomotora',PALA:'Pala neumática',UPH:'Unidad potencia hidráulica',CARP:'Taller de carpintería',CAL:'Trabajos en caliente'};
+const AUT_ST={vig:['Vigente','v'],porv:['Por vencer','a'],venc:['Vencida','r'],sf:['Sin fecha','a'],no:['No tiene','r']};
+let AF={est:'',tipo:'',hoy:false},limAut=60,AUT_IDX=null,AUT_IDX_K='';
+const autTipos=()=>(DATA&&DATA.AUT_T)||Object.keys(AUT_C).map(k=>({k,n:AUT_C[k]}));
+const autNom=k=>{const x=autTipos().find(y=>y.k===k);return x?x.n:k};
+const fDMY=s=>{if(!s)return '—';const m=String(s).match(/(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:s};
+function autEstado(it){if(it.no)return 'no';if(!it.v)return 'sf';const v=new Date(it.v+'T00:00:00'),h=new Date(HOY.getFullYear(),HOY.getMonth(),HOY.getDate());const d=(v-h)/864e5;return d<0?'venc':d<=30?'porv':'vig'}
+function autIndex(){const k=(DATA?VER:'')+'|'+((DATA&&DATA.AUTC)||[]).length+'|'+store.get('fsbc_autq',[]).length;if(AUT_IDX&&AUT_IDX_K===k)return AUT_IDX;
+  const I={};((DATA&&DATA.AUT)||[]).forEach(b=>{(I[b.d]=I[b.d]||{})[b.t]={t:b.t,e:b.e,v:b.v,num:b.c,src:'base',x:b.x||''}});
+  const corr=[...((DATA&&DATA.AUTC)||[]).filter(x=>x.est!=='ANULADO').map(x=>({...x,ts:x.f})),...store.get('fsbc_autq',[]).map(x=>({id:x.id,d:x.dni,t:x.tipo,ac:x.accion,e:x.emision,v:x.venc,num:x.num,nota:x.nota,u:USER&&USER.nombre,f:'por enviar',pend:1,fotoLocal:x.foto}))];
+  corr.forEach(c=>{const o=(I[c.d]=I[c.d]||{});const base=o[c.t]&&o[c.t].src==='base'?o[c.t]:(o[c.t]&&o[c.t].base)||null;
+    o[c.t]={t:c.t,e:c.e,v:c.v,num:c.num,no:c.ac==='notiene',src:'campo',u:c.u,f:c.f,id:c.id,foto:c.foto||c.fotoLocal?1:0,fotoLocal:c.fotoLocal,pend:c.pend,nota:c.nota,base}});
+  AUT_IDX=I;AUT_IDX_K=k;return I}
+const autDe=d=>Object.values(autIndex()[d]||{});
+function autChips(w){const L=autDe(w.d);if(!L.length)return [['Sin autorizaciones registradas','']];return L.map(it=>{const s=autEstado(it);return [`${AUT_C[it.t]||autNom(it.t)}: ${AUT_ST[s][0]}`,AUT_ST[s][1]]})}
+function pintarAut(){if(!DATA)return;
+  const sel=$('#af-tipo');if(!sel.options.length)sel.innerHTML='<option value="">Todas las autorizaciones</option>'+autTipos().map(x=>`<option value="${x.k}">${esc(x.n)}${x.base===false?' (sin base, se registra en campo)':''}</option>`).join('');
+  const act=Object.values(W).filter(w=>w.e==='ACTIVO');
+  // resumen por tipo
+  const R={};autTipos().forEach(x=>R[x.k]={vig:0,porv:0,venc:0,no:0,sf:0});act.forEach(w=>autDe(w.d).forEach(it=>{const s=autEstado(it);if(R[it.t])R[it.t][s]++}));
+  $('#aut-res').innerHTML=`<div class="panel"><h3>Resumen (personal activo)</h3><div class="aut-tabla">${autTipos().map(x=>{const r=R[x.k];const tot=r.vig+r.porv+r.venc+r.sf+r.no;return `<button class="aut-fila ${AF.tipo===x.k?'on':''}" onclick="AF.tipo=AF.tipo==='${x.k}'?'':'${x.k}';$('#af-tipo').value=AF.tipo;limAut=60;pintarAut()"><span class="n">${esc(x.n)}</span>${tot?`<span class="c v">${r.vig}</span><span class="c a">${r.porv}</span><span class="c r">${r.venc+r.no}</span>`:`<span class="sb">${x.base===false?'Sin base · registrar en campo':'Sin datos aún'}</span>`}</button>`}).join('')}</div><p class="ley"><i class="v"></i>Vigentes <i class="a"></i>Por vencer <i class="r"></i>Vencidas / no tiene</p>${ADMIN?`<button class="btn" style="margin-top:10px;width:100%;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="exportarAut()">⬇ Exportar correcciones de campo para SIG</button>`:''}</div>`;
+  const q=norm($('#aq').value).trim();const tk=q?q.split(/\s+/):[];
+  let L=act.filter(w=>(!tk.length||tk.every(x=>w.key.split(' ').some(p=>p.startsWith(x))||w.d.startsWith(x)||(w.lp&&String(w.lp)===x)))&&(!AF.hoy||enMinaHoy(w)));
+  L=L.map(w=>{const its=autDe(w.d).filter(it=>!AF.tipo||it.t===AF.tipo);const st=its.map(autEstado);return {w,its,st}}).filter(o=>{
+    if(AF.est==='sin')return AF.tipo?!o.its.length:!autDe(o.w.d).length;
+    if(AF.est==='venc')return o.st.some(s=>s==='venc'||s==='no');
+    if(AF.est==='porv')return o.st.includes('porv');
+    if(AF.tipo&&!AF.est)return o.its.length>0;return true});
+  const pr=o=>o.st.filter(s=>s==='venc'||s==='no').length*3+o.st.filter(s=>s==='porv').length;
+  L.sort((a,b)=>pr(b)-pr(a)||(enMinaHoy(b.w)?1:0)-(enMinaHoy(a.w)?1:0)||a.w.n.localeCompare(b.w.n));
+  $('#aut-n').textContent=L.length+' trabajadores';
+  $('#aut-lista').innerHTML=L.slice(0,limAut).map(o=>filaPersona(o.w,o.its.length?o.its.map(it=>{const s=autEstado(it);return [`${AUT_C[it.t]||autNom(it.t)}: ${AUT_ST[s][0]}${it.src==='campo'?' ✅':''}`,AUT_ST[s][1]]}):[[AF.tipo?'Sin '+(AUT_C[AF.tipo]||'').toLowerCase():'Sin autorizaciones registradas','']])).join('')+(L.length>limAut?`<button class="mas" onclick="limAut+=60;pintarAut()">Ver ${Math.min(60,L.length-limAut)} más</button>`:'')||'<div class="vacio">Nadie con estos filtros.</div>'}
+// ficha
+function panelAut(w){const L=autDe(w.d);
+  return `<div class="panel" id="aut-p-${w.d}"><h3>Autorizaciones</h3>${L.length?L.map(it=>{const s=autEstado(it);return `<div class="aut-it"><div class="tp"><b>${esc(autNom(it.t))}</b><span class="chip ${AUT_ST[s][1]}">${AUT_ST[s][0]}</span></div>
+     <div class="dt">${it.no?'Verificado en campo: no tiene esta autorización':`Emisión ${fDMY(it.e)} · Vence ${fDMY(it.v)}${it.num?' · N.° '+esc(it.num):''}`}</div>
+     <div class="src">${it.src==='base'?'📄 Según base SIG'+(it.x?` · <b style="color:var(--ambar-t)">⚠ Revisar en campo: ${esc(it.x)}</b>`:''):`✅ Verificado en campo por ${esc(tit(it.u||''))} · ${esc(it.f||'')}${it.pend?' <b style="color:var(--ambar-t)">⏳ por enviar</b>':''}${it.base?` · antes en base: vence ${fDMY(it.base.v)}`:''}`}${it.nota?`<br><i>${esc(it.nota)}</i>`:''}</div>
+     <div class="acc">${it.foto?`<button class="mini b" onclick="verFotoAut('${it.id}')">📷 Ver carné</button>`:''}<button class="mini" onclick="formAut('${w.d}','${it.t}')">Corregir</button>${ADMIN&&it.src==='campo'&&!it.pend?`<button class="mini r" onclick="anularAut('${it.id}','${w.d}')">Anular</button>`:''}</div></div>`}).join(''):'<p>Sin autorizaciones registradas en la base SIG.</p>'}
+     <button class="btn ancho" style="margin-top:10px;background:#EEF4FF;color:#0B4FB8" onclick="formAut('${w.d}','')">＋ Agregar o verificar autorización en campo</button></div>`}
+let FOTO_AUT='';
+function formAut(d,t){const w=W[d];const it=t?(autIndex()[d]||{})[t]:null;FOTO_AUT='';
+  abrirHoja(`<div class="hoja-cab"><h2>${t?'Corregir':'Agregar'} autorización</h2><p>${esc(tit(w.n))} · DNI ${w.d}. Verifica el carné físico y toma foto. Funciona sin señal.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form aut-form">
+   <label>Autorización</label><select id="fa-t">${autTipos().map(x=>`<option value="${x.k}" ${x.k===t?'selected':''}>${esc(x.n)}</option>`).join('')}</select>
+   <label>Resultado de la verificación</label><div class="opciones" id="fa-ac"><button type="button" class="on" data-v="${t?'corregir':'agregar'}">Tiene autorización</button><button type="button" data-v="notiene">No tiene</button></div>
+   <div id="fa-tiene"><div class="dos-c"><div><label>Fecha de emisión</label><input type="date" id="fa-e" value="${it&&it.e||''}"></div><div><label>Fecha de vencimiento</label><input type="date" id="fa-v" value="${it&&it.v||''}"></div></div>
+   <label>N.° de carné / código</label><input id="fa-n" value="${esc(it&&it.num||'')}" placeholder="Ej. 182">
+   <label>Foto del carné</label><label class="foto-btn"><input type="file" accept="image/*" capture="environment" id="fa-f" hidden>📷 Tomar foto</label><img id="fa-prev" class="foto-prev" hidden></div>
+   <label>Nota (opcional)</label><input id="fa-nota" placeholder="Ej. carné físico vigente, falta registrar en SIG">
+   <p class="err" id="fa-err"></p><button class="btn pri ancho" onclick="guardarAut('${d}')">Guardar verificación</button></div>`);
+  $('#fa-ac').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#fa-ac').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#fa-tiene').hidden=b.dataset.v==='notiene'});
+  $('#fa-f').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{const m=1000,sc=Math.min(1,m/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*sc;c.height=img.height*sc;c.getContext('2d').drawImage(img,0,0,c.width,c.height);FOTO_AUT=c.toDataURL('image/jpeg',0.6);$('#fa-prev').src=FOTO_AUT;$('#fa-prev').hidden=false};img.src=URL.createObjectURL(f)})}
+function guardarAut(d){const ac=$('#fa-ac .on').dataset.v;const t=$('#fa-t').value;const e=$('#fa-e')?$('#fa-e').value:'',v=$('#fa-v')?$('#fa-v').value:'',n=($('#fa-n')?$('#fa-n').value:'').trim();
+  if(ac!=='notiene'){if(!v){$('#fa-err').textContent='Pon la fecha de vencimiento del carné.';return}if(!FOTO_AUT&&!n){$('#fa-err').textContent='Toma foto del carné o anota su número, como evidencia.';return}}
+  const it={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),dni:d,nombre:W[d].n,tipo:t,accion:ac,emision:ac==='notiene'?'':e,venc:ac==='notiene'?'':v,num:ac==='notiene'?'':n,nota:($('#fa-nota').value||'').trim(),foto:ac==='notiene'?'':FOTO_AUT};
+  const q=store.get('fsbc_autq',[]);q.push(it);try{store.set('fsbc_autq',q)}catch(x){}
+  if(store.get('fsbc_autq',[]).length!==q.length){it.foto='';q[q.length-1]=it;store.set('fsbc_autq',q);toast('Foto muy pesada para guardar sin señal: se guardó sin foto')}
+  AUT_IDX=null;cerrarHoja();toast(navigator.onLine?'Verificación guardada':'Guardada en el equipo: se enviará cuando haya señal');abrirFicha(d);enviarAut()}
+let _envAut=false;
+async function enviarAut(){if(_envAut||!TOKEN||!navigator.onLine)return;_envAut=true;try{let q=store.get('fsbc_autq',[]);
+  for(const it of [...q]){const r=await api({a:'autCorr',...it},60000);if(r&&r.ok){q=store.get('fsbc_autq',[]).filter(x=>x.id!==it.id);store.set('fsbc_autq',q);if(r.aut){DATA_RAW.AUTC=r.aut;if(DATA)DATA.AUTC=r.aut;guardarCache()}}else break}
+  AUT_IDX=null;if(fichaD&&$('#aut-p-'+fichaD))abrirFicha(fichaD);if($('#v-aut').classList.contains('on'))pintarAut()}finally{_envAut=false}}
+async function verFotoAut(id){const loc=store.get('fsbc_autq',[]).find(x=>x.id===id);let src=loc&&loc.foto;
+  if(!src){if(!navigator.onLine){toast('Ver la foto necesita señal');return}cargando('Cargando foto…');const r=await api({a:'autFoto',id});cargando(false);if(!r.ok){toast(r.error||'No se pudo cargar');return}src=r.foto}
+  abrirHoja(`<div class="hoja-cab"><h2>Foto del carné</h2><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><img src="${src}" style="width:100%;border-radius:12px"></div>`)}
+async function anularAut(id,d){if(!ADMIN)return;const r=await api({a:'autAnular',id});if(r&&r.ok){DATA_RAW.AUTC=r.aut;DATA.AUTC=r.aut;guardarCache();AUT_IDX=null;toast('Corrección anulada');abrirFicha(d)}else toast((r&&r.error)||'Necesitas señal')}
+function exportarAut(){const L=(DATA.AUTC||[]);if(!L.length){toast('Aún no hay correcciones de campo');return}
+  const base={};(DATA.AUT||[]).forEach(b=>base[b.d+'|'+b.t]=b);
+  const H=['Fecha','Registrado por','DNI','Trabajador','Cargo','Guardia','Autorización','Resultado','Emisión','Vencimiento','N° carné','Nota','Vencimiento en base SIG','Foto','Estado'];
+  const rows=L.map(x=>{const w=W[x.d]||{};const b=base[x.d+'|'+x.t];return [x.f,x.u,x.d,w.n||'',w.c||'',guardiaDe(w)||'',autNom(x.t),x.ac==='notiene'?'No tiene':(b?'Corrige base':'Agrega (no estaba en base)'),fDMY(x.e),fDMY(x.v),x.num,x.nota,b?fDMY(b.v):'No figura',x.foto?'Sí':'No',x.est]});
+  const csv='﻿'+[H,...rows].map(r=>r.map(c=>`"${String(c==null?'':c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`Correcciones autorizaciones campo ${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();a.remove();registrar('Exportó correcciones de autorizaciones','')}
+// eventos de la vista
+$('#aq').addEventListener('input',()=>{limAut=60;pintarAut()});
+$('#af-est').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#af-est').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));AF.est=b.dataset.v;limAut=60;pintarAut()});
+$('#af-tipo').addEventListener('change',e=>{AF.tipo=e.target.value;limAut=60;pintarAut()});
+$('#af-hoy').addEventListener('click',e=>{AF.hoy=!AF.hoy;e.currentTarget.classList.toggle('on',AF.hoy);limAut=60;pintarAut()});
 
 /* ===== v21: DDS (diálogo diario de seguridad) ===== */
 function ddsDia(n){const D=DATA&&DATA.DDS;return D?D.dias.find(x=>x.d===n):null}
@@ -910,7 +1025,7 @@ function calcNuevosRojos(){const ref=refFecha();const lim=new Date(ref.getTime()
 function pintarNuevosRojos(){const el=$('#nuevos-rojos');if(!el||!DATA)return;
   const ref=refFecha();const P=parejas(F.mina||'').length,R=refuerzo(F.mina||'').L.length;
   el.innerHTML=(NUEVOS_ROJOS.length?`<button class="alerta-roja" onclick="verNuevosRojos()"><span class="dot"></span><span><b>${NUEVOS_ROJOS.length} ${NUEVOS_ROJOS.length===1?'trabajador pasó':'trabajadores pasaron'} a rojo</b> en las últimas 2 semanas (al ${ref.toLocaleDateString('es-PE')})</span><span class="ver">Ver</span></button>`:`<div class="alerta-ok">✓ Nadie pasó a rojo en las últimas 2 semanas</div>`)+
-  `<div class="atajos"><button onclick="verParejas()"><b>${P}</b><span>Parejas de riesgo</span></button><button onclick="verRefuerzo()"><b>${R}</b><span>Refuerzo positivo</span></button>${ADMIN?`<button onclick="verRuta()"><b>🧭</b><span>Ruta de campo de hoy</span></button><button class="adm" onclick="informeComite()"><b>PDF</b><span>Informe para el comité</span></button>`:''}</div>`}
+  `<div class="atajos"><button onclick="verParejas()"><b>${P}</b><span>Parejas de riesgo</span></button><button onclick="verRefuerzo()"><b>${R}</b><span>Refuerzo positivo</span></button>${(()=>{const n=Object.values(W).filter(w=>w.e==='ACTIVO'&&enMinaHoy(w)&&autDe(w.d).some(it=>{const s=autEstado(it);return s==='venc'||s==='no'})).length;return `<button onclick="AF={est:'venc',tipo:'',hoy:true};$('#af-est').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v==='venc'));$('#af-hoy').classList.add('on');ir('aut')"><b style="color:${n?'var(--rojo)':'#0B4FB8'}">${n}</b><span>Autorizaciones vencidas en mina hoy</span></button>`})()}${ADMIN?`<button onclick="verRuta()"><b>🧭</b><span>Ruta de campo de hoy</span></button><button class="adm" onclick="informeComite()"><b>PDF</b><span>Informe para el comité</span></button>`:''}</div>`}
 
 function verNuevosRojos(){abrirHoja(`<div class="hoja-cab"><h2>Pasaron a rojo</h2><p>Están en urgente hoy y hace 2 semanas no lo estaban. Revisa su ficha y la medida que corresponde.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><div class="lista">${NUEVOS_ROJOS.map(d=>filaPersona(W[d])).join('')}</div></div>`)}
 function verParejas(){const P=parejas(F.mina||'');abrirHoja(`<div class="hoja-cab"><h2>Parejas de riesgo</h2><p>Trabajadores reportados juntos en 2 o más actos este año. Conviene separarlos o intervenir a ambos.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">${P.slice(0,30).map(([k,n])=>{const [a,b]=k.split('|').map(d=>W[d]);const junt=a.ds&&b.ds&&a.ds.lb&&a.ds.lb===b.ds.lb&&guardiaDe(a)===guardiaDe(b);return `<div class="par-h"><div><button class="lnk2" onclick="cerrarHoja();abrirFicha('${a.d}')">${esc(tit(a.n))}</button> + <button class="lnk2" onclick="cerrarHoja();abrirFicha('${b.d}')">${esc(tit(b.n))}</button><small>${junt?'⚠ Hoy siguen juntos en '+esc(a.ds.lb)+' · Gdia '+esc(guardiaDe(a)):'Hoy en labores distintas'}</small></div><b>${n}<small>actos juntos</small></b></div>`}).join('')||'<p>No hay parejas con actos repetidos.</p>'}</div>`)}
@@ -1180,7 +1295,7 @@ function abrirFicha(d){
   ${ADMIN?`<div class="acciones" style="grid-template-columns:1fr"><button class="btn pri" onclick="informe('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Generar Informe de Reincidencia</button><button class="btn" style="margin-top:8px;${an.n>0&&!an.evaluado?'background:var(--ambar);color:#2b1d00':'background:#fff;color:#0B4FB8;border:1.5px solid #1070E8'}" onclick="evaluarPR('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>${an.n>0&&!an.evaluado?'Evaluar percepción de riesgo (pendiente)':'Evaluar percepción de riesgo'}</button><button class="btn" style="margin-top:8px;background:#fff;color:#1F7650;border:1.5px solid var(--verde)" onclick="loVi('${d}')">👁 Lo vi hoy · registrar visita de campo</button></div>`:''}
   <div class="pestanas" id="pest">${[['todo','Todo'],['sbc','Psicología'],['grisli','GRISLI'],['ev','Eventos']].map(([k,t])=>`<button data-k="${k}" class="${fichaTab===k?'on':''}">${t}<em>${cnt[k]}</em></button>`).join('')}</div>
   <div class="tl" id="tl"></div>
-  ${panelEval(w)}${ADMIN?`<div class="panel"><h3>Visitas de campo</h3><div id="vis-${d}" style="margin-top:6px"></div></div>`:''}`;
+  ${panelAut(w)}${panelEval(w)}${ADMIN?`<div class="panel"><h3>Visitas de campo</h3><div id="vis-${d}" style="margin-top:6px"></div></div>`:''}`;
   if(ADMIN)setTimeout(()=>pintarVisitas(d),0);
   registrar('Consultó ficha',w.n);
   const pintarTL=()=>{const f=L.filter(x=>fichaTab==='todo'||x.k===fichaTab||(fichaTab==='grisli'&&x.k==='gc'));
@@ -1340,6 +1455,7 @@ let _logT=null;
 function registrar(acc,det){const q=store.get('fsbc_log',[]);q.push({acc,det:(det||'')+(navigator.onLine?'':' (sin señal)')});store.set('fsbc_log',q.slice(-300));clearTimeout(_logT);_logT=setTimeout(enviarPendientes,4000)}
 async function enviarPendientes(){
   if(!TOKEN||!navigator.onLine)return;
+  try{enviarAut()}catch(e){}
   const q=store.get('fsbc_log',[]);if(q.length){const r=await api({a:'log',items:q});if(r.ok)store.set('fsbc_log',[])}
   const c=store.get('fsbc_q',[]);if(c.length&&ADMIN){for(const x of c){const r=await api(x);if(r.ok)CONF=r.conf}store.set('fsbc_q',[]);guardarCache()}
 }
