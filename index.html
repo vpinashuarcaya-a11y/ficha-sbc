@@ -473,6 +473,17 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 .vis{border-left:3px solid var(--verde);padding:6px 10px;margin-top:8px;background:var(--papel);border-radius:0 10px 10px 0}.vis b{font-size:13.5px}.vis p{margin-top:2px!important;color:var(--tinta)!important}
 .rec-g{display:grid;gap:2px;padding:9px 12px;border-radius:10px;background:var(--verde-s);margin-top:8px}.rec-g.dl{background:var(--ambar-s)}
 .rec-g span{font-size:13.5px}.rec-g em{font-style:normal;font-size:12.5px;color:var(--gris)}
+
+/* v21: DDS */
+.dds-card{display:flex;align-items:center;gap:12px;width:calc(100% - 32px);margin:14px 16px 0;padding:12px 14px;border-radius:var(--r-m);background:linear-gradient(135deg,#FFF6DD,#FFE9B0);border:1.5px solid #F1C75B;color:#4A3300;text-align:left}
+.dds-card .ic{font-size:24px;flex:none}.dds-card small{display:block;font-size:12px;color:#8A5A00;font-weight:600}.dds-card b{font-size:15.5px;line-height:1.2}
+.dds-card .ver{margin-left:auto;font-weight:700;color:#8A5A00;flex:none}.dds-card.off{background:var(--papel);border-color:var(--linea);color:var(--gris)}
+.dds-dias{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}.dds-dias button{flex:none;width:36px;height:36px;border-radius:10px;background:#EEF2F8!important;border:1px solid var(--linea);font-weight:700;font-size:13.5px}
+.dds-dias button.hoy{border:1.5px solid #E8A317}.dds-dias button.on{background:#0B4FB8;color:#fff}
+.dds-paso{margin-top:12px;background:var(--papel);border-radius:12px;padding:11px 13px}.dds-paso>b{display:block;font-family:"Barlow Condensed";font-size:18px;color:#0B4FB8}
+.dds-paso p{font-size:14.5px;margin-top:6px!important;color:var(--tinta)!important;line-height:1.45}.dds-paso ul{margin:6px 0 0 18px;font-size:14.5px;line-height:1.45}.dds-paso li{margin:3px 0}
+.dds-paso.tema{background:#FFF8E6;border:1.5px solid #F1C75B}.dds-paso.tema>b{color:#8A5A00;font-size:19px}
+.dds-lema{margin-top:12px;text-align:center;font-family:"Barlow Condensed";font-size:21px;font-weight:700;color:#fff;background:linear-gradient(135deg,#0B5FD6,#1070E8);border-radius:12px;padding:12px}.dds-lema small{display:block;font-family:Barlow;font-size:12.5px;font-weight:500;opacity:.9}
 </style>
 </head>
 <body>
@@ -492,6 +503,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
     </div>
     <div class="zonas" id="f-zona"></div>
   </header>
+  <div id="dds-hoy"></div>
   <div id="nuevos-rojos"></div>
   <div id="retorno"></div>
   <div class="semaforo" id="semaforo"></div>
@@ -788,6 +800,7 @@ function filaPersona(w,extra){
   return `<button class="persona${w.e!=='ACTIVO'?' ces':''}" data-d="${w.d}"><div class="av ${w.e!=='ACTIVO'?'n':an.s}">${ini(w.n)}</div><div><div class="nm">${esc(tit(w.n))}${w.e!=='ACTIVO'?' <span class="tag-ces">CESADO</span>':''}</div><div class="sub">${esc(tit(w.c))} · Gdia ${esc(guardiaDe(w))}${turnoTag(w)}${zonaDe(w)?' · '+(minaDe(w)==='ACCHILLA'?'Acchilla ':'Estela ')+zonaDe(w):''}${lab?' · '+esc(lab):''}</div>${chips?`<div class="motivos">${chips}</div>`:''}</div><div class="num-act"><b>${an.n}</b><span>actos</span></div></button>`;
 }
 function pintarInicio(){
+  try{pintarDDS()}catch(e){}
   try{pintarRetorno()}catch(e){}
   try{$('#turnos-hoy').innerHTML='Hoy: '+turnoHoyTxt()}catch(e){}
   const base=Object.values(W).filter(w=>w.e==='ACTIVO'&&(!F.mina||minaDe(w)===F.mina)&&(!F.zona||zonaDe(w)===F.zona)&&(!F.gd||guardiaDe(w)===F.gd)&&(!F.hoy||enMinaHoy(w)));
@@ -809,6 +822,26 @@ document.addEventListener('click',e=>{
 
 
 
+
+
+/* ===== v21: DDS (diálogo diario de seguridad) ===== */
+function ddsDia(n){const D=DATA&&DATA.DDS;return D?D.dias.find(x=>x.d===n):null}
+function pintarDDS(){const el=$('#dds-hoy');if(!el)return;const D=DATA&&DATA.DDS;
+  if(!D){el.innerHTML='';return}
+  const mismoMes=D.mes===HOY.getMonth()+1&&D.anio===HOY.getFullYear();const x=mismoMes?ddsDia(HOY.getDate()):null;
+  el.innerHTML=x?`<button class="dds-card" onclick="verDDS(${x.d})"><span class="ic">📢</span><span><small>DDS de hoy · ${dd(HOY)}</small><b>${esc(x.tema)}</b></span><span class="ver">Ver</span></button>`
+   :(ADMIN?`<div class="dds-card off"><span class="ic">📢</span><span><small>DDS</small><b>No hay DDS cargado para este mes</b></span></div>`:'')}
+function fmtDDS(s){return esc(s).split(/\n{2,}/).map(p=>{const L=p.split('\n');const bul=L.every(l=>/^[•✓\-–]/.test(l.trim()));
+  if(bul)return '<ul>'+L.map(l=>`<li>${l.replace(/^[•✓\-–]\s*/,'')}</li>`).join('')+'</ul>';return '<p>'+L.map((l,i)=>l+(i<L.length-1?(/[.:;]\s*$/.test(l)||/^[•✓]/.test(L[i+1].trim())?'<br>':' '):'')).join('')+'</p>'}).join('')}
+function verDDS(n){const D=DATA.DDS;const x=ddsDia(n);if(!x)return;const meses=['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','setiembre','octubre','noviembre','diciembre'];
+  const hoyN=(D.mes===HOY.getMonth()+1)?HOY.getDate():0;
+  abrirHoja(`<div class="hoja-cab"><h2>DDS · ${n} de ${meses[D.mes]}</h2><p>Diálogo Diario de Seguridad${n===hoyN?' · hoy':''}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form dds">
+   <div class="dds-dias">${D.dias.map(y=>`<button class="${y.d===n?'on':''} ${y.d===hoyN?'hoy':''}" onclick="verDDS(${y.d})">${y.d}</button>`).join('')}</div>
+   <div class="dds-paso"><b>1. Pausas activas</b><p>Iniciamos la jornada con energía y alertas.</p>${D.pausas?fmtDDS(D.pausas.replace(/\n(?=Duración)/g,' · ')):''}</div>
+   <div class="dds-paso"><b>2. Reflexión</b><p>¿Qué hicimos ayer por un día más sin accidentes? Reflexionamos sobre el cuidado personal y de los compañeros.</p></div>
+   <div class="dds-paso tema"><b>3. Tema: ${esc(x.tema)}</b>${fmtDDS(x.txt)}</div>
+   <div class="dds-paso"><b>4. Reparto de actividades</b><p>Se reparten las actividades y se informa sobre las actividades críticas y/o de alto riesgo.</p></div>
+   <div class="dds-lema">Nuestro lema: “${esc(D.lema||'SI NO ES SEGURO, NO SE HACE')}”<small>Cerramos el DDS con el grito de nuestro lema.</small></div></div>`)}
 
 /* ===== v20: turnos en campo ===== */
 const enMinaHoy=w=>{const tt=turnoDe(guardiaDe(w));return !!tt&&tt.k!=='DL'&&!ausencia(w)};
