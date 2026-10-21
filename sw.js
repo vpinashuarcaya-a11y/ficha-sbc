@@ -1,5 +1,5 @@
 // Alerta SBC: guarda la app en el equipo para abrirla al instante y sin señal. Los datos van aparte (IndexedDB).
-const V='fichasbc-v16';const ARCH=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png'];
+const V='fichasbc-v17';const ARCH=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(ARCH)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))));self.clients.claim()});
 // Primero la copia guardada (abre al instante aunque no haya señal); en segundo plano se baja la versión nueva para la próxima vez.

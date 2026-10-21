@@ -441,6 +441,19 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 .kp3r .v b{color:var(--verde)}.kp3r .r b{color:var(--rojo)}
 .tbl{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}.tbl th{text-align:left;color:var(--gris);font-weight:600;font-size:12px;padding:5px 4px;border-bottom:1px solid var(--linea)}
 .tbl td{padding:8px 4px;border-bottom:1px solid var(--linea)}.tbl .r{text-align:right}.tbl small{color:var(--gris)}
+
+/* ===== v17 ===== */
+.btn-act{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.22);color:#fff;border-radius:20px;padding:6px 10px;font-size:12.5px;font-weight:700}
+.btn-act.gira svg{animation:gira .9s linear infinite}
+@media (max-width:400px){.btn-act span{display:none}.btn-act{padding:7px}}
+.medida{margin-top:12px;display:grid;gap:10px}
+.m-ahora{background:var(--ambar-s);border-radius:12px;padding:10px 12px}.m-ahora span,.m-prox>span{display:block;font-size:12.5px;color:var(--gris)}
+.m-ahora b{display:block;font-family:"Barlow Condensed";font-size:21px;color:var(--ambar-t);line-height:1.15}.m-ahora small{font-size:12px;color:var(--gris)}
+.m-prox{background:var(--papel);border-radius:12px;padding:10px 12px}
+.m-fila{display:flex;align-items:center;gap:10px;margin-top:7px;font-size:14.5px}
+.m-fila i{font-style:normal;font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;width:56px;text-align:center;flex:none}
+.pb{background:var(--verde-s);color:#1F7650}.pm{background:var(--ambar-s);color:var(--ambar-t)}.pa{background:#FCEBEB;color:#A92F2F}
+.m-alerta{background:#FFF7E6;border:1.5px dashed var(--ambar);border-radius:12px;padding:10px 12px;font-size:13.5px;color:var(--ambar-t)}
 </style>
 </head>
 <body>
@@ -449,7 +462,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 <!-- ================= INICIO ================= -->
 <section class="vista on" id="v-inicio">
   <header class="cab">
-    <div class="marca"><b>Alerta <span>SBC</span></b><div style="display:flex;gap:6px;align-items:center"><div class="estado" id="estado"><i></i><span>Datos</span></div><span id="disp-l" hidden></span><button class="yo" id="yo" onclick="menuUsuario()" aria-label="Mi cuenta"><span id="yo-ini">··</span></button></div></div>
+    <div class="marca"><b>Alerta <span>SBC</span></b><div style="display:flex;gap:6px;align-items:center"><div class="estado" id="estado"><i></i><span>Datos</span></div><button class="btn-act" id="btn-act" onclick="actualizarTodo()" title="Actualizar app y datos" aria-label="Actualizar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><span>Actualizar</span></button><span id="disp-l" hidden></span><button class="yo" id="yo" onclick="menuUsuario()" aria-label="Mi cuenta"><span id="yo-ini">··</span></button></div></div>
     <div class="titulo-inicio">
       <h1 id="saludo">¿A quién buscar hoy?</h1>
       <p id="sub-inicio">¿A quién buscar hoy? Según actos, eventos y medidas del año.</p>
@@ -1044,7 +1057,14 @@ function abrirFicha(d){
     <div class="fila"><span class="sello ${an.s}">${ST[an.s]}</span><span style="font-size:14px;color:var(--gris)">${an.n} actos 2026 · ${an.ev.length} eventos</span></div>
     ${an.mot.length?`<div class="motivos">${an.mot.map(([t,c])=>`<span class="chip ${c}">${esc(t)}</span>`).join('')}</div>`:''}
     <div class="escalera"><h3>Escalera SBC 2026</h3><div class="rail">${pasos}</div>
-      <p class="nota">Medida por su último acto: <b>${ESC[an.toca-1]}</b>. Si comete otro acto, según su potencial en GRISLI: Bajo → <b>${ESC_C[an.prox.Bajo-1]}</b> · Medio → <b>${ESC_C[an.prox.Medio-1]}</b> · Alto → <b>${ESC_C[an.prox.Alto-1]}</b>.${an.n>0&&!an.evaluado?' <b style="color:var(--ambar-t)">Falta la evaluación de percepción de riesgo y sus capacitaciones (obligatoria).</b>':''}</p></div>
+      <div class="medida">
+        <div class="m-ahora"><span>Medida que corresponde ahora</span><b>${ESC[an.toca-1]}</b><small>según su último acto</small></div>
+        <div class="m-prox"><span>Si comete otro acto, según el potencial que registre GRISLI:</span>
+          <div class="m-fila"><i class="pb">Bajo</i><b>${ESC_C[an.prox.Bajo-1]}</b></div>
+          <div class="m-fila"><i class="pm">Medio</i><b>${ESC_C[an.prox.Medio-1]}</b></div>
+          <div class="m-fila"><i class="pa">Alto</i><b>${ESC_C[an.prox.Alto-1]}</b></div></div>
+        ${an.n>0&&!an.evaluado?'<div class="m-alerta">⚠ <b>Falta su evaluación de percepción de riesgo y sus capacitaciones.</b> Es obligatoria, aunque no frena la escalera.</div>':''}
+      </div></div>
   </div>
   ${ADMIN?`<div class="acciones" style="grid-template-columns:1fr"><button class="btn pri" onclick="informe('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Generar Informe de Reincidencia</button><button class="btn" style="margin-top:8px;${an.n>0&&!an.evaluado?'background:var(--ambar);color:#2b1d00':'background:#fff;color:#0B4FB8;border:1.5px solid #1070E8'}" onclick="evaluarPR('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>${an.n>0&&!an.evaluado?'Evaluar percepción de riesgo (pendiente)':'Evaluar percepción de riesgo'}</button></div>`:''}
   <div class="pestanas" id="pest">${[['todo','Todo'],['sbc','Psicología'],['grisli','GRISLI'],['ev','Eventos']].map(([k,t])=>`<button data-k="${k}" class="${fichaTab===k?'on':''}">${t}<em>${cnt[k]}</em></button>`).join('')}</div>
@@ -1367,7 +1387,17 @@ async function subirDatos(){const fs=[...$('#up-f').files];if(!fs.length){toast(
   cargando('Subiendo datos…');const r=await api(q);cargando(false);if(!r.ok){toast(r.error);return}toast('Datos subidos. Descargando…');VER=null;await descargar(true);pintarAdmin()}
 
 /* ---------- arranque ---------- */
-const est=()=>{const e=$('#estado');e.classList.toggle('off',!navigator.onLine);const g=DATA?DATA.gen.slice(0,5):'';e.querySelector('span').textContent=navigator.onLine?(g?'Datos al '+g:'En línea'):(g?'Sin señal · '+g:'Sin señal')};
+const est=()=>{const e=$('#estado');e.classList.toggle('off',!navigator.onLine);let g='';try{if(DATA&&DATA.A&&DATA.A.length){const r=refFecha();g=String(r.getDate()).padStart(2,'0')+'/'+String(r.getMonth()+1).padStart(2,'0')}}catch(x){}e.querySelector('span').textContent=navigator.onLine?(g?'Último acto: '+g:'En línea'):(g?'Sin señal · '+g:'Sin señal');e.title='Fecha del último acto registrado en el reporte GRISLI cargado'};
+async function actualizarTodo(){
+  if(!navigator.onLine){toast('Sin señal: se actualizará cuando tengas conexión');return}
+  const b=$('#btn-act');if(b){b.disabled=true;b.classList.add('gira')}
+  cargando('Actualizando app y datos…');
+  try{await descargar(false,true)}catch(e){}
+  try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();if(reg)await reg.update();
+    const r=await fetch('index.html?n='+Date.now(),{cache:'no-store'});if(r.ok){const ks=await caches.keys();for(const k of ks){const c=await caches.open(k);await c.put('index.html',r.clone())}}}catch(e){}
+  try{sessionStorage.setItem('fsbc_unlock',String(Date.now()))}catch(e){}
+  location.reload();
+}
 addEventListener('online',est);addEventListener('offline',est);
 addEventListener('resize',()=>{if(document.body.classList.contains('vmapa'))ajustar()});
 (async function(){
@@ -1375,6 +1405,8 @@ addEventListener('resize',()=>{if(document.body.classList.contains('vmapa'))ajus
   const m=store.get('fsbc_disp',null);setDisp(m||sugerido());est();
   if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
   const ses=store.get('fsbc_ses',null);
+  let unl=0;try{unl=+sessionStorage.getItem('fsbc_unlock')||0;sessionStorage.removeItem('fsbc_unlock')}catch(e){}
+  if(unl&&Date.now()-unl<120000&&ses&&ses.token&&ses.user){TOKEN=ses.token;USER=ses.user;aplicarUsuario();await entrar();toast('App y datos actualizados');return}
   if(ses&&ses.user&&ses.user.dni)$('#l-dni').value=ses.user.dni;
   mostrar('acceso',true);if(!m)mostrarDisp();
 })();
