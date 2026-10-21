@@ -457,6 +457,12 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 
 /* v18: pestañas siempre visibles */
 .pestanas{flex-wrap:wrap!important;row-gap:8px;overflow:visible!important}
+
+/* v19: turnos */
+.turno{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-left:3px;white-space:nowrap;vertical-align:1px}
+.turno.td{background:#FFF4D6;color:#8A5A00}.turno.tn{background:#E4E9FF;color:#2E3F9E}.turno.dl{background:#E9EDF3;color:#5E6A82}
+.turnos-hoy{margin-top:8px!important;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:rgba(255,255,255,.9)}
+.turnos-hoy .turno{margin-left:0;font-size:12px;padding:3px 8px}
 </style>
 </head>
 <body>
@@ -468,7 +474,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
     <div class="marca"><b>Alerta <span>SBC</span></b><div style="display:flex;gap:6px;align-items:center"><div class="estado" id="estado"><i></i><span>Datos</span></div><button class="btn-act" id="btn-act" onclick="actualizarTodo()" title="Actualizar app y datos" aria-label="Actualizar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg><span>Actualizar</span></button><span id="disp-l" hidden></span><button class="yo" id="yo" onclick="menuUsuario()" aria-label="Mi cuenta"><span id="yo-ini">··</span></button></div></div>
     <div class="titulo-inicio">
       <h1 id="saludo">¿A quién buscar hoy?</h1>
-      <p id="sub-inicio">¿A quién buscar hoy? Según actos, eventos y medidas del año.</p>
+      <p id="sub-inicio">¿A quién buscar hoy? Según actos, eventos y medidas del año.</p><p id="turnos-hoy" class="turnos-hoy"></p>
     </div>
     <div class="filtros">
       <div class="seg" id="f-mina"><button data-v="" class="on">Todas</button><button data-v="ACCHILLA">Acchilla</button><button data-v="ESTELA">Estela</button></div>
@@ -753,6 +759,13 @@ function ir(v){
 }
 $('#barra').addEventListener('click',e=>{const b=e.target.closest('button');if(b)ir(b.dataset.v)});
 
+
+/* ---------- ruster de guardias (ciclo 21 días: 7 día, 7 noche, 7 libres; base 18/02/2026, verificado contra RUSTER_OBREROS_2026.xlsx) ---------- */
+const RUSTER_BASE=new Date(2026,1,18),RUSTER_OFF={A:0,B:14,C:7};
+function turnoDe(g,f){g=String(g||'').toUpperCase();if(!(g in RUSTER_OFF))return null;const d=f||HOY;const x=Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate())-RUSTER_BASE)/864e5);const i=(((x+RUSTER_OFF[g])%21)+21)%21;const k=i<7?'TD':i<14?'TN':'DL';const fin=new Date(d.getFullYear(),d.getMonth(),d.getDate()+(6-i%7));return {k,fin,dia:i%7+1}}
+const TURNO_T={TD:['☀ Día','td'],TN:['🌙 Noche','tn'],DL:['Días libres','dl']};
+function turnoTag(w){const t=turnoDe(guardiaDe(w));return t?` <span class="turno ${TURNO_T[t.k][1]}">${TURNO_T[t.k][0]}</span>`:''}
+function turnoHoyTxt(){return ['A','B','C'].map(g=>{const t=turnoDe(g);return `<span class="turno ${TURNO_T[t.k][1]}">Gdia ${g}: ${TURNO_T[t.k][0]}</span>`}).join(' ')}
 /* ---------- inicio ---------- */
 let F={mina:'',gd:'',zona:'',sem:'r'}, limite=25;
 function minaDe(w){const m=norm((w.ds&&w.ds.mi)||w.lu||'');return m.includes('ACCHILLA')?'ACCHILLA':(m.includes('ESTELA')||m.includes('ROSARIO')||m.includes('JULCANI'))?'ESTELA':''}
@@ -760,9 +773,10 @@ function guardiaDe(w){return (w.ds&&w.ds.gd)||w.g||''}
 function filaPersona(w,extra){
   const an=AN[w.d];const au=ausencia(w);const lab=au?'Ausente: '+au:(w.ds&&w.ds.lb?w.ds.lb:'');
   const chips=(extra||an.mot.slice(0,3)).map(([t,c])=>`<span class="chip ${c}">${esc(t)}</span>`).join('');
-  return `<button class="persona${w.e!=='ACTIVO'?' ces':''}" data-d="${w.d}"><div class="av ${w.e!=='ACTIVO'?'n':an.s}">${ini(w.n)}</div><div><div class="nm">${esc(tit(w.n))}${w.e!=='ACTIVO'?' <span class="tag-ces">CESADO</span>':''}</div><div class="sub">${esc(tit(w.c))} · Gdia ${esc(guardiaDe(w))}${zonaDe(w)?' · '+(minaDe(w)==='ACCHILLA'?'Acchilla ':'Estela ')+zonaDe(w):''}${lab?' · '+esc(lab):''}</div>${chips?`<div class="motivos">${chips}</div>`:''}</div><div class="num-act"><b>${an.n}</b><span>actos</span></div></button>`;
+  return `<button class="persona${w.e!=='ACTIVO'?' ces':''}" data-d="${w.d}"><div class="av ${w.e!=='ACTIVO'?'n':an.s}">${ini(w.n)}</div><div><div class="nm">${esc(tit(w.n))}${w.e!=='ACTIVO'?' <span class="tag-ces">CESADO</span>':''}</div><div class="sub">${esc(tit(w.c))} · Gdia ${esc(guardiaDe(w))}${turnoTag(w)}${zonaDe(w)?' · '+(minaDe(w)==='ACCHILLA'?'Acchilla ':'Estela ')+zonaDe(w):''}${lab?' · '+esc(lab):''}</div>${chips?`<div class="motivos">${chips}</div>`:''}</div><div class="num-act"><b>${an.n}</b><span>actos</span></div></button>`;
 }
 function pintarInicio(){
+  try{$('#turnos-hoy').innerHTML='Hoy: '+turnoHoyTxt()}catch(e){}
   const base=Object.values(W).filter(w=>w.e==='ACTIVO'&&(!F.mina||minaDe(w)===F.mina)&&(!F.zona||zonaDe(w)===F.zona)&&(!F.gd||guardiaDe(w)===F.gd));
   const c={r:[],a:[],v:[]};base.forEach(w=>{const s=AN[w.d].s;if(c[s])c[s].push(w)});
   const T={r:['Urgente','4 o más actos en 90 días o accidente'],a:['Vigilar','Seguimiento preventivo'],v:['Estable','Un solo acto en el año']};
@@ -1053,7 +1067,7 @@ function abrirFicha(d){
   <header class="ficha-cab">
     <button class="volver" onclick="ir(vistaAnterior)">‹ Volver</button>
     <div class="ficha-top"><div class="av ${an.s}">${ini(w.n)}</div><div><h1>${esc(tit(w.n))}${w.e!=='ACTIVO'?' <span class="tag-ces">CESADO</span>':''}</h1><p>${esc(tit(w.c))}</p></div></div>
-    <div class="datos"><div><small>DNI</small><b>${w.d}</b></div><div><small>Lámpara</small><b>${esc(w.lp||'—')}</b></div><div><small>Guardia</small><b>${esc(guardiaDe(w)||'—')}</b></div></div>
+    <div class="datos"><div><small>DNI</small><b>${w.d}</b></div><div><small>Lámpara</small><b>${esc(w.lp||'—')}</b></div><div><small>Guardia</small><b>${esc(guardiaDe(w)||'—')}${(()=>{const x=turnoDe(guardiaDe(w));return x?` · ${TURNO_T[x.k][0]}<small style="display:block;font-weight:500;color:inherit;opacity:.85">hasta el ${String(x.fin.getDate()).padStart(2,'0')}/${String(x.fin.getMonth()+1).padStart(2,'0')}</small>`:''})()}</b></div></div>
     ${ausencia(w)?`<div class="hoy">Esta semana no está en labor: <b>${esc(ausencia(w))}</b></div>`:ds.lb?`<div class="hoy">Distribución actual: <b>${esc(ds.lb)}</b> · Nv. ${esc(ds.nv)} · ${esc(tit(ds.ve))} · ${esc(tit(ds.mi))}${pareja.length?`<br>Pareja: <b>${pareja.map(p=>esc(tit(p.n))).join(', ')}</b>`:''}</div>`:''}
   </header>
   <div class="estado-ficha">
