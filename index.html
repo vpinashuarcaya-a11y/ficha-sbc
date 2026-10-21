@@ -454,6 +454,9 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 .m-fila i{font-style:normal;font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;width:56px;text-align:center;flex:none}
 .pb{background:var(--verde-s);color:#1F7650}.pm{background:var(--ambar-s);color:var(--ambar-t)}.pa{background:#FCEBEB;color:#A92F2F}
 .m-alerta{background:#FFF7E6;border:1.5px dashed var(--ambar);border-radius:12px;padding:10px 12px;font-size:13.5px;color:var(--ambar-t)}
+
+/* v18: pestañas siempre visibles */
+.pestanas{flex-wrap:wrap!important;row-gap:8px;overflow:visible!important}
 </style>
 </head>
 <body>
@@ -1387,7 +1390,7 @@ async function subirDatos(){const fs=[...$('#up-f').files];if(!fs.length){toast(
   cargando('Subiendo datos…');const r=await api(q);cargando(false);if(!r.ok){toast(r.error);return}toast('Datos subidos. Descargando…');VER=null;await descargar(true);pintarAdmin()}
 
 /* ---------- arranque ---------- */
-const est=()=>{const e=$('#estado');e.classList.toggle('off',!navigator.onLine);let g='';try{if(DATA&&DATA.A&&DATA.A.length){const r=refFecha();g=String(r.getDate()).padStart(2,'0')+'/'+String(r.getMonth()+1).padStart(2,'0')}}catch(x){}e.querySelector('span').textContent=navigator.onLine?(g?'Último acto: '+g:'En línea'):(g?'Sin señal · '+g:'Sin señal');e.title='Fecha del último acto registrado en el reporte GRISLI cargado'};
+const est=()=>{const e=$('#estado');e.classList.toggle('off',!navigator.onLine);const g=DATA&&DATA.gen?DATA.gen.slice(0,5):'';e.querySelector('span').textContent=navigator.onLine?(g?'Datos al '+g:'En línea'):(g?'Sin señal · '+g:'Sin señal');e.title='Fecha en que se cargaron los datos'};
 async function actualizarTodo(){
   if(!navigator.onLine){toast('Sin señal: se actualizará cuando tengas conexión');return}
   const b=$('#btn-act');if(b){b.disabled=true;b.classList.add('gira')}
