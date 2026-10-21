@@ -416,6 +416,31 @@ body.m-pc .barra::before{color:#fff!important}
 .par>b small{display:block;font-family:Barlow;font-size:11px;color:var(--gris);font-weight:500}
 #adm-cont .kpis{grid-template-columns:repeat(2,1fr)}
 body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
+
+/* ===== v16 ===== */
+.alerta-roja{display:flex;align-items:center;gap:10px;width:calc(100% - 32px);margin:14px 16px 0;padding:12px 14px;border-radius:var(--r-m);background:#FFF1F1;border:1.5px solid #F3B4B4;color:#7A2B2B;font-size:14px;text-align:left}
+.alerta-roja .dot{width:12px;height:12px;border-radius:50%;background:var(--rojo);flex:none;box-shadow:0 0 0 4px rgba(214,69,69,.2)}
+.alerta-roja b{color:#A92F2F}.alerta-roja .ver{margin-left:auto;font-weight:700;color:#A92F2F;flex:none}
+.alerta-ok{margin:14px 16px 0;padding:10px 14px;border-radius:var(--r-m);background:var(--verde-s);color:#1F7650;font-size:14px;font-weight:600}
+.atajos{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin:10px 16px 0}
+.atajos button{background:var(--blanco);border-radius:var(--r-m);box-shadow:var(--sombra);padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.atajos b{font-family:"Barlow Condensed";font-size:24px;line-height:1;color:#0B4FB8}.atajos span{font-size:12.5px;color:var(--gris);line-height:1.2}
+.atajos .adm{background:linear-gradient(135deg,#0B5FD6,#1070E8)}.atajos .adm b,.atajos .adm span{color:#fff}
+.par-h{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--linea)}.par-h small{display:block;color:var(--gris);font-size:12.5px;margin-top:2px}
+.par-h>b{font-family:"Barlow Condensed";font-size:22px;text-align:right;flex:none}.par-h>b small{font-family:Barlow;font-size:11px;font-weight:500}
+.lnk2{color:#0B4FB8;font-weight:700;font-size:14.5px;text-align:left;padding:0}
+.cursos{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.curso{display:grid;gap:6px;text-align:left;background:var(--papel);border-radius:12px;padding:10px 12px;border:1.5px solid transparent}
+.curso:hover,.curso:focus-visible{border-color:#1070E8}.curso .nm{font-weight:700;font-size:14px}
+.curso .tr{height:8px;border-radius:4px;background:#fff;overflow:hidden}.curso .tr i{display:block;height:100%;background:var(--verde)}
+.curso .ct{font-size:12.5px;color:var(--gris)}.curso .ct b{color:var(--ambar-t)}
+.veredicto{margin-top:12px;border-radius:12px;padding:12px 14px;font-size:17px}.veredicto small{display:block;font-size:13px;margin-top:4px;opacity:.85}
+.veredicto.ok{background:var(--verde-s);color:#1F7650}.veredicto.mal{background:#FFF1F1;color:#A92F2F}
+.kp3r{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.kp3r div{background:var(--papel);border-radius:10px;padding:9px 10px}
+.kp3r b{font-family:"Barlow Condensed";font-size:26px;display:block;line-height:1}.kp3r span{font-size:12px;color:var(--gris)}
+.kp3r .v b{color:var(--verde)}.kp3r .r b{color:var(--rojo)}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}.tbl th{text-align:left;color:var(--gris);font-weight:600;font-size:12px;padding:5px 4px;border-bottom:1px solid var(--linea)}
+.tbl td{padding:8px 4px;border-bottom:1px solid var(--linea)}.tbl .r{text-align:right}.tbl small{color:var(--gris)}
 </style>
 </head>
 <body>
@@ -754,17 +779,20 @@ const kpiH=L=>`<div class="kpis" style="margin:0 0 12px">${L.map(([n,tx,c])=>`<d
 
 /* 1. nuevos rojos desde la última actualización */
 let NUEVOS_ROJOS=[];
-function calcNuevosRojos(){
-  const k='fsbc_rojos_'+(USER&&USER.dni||'');const cur=activos().filter(w=>AN[w.d].s==='r').map(w=>w.d);
-  const prev=store.get(k,null);
-  if(!prev){store.set(k,{ver:VER,reds:cur,nuevos:[]});NUEVOS_ROJOS=[];return}
-  if(prev.ver!==VER){const ps=new Set(prev.reds);NUEVOS_ROJOS=cur.filter(d=>!ps.has(d));store.set(k,{ver:VER,reds:cur,nuevos:NUEVOS_ROJOS})}
-  else NUEVOS_ROJOS=(prev.nuevos||[]).filter(d=>W[d]&&AN[d].s==='r');
-}
-function pintarNuevosRojos(){const el=$('#nuevos-rojos');if(!el)return;
-  if(!ADMIN||!NUEVOS_ROJOS.length){el.innerHTML='';return}
-  el.innerHTML=`<button class="alerta-roja" onclick="verNuevosRojos()"><span class="dot"></span><b>${NUEVOS_ROJOS.length} ${NUEVOS_ROJOS.length===1?'trabajador pasó':'trabajadores pasaron'} a rojo</b> desde la última actualización<span class="ver">Ver</span></button>`}
-function verNuevosRojos(){abrirHoja(`<div class="hoja-cab"><h2>Nuevos en rojo</h2><p>Pasaron a urgente con la última actualización de datos.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><div class="lista">${NUEVOS_ROJOS.map(d=>filaPersona(W[d])).join('')}</div></div>`)}
+function rojoAl(w,lim){const t=lim.getTime(),d90=t-90*DIA;const acts=AN[w.d].acts.filter(x=>x.a.dt.getTime()<=t);
+  const n90=acts.filter(x=>x.a.dt.getTime()>d90).length;const acc=w.E.some(x=>x.e.k==='A'&&x.e.dt&&x.e.dt.getTime()<=t&&x.e.dt.getFullYear()===HOY.getFullYear());
+  return n90>=4||(acts.length>0&&acc)}
+function calcNuevosRojos(){const ref=refFecha();const lim=new Date(ref.getTime()-14*DIA);
+  NUEVOS_ROJOS=activos().filter(w=>AN[w.d].s==='r'&&!rojoAl(w,lim)).map(w=>w.d)}
+
+function pintarNuevosRojos(){const el=$('#nuevos-rojos');if(!el||!DATA)return;
+  const ref=refFecha();const P=parejas(F.mina||'').length,R=refuerzo(F.mina||'').L.length;
+  el.innerHTML=(NUEVOS_ROJOS.length?`<button class="alerta-roja" onclick="verNuevosRojos()"><span class="dot"></span><span><b>${NUEVOS_ROJOS.length} ${NUEVOS_ROJOS.length===1?'trabajador pasó':'trabajadores pasaron'} a rojo</b> en las últimas 2 semanas (al ${ref.toLocaleDateString('es-PE')})</span><span class="ver">Ver</span></button>`:`<div class="alerta-ok">✓ Nadie pasó a rojo en las últimas 2 semanas</div>`)+
+  `<div class="atajos"><button onclick="verParejas()"><b>${P}</b><span>Parejas de riesgo</span></button><button onclick="verRefuerzo()"><b>${R}</b><span>Refuerzo positivo</span></button>${ADMIN?`<button class="adm" onclick="informeComite()"><b>PDF</b><span>Informe para el comité</span></button>`:''}</div>`}
+
+function verNuevosRojos(){abrirHoja(`<div class="hoja-cab"><h2>Pasaron a rojo</h2><p>Están en urgente hoy y hace 2 semanas no lo estaban. Revisa su ficha y la medida que corresponde.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><div class="lista">${NUEVOS_ROJOS.map(d=>filaPersona(W[d])).join('')}</div></div>`)}
+function verParejas(){const P=parejas(F.mina||'');abrirHoja(`<div class="hoja-cab"><h2>Parejas de riesgo</h2><p>Trabajadores reportados juntos en 2 o más actos este año. Conviene separarlos o intervenir a ambos.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">${P.slice(0,30).map(([k,n])=>{const [a,b]=k.split('|').map(d=>W[d]);const junt=a.ds&&b.ds&&a.ds.lb&&a.ds.lb===b.ds.lb&&guardiaDe(a)===guardiaDe(b);return `<div class="par-h"><div><button class="lnk2" onclick="cerrarHoja();abrirFicha('${a.d}')">${esc(tit(a.n))}</button> + <button class="lnk2" onclick="cerrarHoja();abrirFicha('${b.d}')">${esc(tit(b.n))}</button><small>${junt?'⚠ Hoy siguen juntos en '+esc(a.ds.lb)+' · Gdia '+esc(guardiaDe(a)):'Hoy en labores distintas'}</small></div><b>${n}<small>actos juntos</small></b></div>`}).join('')||'<p>No hay parejas con actos repetidos.</p>'}</div>`)}
+function verRefuerzo(){const R=refuerzo(F.mina||'');abrirHoja(`<div class="hoja-cab"><h2>Refuerzo positivo</h2><p>Tuvieron actos este año, pero llevan más de 90 días sin ninguno: reconócelos en campo. Además, ${R.sin} activos no tienen actos en el año.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><div class="lista">${R.L.slice(0,60).map(o=>filaPersona(o.w,[[`${Math.floor((R.ref-o.ult)/DIA)} días sin actos`,'v'],[`${o.n} acto${o.n>1?'s':''} antes`,'']])).join('')||'<p>Aún nadie cumple 90 días sin actos.</p>'}</div></div>`)}
 
 /* 2. control de capacitaciones */
 function capStats(){const porCurso={},rows=[];let asig=0,comp=0,atr=0;
@@ -772,13 +800,19 @@ function capStats(){const porCurso={},rows=[];let asig=0,comp=0,atr=0;
     (e.cur||[]).forEach(k=>{asig++;const h=(DATA.CAP||{})[w.d+'|'+k.c];const pc=porCurso[k.c+' · '+k.n]=porCurso[k.c+' · '+k.n]||{a:0,c:0};pc.a++;
       if(h){comp++;pc.c++}else{const dias=fe?Math.floor((HOY-fe)/DIA):0;if(dias>30)atr++;rows.push({w,k,dias})}})});
   return {asig,comp,atr,porCurso,rows}}
+function verCurso(code){const pend=[],ok=[];let nom='';
+  activos().forEach(w=>{const e=ultEval(w);if(!e)return;const fe=pf(e.f);(e.cur||[]).forEach(k=>{if(k.c!==code)return;nom=k.n;const h=(DATA.CAP||{})[w.d+'|'+k.c];const dias=fe?Math.floor((HOY-fe)/DIA):0;(h?ok:pend).push({w,dias,h,e})})});
+  pend.sort((a,b)=>b.dias-a.dias);
+  abrirHoja(`<div class="hoja-cab"><h2>${esc(code)} · ${esc(nom)}</h2><p>${pend.length} pendientes · ${ok.length} completadas</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">
+   <h3 style="font-family:'Barlow Condensed';font-size:18px;margin:4px 0 8px">Les falta este curso (${pend.length})</h3><div class="lista">${pend.map(o=>filaPersona(o.w,[[`Evaluado hace ${o.dias} días`,o.dias>30?'r':'a'],[esc(o.e.m||''),'']])).join('')||'<p>Nadie pendiente.</p>'}</div>
+   <h3 style="font-family:'Barlow Condensed';font-size:18px;margin:16px 0 8px">Ya lo completaron (${ok.length})</h3><div class="lista">${ok.map(o=>filaPersona(o.w,[[`Completado el ${esc(o.h)}`,'v']])).join('')||'<p>Nadie aún.</p>'}</div></div>`)}
 function pintarCap(c){const s=capStats();const pct=s.asig?Math.round(s.comp/s.asig*100):0;
   const porW={};s.rows.forEach(r=>{const o=porW[r.w.d]=porW[r.w.d]||{w:r.w,n:0,dias:0};o.n++;o.dias=Math.max(o.dias,r.dias)});
   const L=Object.values(porW).sort((a,b)=>b.dias-a.dias||b.n-a.n);
   const cursos=Object.entries(s.porCurso).sort((a,b)=>(b[1].a-b[1].c)-(a[1].a-a[1].c));
   c.innerHTML=kpiH([[s.asig,'Capacitaciones asignadas'],[s.comp,'Completadas','verde'],[s.asig-s.comp,'Pendientes','ambar-t'],[s.atr,'Atrasadas (+30 días)','rojo']])+
   `<div class="panel" style="margin:0 0 12px"><h3>Avance general: ${pct}%</h3><div class="tr" style="height:14px;border-radius:7px;background:var(--papel);overflow:hidden;margin-top:8px"><i style="display:block;height:100%;width:${pct}%;background:var(--verde)"></i></div></div>
-  <div class="panel" style="margin:0 0 12px"><h3>Por curso</h3><div class="barras">${cursos.map(([k,v])=>`<div class="br"><span class="lb">${esc(k)}</span><span class="tr"><i style="width:${v.a?Math.round(v.c/v.a*100):0}%;background:var(--verde)"></i></span><b>${v.c}/${v.a}</b></div>`).join('')||'<p>Sin capacitaciones asignadas.</p>'}</div></div>
+  <div class="panel" style="margin:0 0 12px"><h3>Por curso</h3><p>Toca un curso para ver quién lo tiene pendiente y quién ya lo completó.</p><div class="cursos">${cursos.map(([k,v])=>`<button class="curso" onclick="verCurso('${esc(k.split(' · ')[0])}')"><span class="nm">${esc(k)}</span><span class="tr"><i style="width:${v.a?Math.round(v.c/v.a*100):0}%"></i></span><span class="ct"><b>${v.a-v.c}</b> pendientes · ${v.c} de ${v.a} completadas</span></button>`).join('')||'<p>Sin capacitaciones asignadas.</p>'}</div></div>
   <div class="bloque" style="padding:6px 0 0"><h2>Con capacitaciones pendientes <small>${L.length} trabajadores</small></h2><div class="lista">${L.slice(0,80).map(o=>filaPersona(o.w,[[`${o.n} pendiente${o.n>1?'s':''}`,o.dias>30?'r':'a'],[`${o.dias} días desde su evaluación`,o.dias>30?'r':'']])).join('')||'<div class="vacio">Todas las capacitaciones están completadas.</div>'}</div></div>`}
 
 /* 3. perfil por dimensión */
@@ -802,16 +836,24 @@ function antesDespues(){const ref=refFecha();const res=[];
   const pA=m(res.map(r=>r.rA)),pD=m(res.map(r=>r.rD));const red=pA?Math.round((pA-pD)/pA*100):0;
   const grupo=f=>{const g=res.filter(f);return {n:g.length,a:m(g.map(r=>r.rA)),d:m(g.map(r=>r.rD))}};
   return {res,ref,pA,pD,red,mejoraron,sinDesp,conA,capSi:grupo(r=>r.capOk===true),capNo:grupo(r=>r.capOk===false)}}
-function pintarResultados(c){const s=antesDespues();const f1=x=>x.toFixed(2);
+function pintarResultados(c){const s=antesDespues();const f1=x=>x.toFixed(1).replace('.',',');
   if(!s.res.length){c.innerHTML='<div class="vacio">Aún no hay trabajadores evaluados con al menos 30 días de seguimiento.</div>';return}
-  const sigue=s.res.filter(r=>r.despues>0).sort((a,b)=>b.rD-a.rD);
-  c.innerHTML=kpiH([[s.res.length,'Evaluados con 30+ días de seguimiento'],[f1(s.pA),'Actos por mes ANTES (prom.)'],[f1(s.pD),'Actos por mes DESPUÉS (prom.)',s.pD<s.pA?'verde':'rojo'],[(s.red>0?'−':'+')+Math.abs(s.red)+'%','Cambio en la frecuencia',s.red>0?'verde':'rojo'],[s.sinDesp.length,'Sin actos después de evaluarse','verde'],[`${s.mejoraron.length}/${s.conA.length}`,'Bajaron su frecuencia (de los que tenían actos)']])+
-  `<div class="panel" style="margin:0 0 12px"><h3>¿Influye completar las capacitaciones?</h3><p>Actos por mes antes → después de la evaluación.</p><div class="barras" style="margin-top:8px">
-   <div class="br"><span class="lb">Capacitaciones completas (${s.capSi.n})</span><span style="font-size:14px">${f1(s.capSi.a)} → <b>${f1(s.capSi.d)}</b></span><b></b></div>
-   <div class="br"><span class="lb">Capacitaciones pendientes (${s.capNo.n})</span><span style="font-size:14px">${f1(s.capNo.a)} → <b>${f1(s.capNo.d)}</b></span><b></b></div></div>
-   <p style="margin-top:8px;font-size:12.5px">Antes = 90 días previos a su primera evaluación del año. Después = desde la evaluación hasta el último reporte GRISLI (${s.ref.toLocaleDateString('es-PE')}).</p></div>
-  <div class="bloque" style="padding:6px 0 0"><h2>Siguen con actos tras evaluarse <small>${sigue.length}</small></h2><div class="lista">${sigue.slice(0,40).map(r=>filaPersona(r.w,[[`Antes ${r.antes} · después ${r.despues}`,r.rD>=r.rA?'r':'a'],[`Evaluado ${r.fe.toLocaleDateString('es-PE')}`,'']])).join('')||'<div class="vacio">Nadie.</div>'}</div></div>
-  <div class="bloque" style="padding:6px 0 0"><h2>Mejoraron <small>${s.mejoraron.length}</small></h2><div class="lista">${s.mejoraron.slice(0,40).map(r=>filaPersona(r.w,[[`Antes ${r.antes} · después ${r.despues}`,'v']])).join('')||'<div class="vacio">Aún nadie.</div>'}</div></div>`}
+  const ev=s.res.length,mej=s.res.filter(r=>r.rD<r.rA),igu=s.res.filter(r=>r.rD===r.rA),peo=s.res.filter(r=>r.rD>r.rA);
+  const pc=n=>Math.round(n/ev*100);const baja=s.red>0;
+  const linea=r=>{const mA=3,mD=Math.max(1,Math.round(r.dd/30));const est=r.rD<r.rA?['Mejoró','v']:r.rD>r.rA?['Empeoró','r']:['Igual',''];
+    return filaPersona(r.w,[[est[0],est[1]],[`Antes: ${r.antes} acto${r.antes!==1?'s':''} en 3 meses`,''],[`Después: ${r.despues} en ${mD} mes${mD>1?'es':''}`,r.despues?'a':'v']])};
+  c.innerHTML=`<div class="panel" style="margin:0 0 12px"><h3>¿Está funcionando la intervención?</h3>
+   <p style="font-size:15px;color:var(--tinta);margin-top:8px">Se comparan los actos de cada trabajador <b>antes</b> de su evaluación de percepción de riesgo (los 3 meses previos) con los actos <b>después</b> (desde la evaluación hasta el último reporte GRISLI, ${s.ref.toLocaleDateString('es-PE')}). Solo se incluyen los evaluados hace 30 días o más.</p>
+   <div class="veredicto ${baja?'ok':'mal'}">${baja?`Los actos <b>bajaron ${Math.abs(s.red)}%</b> después de la evaluación`:`Los actos <b>subieron ${Math.abs(s.red)}%</b> después de la evaluación`}<small>Promedio por trabajador: ${f1(s.pA)} actos al mes antes → ${f1(s.pD)} actos al mes después</small></div>
+   <div class="kp3r"><div class="v"><b>${mej.length}</b><span>mejoraron (${pc(mej.length)}%)</span></div><div><b>${igu.length}</b><span>siguen igual (${pc(igu.length)}%)</span></div><div class="r"><b>${peo.length}</b><span>empeoraron (${pc(peo.length)}%)</span></div></div>
+   <p style="margin-top:8px">De ${ev} trabajadores evaluados, <b>${s.sinDesp.length}</b> no han vuelto a tener ningún acto desde su evaluación.</p></div>
+  <div class="panel" style="margin:0 0 12px"><h3>¿Ayudan las capacitaciones?</h3><p>Mismo cálculo, separando a quienes ya completaron todas sus capacitaciones de quienes aún tienen cursos pendientes.</p>
+   <table class="tbl"><tr><th>Grupo</th><th class="r">Antes<br>(actos/mes)</th><th class="r">Después<br>(actos/mes)</th></tr>
+   <tr><td>Capacitaciones completas <small>(${s.capSi.n})</small></td><td class="r">${f1(s.capSi.a)}</td><td class="r"><b style="color:${s.capSi.d<s.capSi.a?'var(--verde)':'var(--rojo)'}">${f1(s.capSi.d)}</b></td></tr>
+   <tr><td>Con cursos pendientes <small>(${s.capNo.n})</small></td><td class="r">${f1(s.capNo.a)}</td><td class="r"><b style="color:${s.capNo.d<s.capNo.a?'var(--verde)':'var(--rojo)'}">${f1(s.capNo.d)}</b></td></tr></table>
+   <p style="margin-top:8px">${s.capSi.n&&s.capNo.n?(s.capSi.d<s.capNo.d?'Quienes completaron sus capacitaciones tienen <b>menos actos</b> después de la evaluación.':'Por ahora no se ve diferencia a favor de quienes completaron sus capacitaciones; revisa la calidad y el seguimiento de los cursos.'):'Aún hay pocos casos en uno de los grupos para comparar.'}</p></div>
+  <div class="bloque" style="padding:6px 0 0"><h2>Empeoraron después de evaluarse <small>${peo.length}</small></h2><p class="ayuda" style="padding:0 2px 8px">Priorízalos: reevaluar, revisar capacitaciones y seguimiento en campo.</p><div class="lista">${peo.sort((a,b)=>b.rD-a.rD).slice(0,40).map(linea).join('')||'<div class="vacio">Nadie.</div>'}</div></div>
+  <div class="bloque" style="padding:6px 0 0"><h2>Mejoraron <small>${mej.length}</small></h2><div class="lista">${mej.sort((a,b)=>(b.rA-b.rD)-(a.rA-a.rD)).slice(0,40).map(linea).join('')||'<div class="vacio">Aún nadie.</div>'}</div></div>`}
 
 /* 6. parejas de riesgo  /  7. refuerzo positivo  (Tablero, todos) */
 function parejas(mina){const y=HOY.getFullYear();const porActo={};
