@@ -349,7 +349,7 @@ body.wide .cab .yo{display:none}
 
 /* ===== Tema Cielo COPSEM ===== */
 .paso.pend{background:var(--ambar-s)!important;border:1.5px dashed var(--ambar)!important;color:var(--ambar-t)!important}.paso.pend .k,.paso.pend .h{color:var(--ambar-t)!important}.paso .h small{font-size:10.5px;font-weight:600}
-@media (max-width:480px){.rail .h{font-size:11px!important}}
+@media (max-width:480px){.rail .h{font-size:10.5px!important;overflow-wrap:anywhere;hyphens:auto}.rail .paso{padding-left:6px!important;padding-right:4px!important}}
 .disp::before{display:none!important}
 .disp-in p,.opc small{color:rgba(255,255,255,.9)!important}
 .opc button{background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.4)!important;backdrop-filter:blur(6px)}
@@ -604,6 +604,10 @@ function panelEval(w){
   return `<div class="panel"><h3>Evaluación de percepción de riesgo</h3><div class="fila" style="display:flex;gap:10px;align-items:center;margin-top:8px"><span class="sello ${c||'n'}">${esc(tit(e.s||'Sin dato'))}</span><span style="font-size:14px;color:var(--gris)">${esc(e.f)} · ${esc(e.m||'')}</span></div>${det}${hist}</div>
   <div class="panel"><h3>Capacitaciones asignadas</h3>${curH}</div>`;
 }
+const EXAMEN_URL='https://script.google.com/macros/s/AKfycby3OOvBzs2kUFrLbybuJbhXpyLk72198gZaHou-6OfLAGtSwpVSNaxljZay59CQ6kJ23g/exec';
+function evaluarPR(d){if(!navigator.onLine){toast('El examen necesita señal');return}
+  try{navigator.clipboard&&navigator.clipboard.writeText(d)}catch(e){}
+  window.open(EXAMEN_URL,'_blank');toast(`Examen abierto · DNI ${d} copiado: pégalo en sus datos`)}
 async function marcarCurso(d,c,on){
   DATA.CAP=DATA.CAP||{};const k=d+'|'+c;const hoy=new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'});
   if(on)DATA.CAP[k]=hoy;else delete DATA.CAP[k];abrirFicha(d);
@@ -817,7 +821,7 @@ function abrirFicha(d){
     <div class="escalera"><h3>Escalera SBC 2026</h3><div class="rail">${pasos}</div>
       <p class="nota">Medida por su último acto: <b>${ESC[an.toca-1]}</b>. Si comete otro acto, según su potencial en GRISLI: Bajo → <b>${ESC_C[an.prox.Bajo-1]}</b> · Medio → <b>${ESC_C[an.prox.Medio-1]}</b> · Alto → <b>${ESC_C[an.prox.Alto-1]}</b>.${an.n>0&&!an.evaluado?' <b style="color:var(--ambar-t)">Falta la evaluación de percepción de riesgo y sus capacitaciones (obligatoria).</b>':''}</p></div>
   </div>
-  ${ADMIN?`<div class="acciones" style="grid-template-columns:1fr"><button class="btn pri" onclick="informe('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Generar Informe de Reincidencia</button></div>`:''}
+  ${ADMIN?`<div class="acciones" style="grid-template-columns:1fr"><button class="btn pri" onclick="informe('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Generar Informe de Reincidencia</button><button class="btn" style="margin-top:8px;${an.n>0&&!an.evaluado?'background:var(--ambar);color:#2b1d00':'background:#fff;color:#0B4FB8;border:1.5px solid #1070E8'}" onclick="evaluarPR('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>${an.n>0&&!an.evaluado?'Evaluar percepción de riesgo (pendiente)':'Evaluar percepción de riesgo'}</button></div>`:''}
   <div class="pestanas" id="pest">${[['todo','Todo'],['sbc','Psicología'],['grisli','GRISLI'],['ev','Eventos']].map(([k,t])=>`<button data-k="${k}" class="${fichaTab===k?'on':''}">${t}<em>${cnt[k]}</em></button>`).join('')}</div>
   <div class="tl" id="tl"></div>
   ${panelEval(w)}`;
@@ -955,14 +959,16 @@ function pintarZonas(){const L=ZONAS[F.mina]||[];$('#f-zona').innerHTML=L.length
 $('#f-zona').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;F.zona=b.dataset.v;store.set('fsbc_f',F);pintarZonas();limite=25;pintarInicio()});
 
 /* ---------- servidor ---------- */
-async function api(q){
+async function api(q,ms){
   if(!navigator.onLine)return {ok:false,offline:true,error:'Sin señal'};
+  const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),ms||(q.a==='datos'?45000:12000));
   try{
-    const r=await fetch(API,{method:'POST',body:JSON.stringify({...q,token:TOKEN}),redirect:'follow'});
+    const r=await fetch(API,{method:'POST',body:JSON.stringify({...q,token:TOKEN}),redirect:'follow',signal:ctl.signal});
+    clearTimeout(tm);
     const j=await r.json();
     if(j&&j.sesion===false&&q.a!=='login'){salir(j.error);return j}
     return j;
-  }catch(e){return {ok:false,offline:true,error:'No se pudo conectar con el servidor'}}
+  }catch(e){clearTimeout(tm);return {ok:false,offline:true,error:e&&e.name==='AbortError'?'La señal es muy débil: no respondió el servidor':'No se pudo conectar con el servidor'}}
 }
 /* caché en el equipo (IndexedDB) */
 const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('fichasbc',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
@@ -991,23 +997,34 @@ async function guardarOff(dni,pw){try{const salt=(crypto.randomUUID?crypto.rando
 async function okOff(dni,pw){const o=store.get('fsbc_off',null);if(!o||o.dni!==dni)return false;try{return (await sha(o.salt+'|'+dni+'|'+pw))===o.h}catch(e){return false}}
 async function entrar(){
   const c=await idbGet('datos');
-  if(c&&c.data&&c.dni===USER.dni){DATA_RAW=c.data;VER=c.ver;MAPA=c.mapa||[];CONF=c.conf||{};usarDatos();if(navigator.onLine)descargar(false,true)}
+  if(c&&c.data&&c.dni===USER.dni){DATA_RAW=c.data;VER=c.ver;MAPA=c.mapa||[];CONF=c.conf||{};usarDatos();if(navigator.onLine)setTimeout(()=>descargar(false,true),300)}
   else await descargar(true);
 }
 let OCULTO=0;
-document.addEventListener('visibilitychange',()=>{if(document.hidden){OCULTO=Date.now()}else if(OCULTO&&USER&&Date.now()-OCULTO>5*60e3){$('#l-pw').value='';$('#l-err').textContent='Por seguridad, vuelve a ingresar tu contraseña.';mostrar('acceso',true)}});
+// Sin bloqueo por tiempo: la contraseña se pide solo al abrir la app (cerrarla, cerrar la pestaña o apagar el celular).
 $('#f-login').addEventListener('submit',async e=>{
   e.preventDefault();const dni=$('#l-dni').value.trim(),pw=$('#l-pw').value;
   $('#l-err').textContent='';
   if(!/^\d{8}$/.test(dni)){$('#l-err').textContent='Escribe tu DNI de 8 dígitos.';return}
   if(!pw){$('#l-err').textContent='Escribe tu contraseña.';return}
   const ses=store.get('fsbc_ses',null);
-  const offline=async()=>{if(ses&&ses.token&&ses.user&&ses.user.dni===dni&&await okOff(dni,pw)){TOKEN=ses.token;USER=ses.user;$('#l-pw').value='';mostrar('acceso',false);aplicarUsuario();if(!DATA)await entrar();toast('Sin señal: usando los últimos datos descargados');return true}return false};
-  if(!navigator.onLine){if(!(await offline()))$('#l-err').textContent='Sin señal. Si es tu primer ingreso en este equipo, hazlo con señal; si no, revisa tu contraseña.';return}
+  // 1) Si este equipo ya conoce al usuario, se valida aquí mismo (funciona sin señal y es inmediato)
+  if(ses&&ses.token&&ses.user&&ses.user.dni===dni&&await okOff(dni,pw)){
+    TOKEN=ses.token;USER=ses.user;$('#l-pw').value='';mostrar('acceso',false);aplicarUsuario();
+    if(USER.cambiar){abrirCambio(true);return}
+    if(!DATA)await entrar();else if(navigator.onLine)descargar(false,true);
+    if(navigator.onLine)api({a:'login',dni,pw,disp:store.get('fsbc_disp','')}).then(async r=>{
+      if(r&&r.ok){TOKEN=r.token;USER=r.user;store.set('fsbc_ses',{token:TOKEN,user:USER});aplicarUsuario()}
+      else if(r&&!r.offline&&r.error){salir(r.error)}
+    });
+    return;
+  }
+  // 2) Primer ingreso en este equipo o contraseña cambiada: necesita señal
+  if(!navigator.onLine){$('#l-err').textContent=ses&&ses.user&&ses.user.dni===dni?'Contraseña incorrecta.':'Sin señal. El primer ingreso en este equipo debe hacerse con señal.';return}
   $('#l-btn').disabled=true;$('#l-btn').textContent='Verificando…';
   const r=await api({a:'login',dni,pw,disp:store.get('fsbc_disp','')});
   $('#l-btn').disabled=false;$('#l-btn').textContent='Ingresar';
-  if(!r.ok){if(/señal|conex|red|fetch/i.test(r.error||'')&&await offline())return;$('#l-err').textContent=r.error||'No se pudo ingresar.';return}
+  if(!r.ok){$('#l-err').textContent=r.offline?(r.error+'. Acércate a una zona con mejor señal para tu primer ingreso.'):(r.error||'No se pudo ingresar.');return}
   TOKEN=r.token;USER=r.user;store.set('fsbc_ses',{token:TOKEN,user:USER});await guardarOff(dni,pw);$('#l-pw').value='';
   mostrar('acceso',false);aplicarUsuario();
   if(USER.cambiar){abrirCambio(true);return}
