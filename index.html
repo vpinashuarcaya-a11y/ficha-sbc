@@ -349,7 +349,7 @@ body.wide .cab .yo{display:none}
 
 /* ===== Tema Cielo COPSEM ===== */
 .paso.pend{background:var(--ambar-s)!important;border:1.5px dashed var(--ambar)!important;color:var(--ambar-t)!important}.paso.pend .k,.paso.pend .h{color:var(--ambar-t)!important}.paso .h small{font-size:10.5px;font-weight:600}
-@media (max-width:480px){.rail .h{font-size:10.5px!important;overflow-wrap:anywhere;hyphens:auto}.rail .paso{padding-left:6px!important;padding-right:4px!important}}
+
 .disp::before{display:none!important}
 .disp-in p,.opc small{color:rgba(255,255,255,.9)!important}
 .opc button{background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.4)!important;backdrop-filter:blur(6px)}
@@ -383,6 +383,25 @@ body.m-pc .barra::before{color:#fff!important}
 .datos small{color:rgba(255,255,255,.8)!important}
 .ficha-top .av{background:rgba(255,255,255,.22)!important}
 .ficha-top .av::after{border-color:#1070E8!important}
+
+/* ===== Ajustes celular (textos completos) ===== */
+@media (max-width:560px){
+ .rail{grid-template-columns:1fr!important;gap:6px!important}
+ .rail .paso{display:flex!important;align-items:center;gap:12px;min-height:0!important;padding:10px 34px 10px 12px!important}
+ .rail .paso .k{font-size:21px;width:16px;flex:none}
+ .rail .paso .h{margin-top:0!important;font-size:15px!important;overflow-wrap:normal!important;hyphens:none!important}
+ .rail .paso .h br{display:none}
+ .rail .paso .h small{margin-left:6px;font-size:12px!important}
+ .rail .paso.hecho::after{top:50%;transform:translateY(-50%);right:12px}
+ .filtros{flex-wrap:wrap;row-gap:8px}
+ .seg button{padding:7px 8px;min-width:34px}
+ .pestanas{flex-wrap:wrap;row-gap:8px}
+ .tend{gap:3px}.tend div{min-width:0}.tend em{font-size:10px}.tend small{font-size:9px}
+ .tend div:nth-child(even) small{visibility:hidden}
+ .br{grid-template-columns:46% 1fr 26px!important;gap:6px}
+ .br .lb{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.15;font-size:13px}
+ html,body{overflow-x:hidden}
+}
 </style>
 </head>
 <body>
