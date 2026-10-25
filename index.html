@@ -501,6 +501,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 .dos-c{display:grid;grid-template-columns:1fr 1fr;gap:8px}.foto-btn{display:flex!important;align-items:center;justify-content:center;height:46px;border-radius:12px;background:#EEF4FF;color:#0B4FB8!important;font-size:15px!important;cursor:pointer}
 .foto-prev{width:100%;border-radius:12px;margin-top:8px}
 .hist-it{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #E5ECF6;font-size:14.5px;line-height:1.4}.hist-it .hn{width:26px;height:26px;border-radius:50%;background:#EEF4FF;color:#0B4FB8;font-weight:700;display:grid;place-items:center;font-size:13px}.hist-it.an{opacity:.55}.hist-it.an b{text-decoration:line-through}
+.aut-falta{background:#FDECEC;border:1.5px solid #F3B4B4;color:#8A1C1C;border-radius:12px;padding:10px 12px;margin:8px 0 10px;font-size:14.5px;line-height:1.45}.aut-falta small{color:#8A1C1C;opacity:.85}.vence-it{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;background:#fff;border:1px solid #E5ECF6;border-radius:12px;padding:10px 12px;margin-bottom:6px;font:inherit;font-size:14.5px;cursor:pointer}.vence-it small{color:var(--gris)}.vence-it .vd{text-align:right;white-space:nowrap;font-weight:700;color:var(--ambar-t)}.vence-it .vd.r{color:var(--rojo)}#af-est{flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -560,7 +561,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
     <div class="buscador"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="aq" type="search" inputmode="search" autocomplete="off" placeholder="Nombre, DNI o N.° de lámpara"></div>
     <div class="filtros">
-      <div class="seg" id="af-est"><button data-v="" class="on">Todos</button><button data-v="venc">Vencidas</button><button data-v="porv">Por vencer / trámite</button><button data-v="sin">Sin registro</button></div>
+      <div class="seg" id="af-est"><button data-v="" class="on">Todos</button><button data-v="falta">⚠ Cargo sin autoriz.</button><button data-v="venc">Vencidas</button><button data-v="porv">Por vencer / trámite</button><button data-v="sin">Sin registro</button></div>
       <button type="button" class="tg-hoy" id="af-hoy">📍 Solo en mina hoy</button>
     </div>
     <select id="af-tipo" class="sel-tipo"></select>
@@ -878,26 +879,43 @@ function autIndex(){const k=(DATA?VER:'')+'|'+((DATA&&DATA.AUTC)||[]).length+'|'
   AUT_IDX=I;AUT_IDX_K=k;return I}
 const autDe=d=>Object.values(autIndex()[d]||{});
 function autChips(w){const L=autDe(w.d);if(!L.length)return [['Sin autorizaciones registradas','']];return L.map(it=>{const s=autEstado(it);return [`${AUT_C[it.t]||autNom(it.t)}: ${AUT_ST[s][0]}`,AUT_ST[s][1]]})}
+
+/* ===== v27: cargo vs autorización + vencimientos del mes ===== */
+// Qué autorización exige cada cargo (se puede ajustar aquí)
+const AUT_REQ=[[/AYUDANTE\s+MOTORISTA/,['AYMOT']],[/MOTORISTA/,['LOCO']],[/MAESTRO\s+PER[FO]+[RO]+ISTA/,['JACK','ALT']],[/AYUDANTE.*(PERFORISTA|CHIMENERO)/,['ALT']],[/CHIMENERO|PIQUE|MAESTRO MINA|ENMADERADOR|SHOTCRETERO/,['ALT']]];
+function autReq(w){const c=String(w.c||'').toUpperCase();for(const [re,ts] of AUT_REQ)if(re.test(c))return ts;return []}
+function autFaltas(w){const I=autIndex()[w.d]||{};return autReq(w).map(t=>{const it=I[t];if(!it)return {t,m:'no tiene registro'};const s=autEstado(it);return s==='venc'?{t,m:'vencida'}:s==='no'?{t,m:'no tiene'}:s==='tram'?{t,m:'en trámite'}:null}).filter(Boolean)}
+const autFaltaTxt=f=>`Cargo exige ${AUT_C[f.t]||autNom(f.t)}: ${f.m}`;
+function autVencen(){const h=new Date(HOY.getFullYear(),HOY.getMonth(),HOY.getDate());const L=[];
+  Object.values(W).filter(w=>w.e==='ACTIVO').forEach(w=>autDe(w.d).forEach(it=>{if(autEstado(it)==='porv')L.push({w,it,dias:Math.round((new Date(it.v+'T00:00:00')-h)/864e5)})}));
+  return L.sort((a,b)=>a.dias-b.dias)}
+function verVencen(){const L=autVencen();const G={};L.forEach(o=>{const g=guardiaDe(o.w)||'—';(G[g]=G[g]||[]).push(o)});
+  const html=Object.keys(G).sort().map(g=>`<h3 style="margin:14px 0 6px">Guardia ${esc(g)}${g!=='—'?turnoTag({ds:{gd:g}}):''} <small style="color:var(--gris)">${G[g].length}</small></h3>`+G[g].map(o=>`<button class="vence-it" onclick="cerrarHoja();abrirFicha('${o.w.d}')"><span><b>${esc(tit(o.w.n))}</b><br><small>${esc(AUT_C[o.it.t]||autNom(o.it.t))} · ${esc(tit(o.w.c||''))}</small></span><span class="vd ${o.dias<=7?'r':''}">${fDMY(o.it.v)}<br><small>${o.dias===0?'hoy':o.dias===1?'mañana':'en '+o.dias+' días'}</small></span></button>`).join('')).join('');
+  abrirHoja(`<div class="hoja-cab"><h2>Vencen en los próximos 30 días</h2><p>${L.length} autorizaciones de personal activo, por guardia. Programa la renovación antes de que venzan.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">${L.length?html+`<button class="btn ancho" style="margin-top:14px;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="exportarVencen()">⬇ Descargar lista (Excel)</button>`:'<p>Ninguna autorización vence en los próximos 30 días.</p>'}</div>`)}
+function exportarVencen(){const L=autVencen();const f=[['DNI','Apellidos y nombres','Cargo','Guardia','Autorización','Vence','Días']].concat(L.map(o=>[o.w.d,o.w.n,o.w.c||'',guardiaDe(o.w),AUT_C[o.it.t]||autNom(o.it.t),fDMY(o.it.v),o.dias]));
+  const csv='﻿'+f.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(';')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='autorizaciones_por_vencer.csv';a.click()}
 function pintarAut(){if(!DATA)return;
   const sel=$('#af-tipo');if(!sel.options.length)sel.innerHTML='<option value="">Todas las autorizaciones</option>'+autTipos().map(x=>`<option value="${x.k}">${esc(x.n)}${x.base===false?' (sin base, se registra en campo)':''}</option>`).join('');
   const act=Object.values(W).filter(w=>w.e==='ACTIVO');
   // resumen por tipo
   const R={};autTipos().forEach(x=>R[x.k]={vig:0,porv:0,venc:0,no:0,sf:0,li:0,tram:0});act.forEach(w=>autDe(w.d).forEach(it=>{const s=autEstado(it);if(R[it.t])R[it.t][s]++}));
-  $('#aut-res').innerHTML=`<div class="panel"><h3>Resumen (personal activo)</h3><div class="aut-tabla">${autTipos().map(x=>{const r=R[x.k];const tot=r.vig+r.porv+r.venc+r.sf+r.no+r.li+r.tram;return `<button class="aut-fila ${AF.tipo===x.k?'on':''}" onclick="AF.tipo=AF.tipo==='${x.k}'?'':'${x.k}';$('#af-tipo').value=AF.tipo;limAut=60;pintarAut()"><span class="n">${esc(x.n)}</span>${tot?`<span class="c v">${r.vig+r.li}</span><span class="c a">${r.porv+r.tram+r.sf}</span><span class="c r">${r.venc+r.no}</span>`:`<span class="sb">${x.base===false?'Sin base · registrar en campo':'Sin datos aún'}</span>`}</button>`}).join('')}</div><p class="ley"><i class="v"></i>Vigentes <i class="a"></i>Por vencer / en trámite <i class="r"></i>Vencidas / no tiene</p>${ADMIN?`<button class="btn" style="margin-top:10px;width:100%;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="exportarAut()">⬇ Exportar correcciones de campo para SIG</button>`:''}</div>`;
+  const FA=act.filter(w=>autFaltas(w).length),FAh=FA.filter(enMinaHoy).length,VN=autVencen().length;
+  $('#aut-res').innerHTML=`<div class="atajos" style="margin:12px 16px 0"><button onclick="$('#af-est').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v==='falta'));AF.est='falta';limAut=60;pintarAut();$('#aut-tit').scrollIntoView({behavior:'smooth'})"><b style="color:var(--rojo)">${FA.length}</b><span>Cargo sin autorización${FAh?` · ${FAh} en mina hoy`:''}</span></button><button onclick="verVencen()"><b style="color:var(--ambar-t)">${VN}</b><span>Vencen en 30 días</span></button></div><div class="panel"><h3>Resumen (personal activo)</h3><div class="aut-tabla">${autTipos().map(x=>{const r=R[x.k];const tot=r.vig+r.porv+r.venc+r.sf+r.no+r.li+r.tram;return `<button class="aut-fila ${AF.tipo===x.k?'on':''}" onclick="AF.tipo=AF.tipo==='${x.k}'?'':'${x.k}';$('#af-tipo').value=AF.tipo;limAut=60;pintarAut()"><span class="n">${esc(x.n)}</span>${tot?`<span class="c v">${r.vig+r.li}</span><span class="c a">${r.porv+r.tram+r.sf}</span><span class="c r">${r.venc+r.no}</span>`:`<span class="sb">${x.base===false?'Sin base · registrar en campo':'Sin datos aún'}</span>`}</button>`}).join('')}</div><p class="ley"><i class="v"></i>Vigentes <i class="a"></i>Por vencer / en trámite <i class="r"></i>Vencidas / no tiene</p>${ADMIN?`<button class="btn" style="margin-top:10px;width:100%;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="exportarAut()">⬇ Exportar correcciones de campo para SIG</button>`:''}</div>`;
   const q=norm($('#aq').value).trim();const tk=q?q.split(/\s+/):[];
   let L=act.filter(w=>(!tk.length||tk.every(x=>w.key.split(' ').some(p=>p.startsWith(x))||w.d.startsWith(x)||(w.lp&&String(w.lp)===x)))&&(!AF.hoy||enMinaHoy(w)));
-  L=L.map(w=>{const its=autDe(w.d).filter(it=>!AF.tipo||it.t===AF.tipo);const st=its.map(autEstado);return {w,its,st}}).filter(o=>{
+  L=L.map(w=>{const its=autDe(w.d).filter(it=>!AF.tipo||it.t===AF.tipo);const st=its.map(autEstado);const fa=autFaltas(w).filter(f=>!AF.tipo||f.t===AF.tipo);return {w,its,st,fa}}).filter(o=>{
+    if(AF.est==='falta')return o.fa.length>0;
     if(AF.est==='sin')return AF.tipo?!o.its.length:!autDe(o.w.d).length;
     if(AF.est==='venc')return o.st.some(s=>s==='venc'||s==='no');
     if(AF.est==='porv')return o.st.some(s=>s==='porv'||s==='tram'||s==='sf');
     if(AF.tipo&&!AF.est)return o.its.length>0;return true});
-  const pr=o=>o.st.filter(s=>s==='venc'||s==='no').length*3+o.st.filter(s=>s==='porv').length;
+  const pr=o=>o.fa.length*5+o.st.filter(s=>s==='venc'||s==='no').length*3+o.st.filter(s=>s==='porv').length;
   L.sort((a,b)=>pr(b)-pr(a)||(enMinaHoy(b.w)?1:0)-(enMinaHoy(a.w)?1:0)||a.w.n.localeCompare(b.w.n));
   $('#aut-n').textContent=L.length+' trabajadores';
-  $('#aut-lista').innerHTML=L.slice(0,limAut).map(o=>filaPersona(o.w,o.its.length?o.its.map(it=>{const s=autEstado(it);return [`${AUT_C[it.t]||autNom(it.t)}: ${AUT_ST[s][0]}${it.src==='campo'?' ✅':''}`,AUT_ST[s][1]]}):[[AF.tipo?'Sin '+(AUT_C[AF.tipo]||'').toLowerCase():'Sin autorizaciones registradas','']])).join('')+(L.length>limAut?`<button class="mas" onclick="limAut+=60;pintarAut()">Ver ${Math.min(60,L.length-limAut)} más</button>`:'')||'<div class="vacio">Nadie con estos filtros.</div>'}
+  $('#aut-lista').innerHTML=L.slice(0,limAut).map(o=>filaPersona(o.w,(AF.est==='falta'?o.fa.map(f=>[autFaltaTxt(f),'r']):[]).concat(o.its.length?o.its.map(it=>{const s=autEstado(it);return [`${AUT_C[it.t]||autNom(it.t)}: ${AUT_ST[s][0]}${it.src==='campo'?' ✅':''}`,AUT_ST[s][1]]}):[[AF.tipo?'Sin '+(AUT_C[AF.tipo]||'').toLowerCase():'Sin autorizaciones registradas','']]))).join('')+(L.length>limAut?`<button class="mas" onclick="limAut+=60;pintarAut()">Ver ${Math.min(60,L.length-limAut)} más</button>`:'')||'<div class="vacio">Nadie con estos filtros.</div>'}
 // ficha
 function panelAut(w){const L=autDe(w.d);
-  return `<div class="panel" id="aut-p-${w.d}"><h3>Autorizaciones</h3>${L.length?L.map(it=>{const s=autEstado(it);return `<div class="aut-it"><div class="tp"><b>${esc(autNom(it.t))}</b><span class="chip ${AUT_ST[s][1]}">${AUT_ST[s][0]}</span></div>
+  const FA=autFaltas(w);return `<div class="panel" id="aut-p-${w.d}"><h3>Autorizaciones</h3>${FA.length?`<div class="aut-falta">⚠ Su cargo (${esc(tit(w.c||''))}) exige:<br>${FA.map(f=>`<b>${esc(AUT_C[f.t]||autNom(f.t))}</b> — ${f.m}`).join('<br>')}<br><small>No debe realizar esa tarea hasta regularizar.</small></div>`:''}${L.length?L.map(it=>{const s=autEstado(it);return `<div class="aut-it"><div class="tp"><b>${esc(autNom(it.t))}</b><span class="chip ${AUT_ST[s][1]}">${AUT_ST[s][0]}</span></div>
      <div class="dt">${it.no?'Verificado en campo: no tiene esta autorización':`Emisión ${fDMY(it.e)} · Vence ${fDMY(it.v)}${it.num?' · N.° '+esc(it.num):''}`}</div>
      <div class="src">${it.src==='base'?(it.s?'📄 Según base Administración':'📄 Según base SIG')+(it.x?` · <b style="color:var(--ambar-t)">${it.s==='tram'?'⏳ '+esc(it.x):'⚠ Revisar en campo: '+esc(it.x)}</b>`:''):`✅ Verificado en campo por ${esc(tit(it.u||''))} · ${esc(it.f||'')}${it.pend?' <b style="color:var(--ambar-t)">⏳ por enviar</b>':''}${it.base?` · antes en base: vence ${fDMY(it.base.v)}`:''}`}${it.nota?`<br><i>${esc(it.nota)}</i>`:''}</div>
      <div class="acc">${it.foto?`<button class="mini b" onclick="verFotoAut('${it.id}')">📷 Ver carné</button>`:''}${autHist(w.d,it.t).length?`<button class="mini" onclick="verHistAut('${w.d}','${it.t}')">🕘 Historial (${autHist(w.d,it.t).length})</button>`:''}<button class="mini" onclick="formAut('${w.d}','${it.t}')">Corregir</button>${ADMIN&&it.src==='campo'&&!it.pend?`<button class="mini r" onclick="anularAut('${it.id}','${w.d}')">Anular</button>`:''}</div></div>`}).join(''):'<p>Sin autorizaciones registradas en la base SIG.</p>'}
