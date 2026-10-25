@@ -514,6 +514,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 .cn-datos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 10px}.cn-c label{display:block;font-size:13px;color:var(--gris);margin:0 0 3px}.cn-c input{width:100%;min-width:0;box-sizing:border-box;border-radius:10px;border:1.5px solid var(--linea);padding:9px 10px;font:inherit;font-size:14.5px;background:#fff}
 .cn-vp{position:relative;overflow:hidden;border-radius:12px;background:#F3F6FB;border:1px solid #DCE5F2}.cn-vp iframe{position:absolute;left:0;top:0;width:700px;height:318px;border:0;transform-origin:0 0;pointer-events:none;background:#fff}
 .aut-acc{display:flex;gap:8px;flex-wrap:wrap;margin:12px 16px 0}.aut-acc button{flex:1 1 150px;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8;border-radius:12px;padding:10px 8px;font:inherit;font-weight:700;font-size:14px;cursor:pointer}.aut-acc button:disabled{opacity:.5}.cv-in{width:100%;box-sizing:border-box;border-radius:12px;border:1.5px solid var(--linea);padding:10px;font:inherit;background:#fff}.cv-l{display:flex;flex-direction:column;gap:6px}.cv-it{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #DCE5F2;border-radius:12px;padding:9px 12px}.cv-it>div{flex:1;min-width:0;display:flex;flex-direction:column}.cv-it small{color:var(--gris);font-size:13px}.cv-it button{width:30px;height:30px;border-radius:50%;border:0;background:#FDECEC;color:#B42318;font-size:18px;flex:none}
+.ft-cab{display:flex;flex-direction:column;margin:14px 0 8px}.ft-cab small{color:var(--gris)}.ft-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.ft-it{background:#fff;border:1px solid #DCE5F2;border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px}.ft-it img,.ft-ph{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;background:#F3F6FB;border:0;cursor:pointer;font-size:26px;color:var(--gris)}.ft-ph small{font-size:12px}.ft-tx{display:flex;flex-direction:column;min-width:0}.ft-tx b{font-size:13.5px}.ft-tx small{font-size:12px;color:var(--gris)}
 </style>
 </head>
 <body>
@@ -898,6 +899,47 @@ function autChips(w){const L=autDe(w.d);if(!L.length)return [['Sin autorizacione
 
 
 
+
+/* ===== v37: fotos — foto del trabajador en el servidor + apartado para buscar y descargar fotos ===== */
+const ftQ=()=>store.get('fsbc_ftq',[]);let _envFt=false;
+function subirFotoTrab(d,url){const q=ftQ().filter(x=>x.dni!==d);q.push({dni:d,nombre:(W[d]||{}).n||'',foto:url});try{store.set('fsbc_ftq',q)}catch(e){}enviarFotosTrab()}
+async function enviarFotosTrab(){if(_envFt||!TOKEN||!navigator.onLine)return;let q=ftQ();if(!q.length)return;_envFt=true;
+  try{for(const it of [...q]){const r=await api({a:'fotoTrab',...it},60000);if(r&&r.ok){q=ftQ().filter(x=>x.dni!==it.dni||x.foto!==it.foto);store.set('fsbc_ftq',q)}else break}}finally{_envFt=false}}
+// foto del trabajador: primero la de este equipo; si no hay y hay señal, la del servidor
+async function fotoTrab(d){let f=(await idbGet('foto_'+d).catch(()=>null))||'';if(f)return f;const p=ftQ().find(x=>x.dni===d);if(p)return p.foto;
+  if(navigator.onLine&&TOKEN){const r=await api({a:'fotoTrabVer',dni:d},30000);if(r&&r.ok&&r.foto){f=r.foto;try{idbSet('foto_'+d,f)}catch(e){}}}return f}
+function nombreArch(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9 _.-]/g,'').trim().replace(/\s+/g,'_')}
+function bajarArchivo(blob,nombre){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+function b64Bytes(u){const b=atob(String(u).split(',').pop());const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+let FT={d:'',L:[]};
+function verFotos(d){FT={d:'',L:[]};
+  abrirHoja(`<div class="hoja-cab"><h2>📷 Fotos</h2><p>Busca por nombre, DNI o lámpara para ver y descargar sus fotos: carné, autorizaciones verificadas en campo y reportes.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
+   <input id="ft-q" type="search" autocomplete="off" placeholder="Nombre, DNI o N.° de lámpara" class="cv-in"><div id="ft-res" class="rep-res"></div><div id="ft-w"></div></div>`);
+  $('#ft-q').addEventListener('input',()=>{const q=norm($('#ft-q').value).trim();const tk=q?q.split(/\s+/):[];
+    const L=tk.length?Object.values(W).filter(x=>tk.every(k=>x.key.split(' ').some(p=>p.startsWith(k))||x.d.startsWith(k)||(x.lp&&String(x.lp)===k))).slice(0,6):[];
+    $('#ft-res').innerHTML=L.map(x=>`<button type="button" onclick="fotosDe('${x.d}')"><b>${esc(tit(x.n))}</b> <small>${esc(tit(x.c||''))} · ${x.d}</small></button>`).join('')});
+  if(d)fotosDe(d)}
+async function fotosDe(d){const w=W[d];FT={d,L:[]};$('#ft-res').innerHTML='';$('#ft-q').value='';
+  $('#ft-w').innerHTML=`<div class="ft-cab"><b>${esc(tit(w.n))}</b><small>DNI ${w.d} · ${esc(tit(w.c||''))}</small></div><div class="ft-grid" id="ft-g"><span class="spin"></span></div>`;
+  const L=[];const ft=await fotoTrab(d);if(ft)L.push({k:'trab',tit:'Foto para el carné',sub:'',src:ft});
+  ((DATA&&DATA.AUTC)||[]).filter(x=>x.d===d&&x.foto).slice().reverse().forEach(x=>L.push({k:'aut',id:x.id,tit:'Carné · '+autNom(x.t),sub:`${tit(x.u||'')} · ${x.f||''}${x.est==='ANULADO'?' · anulada':''}`}));
+  store.get('fsbc_autq',[]).filter(x=>x.dni===d&&x.foto).forEach(x=>L.push({k:'aut',id:x.id,tit:'Carné · '+autNom(x.tipo),sub:'por enviar',src:x.foto}));
+  ((DATA&&DATA.REP)||[]).filter(r=>r.d===d&&r.fo).slice().reverse().forEach(r=>L.push({k:'rep',id:r.id,n:r.fo,tit:'Reporte de acto · '+(r.ac||''),sub:`${tit(r.u||'')} · ${r.f||''} · ${r.fo} foto(s)`}));
+  FT.L=L;pintarFotos()}
+function pintarFotos(){const L=FT.L;if(!$('#ft-g'))return;
+  $('#ft-g').innerHTML=L.length?L.map((x,i)=>`<div class="ft-it">${x.src?`<img src="${x.src}" onclick="ampliarFoto(${i})">`:`<button class="ft-ph" onclick="cargarFoto(${i})">📷<br><small>${navigator.onLine?'Tocar para ver':'Necesita señal'}</small></button>`}<div class="ft-tx"><b>${esc(x.tit)}</b><small>${esc(x.sub)}</small></div>${x.src?`<button class="mini b" onclick="bajarFoto(${i})">⬇ Descargar</button>`:''}</div>`).join('')
+    +`<button class="btn pri ancho" style="grid-column:1/-1;margin-top:6px" onclick="bajarTodas()">⬇ Descargar todas (.zip)</button>`
+    :'<p class="nota-f" style="grid-column:1/-1">No hay fotos de este trabajador. La foto para el carné se toma en "Generar carné".</p>'}
+async function cargarFoto(i){const x=FT.L[i];if(x.src)return x.src;if(!navigator.onLine){toast('Ver la foto necesita señal');return ''}
+  if(x.k==='aut'){const r=await api({a:'autFoto',id:x.id},60000);if(r&&r.ok)x.src=r.foto}
+  else if(x.k==='rep'){const r=await api({a:'repFoto',id:x.id},60000);if(r&&r.ok){x.src=r.fotos[0];r.fotos.slice(1).forEach((u,j)=>FT.L.splice(i+1+j,0,{k:'repx',tit:x.tit+' ('+(j+2)+')',sub:x.sub,src:u}))}}
+  pintarFotos();return x.src||''}
+function ampliarFoto(i){const x=FT.L[i];const v=window.open('','_blank');if(v){v.document.write(`<title>${esc(x.tit)}</title><body style="margin:0;background:#111;display:grid;place-items:center;min-height:100vh"><img src="${x.src}" style="max-width:100%;max-height:100vh">`);v.document.close()}}
+function nombreFoto(x,i){const w=W[FT.d]||{};return nombreArch(`${FT.d} ${w.n||''} ${x.tit}`)+(i!=null?'_'+(i+1):'')+'.jpg'}
+async function bajarFoto(i){const x=FT.L[i];const s=x.src||await cargarFoto(i);if(!s)return;bajarArchivo(new Blob([b64Bytes(s)],{type:'image/jpeg'}),nombreFoto(x));registrar('Descargó foto',FT.d+' '+x.tit)}
+async function bajarTodas(){cargando('Preparando fotos…');try{for(let i=0;i<FT.L.length;i++)if(!FT.L[i].src)await cargarFoto(i)}finally{cargando(false)}
+  const F=FT.L.filter(x=>x.src).map((x,i)=>({n:nombreFoto(x,i),d:b64Bytes(x.src)}));if(!F.length){toast('Sin fotos para descargar');return}
+  const w=W[FT.d]||{};bajarArchivo(new Blob([zipStore(F)],{type:'application/zip'}),nombreArch(`Fotos ${FT.d} ${w.n||''}`)+'.zip');registrar('Descargó fotos',FT.d+' ('+F.length+')')}
 /* ===== v36: Base de autorizaciones en Excel (tiempo real) + imprimir varios carnés (4 por hoja) ===== */
 function crc32(u){let t=crc32.t;if(!t){t=crc32.t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}}let x=-1;for(let i=0;i<u.length;i++)x=t[(x^u[i])&255]^(x>>>8);return (x^-1)>>>0}
 function zipStore(files){const enc=new TextEncoder();const P=[],C=[];let off=0;
@@ -949,7 +991,7 @@ function imprimirVarios(){CV=[];
     const L=tk.length?Object.values(W).filter(x=>x.e==='ACTIVO'&&tk.every(k=>x.key.split(' ').some(p=>p.startsWith(k))||x.d.startsWith(k)||(x.lp&&String(x.lp)===k))).slice(0,6):[];
     $('#cv-res').innerHTML=L.map(x=>`<button type="button" onclick="agregarCV('${x.d}')"><b>${esc(tit(x.n))}</b> <small>${esc(tit(x.c||''))} · ${x.d}</small></button>`).join('')});pintarCV()}
 async function agregarCV(d){if(CV.some(x=>x.d===d)){toast('Ya está en la lista');return}const I=autIndex()[d]||{};const tipos=CARNE_T.filter(([k])=>cnEstado(I,k).ok).map(([k])=>k);
-  CV.push({d,tipos,foto:(await idbGet('foto_'+d).catch(()=>null))||''});$('#cv-q').value='';$('#cv-res').innerHTML='';$('#cv-q').focus();pintarCV()}
+  CV.push({d,tipos,foto:await fotoTrab(d)});$('#cv-q').value='';$('#cv-res').innerHTML='';$('#cv-q').focus();pintarCV()}
 function pintarCV(){$('#cv-n').textContent=CV.length?`${CV.length} · ${Math.ceil(CV.length/4)} hoja(s)`:'';
   $('#cv-l').innerHTML=CV.length?CV.map((x,i)=>{const w=W[x.d];return `<div class="cv-it"><div><b>${esc(tit(w.n))}</b><small>${x.tipos.length?x.tipos.length+' autorización(es) vigente(s)':'<span style="color:#B42318">sin autorizaciones vigentes</span>'} · ${x.foto?'📷 con foto':'sin foto'}</small></div><button type="button" onclick="CV.splice(${i},1);pintarCV()" aria-label="Quitar">×</button></div>`}).join(''):'<p class="nota-f">Aún no agregas a nadie.</p>'}
 function datosCarne(d,tipos,foto){const w=W[d],I=autIndex()[d]||{};const pn=partirNombre(w.n);const L=tipos.map(k=>cnEstado(I,k)).filter(e=>e.ok).map(e=>e.it);
@@ -989,7 +1031,7 @@ let CN={d:'',sel:[],edF:false};
 function cnEstado(I,k){const it=I[k]||I[CARNE_AK[k]];if(!it)return {cl:'sin',tx:'Sin registro en la base',ok:false};const s=autEstado(it);const ok=['vig','porv','li'].includes(s);
   return {cl:ok?'ok':'no',tx:ok?(it.v?'Vigente hasta '+fDMY(it.v):'Vigente · licencia interna'):AUT_ST[s][0]+(it.v?' ('+fDMY(it.v)+')':''),ok,it}}
 async function generarCarne(d){const w=W[d];if(!w)return;const I=autIndex()[d]||{};const pn=partirNombre(w.n);
-  CARNE_FOTO=(await idbGet('foto_'+d).catch(()=>null))||'';
+  CARNE_FOTO=await fotoTrab(d);
   CN={d,sel:CARNE_T.filter(([k])=>cnEstado(I,k).ok).map(([k])=>k),edF:false};
   abrirHoja(`<div class="hoja-cab"><h2>🪪 Carné de autorización</h2><p>${esc(tit(w.n))} · DNI ${w.d}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
    <div class="cn-paso"><b>1</b>¿Qué autoriza el carné?</div><p class="nota-f">Toca para marcar o desmarcar. Al lado ves cómo figura en la base.</p>
@@ -1011,7 +1053,7 @@ async function generarCarne(d){const w=W[d];if(!w)return;const I=autIndex()[d]||
   ['cn-ap','cn-no','cn-oc','cn-zo'].forEach(i=>$('#'+i).addEventListener('input',cnPrevia));
   ['cn-em','cn-ca'].forEach(i=>$('#'+i).addEventListener('change',()=>{CN.edF=true;cnPrevia()}));
   $('#cn-f').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;$('#cn-prev').innerHTML='<span class="spin"></span>';$('#cn-fmsg').textContent='Procesando…';
-    const r=await fotoFondoBlanco(f);CARNE_FOTO=r.url;$('#cn-prev').innerHTML=`<img src="${r.url}">`;$('#cn-fmsg').textContent='✓ Foto lista';try{idbSet('foto_'+d,CARNE_FOTO)}catch(e){}cnPrevia()});
+    const r=await fotoFondoBlanco(f);CARNE_FOTO=r.url;$('#cn-prev').innerHTML=`<img src="${r.url}">`;$('#cn-fmsg').textContent='✓ Foto lista · se guarda para todos los equipos';try{idbSet('foto_'+d,CARNE_FOTO)}catch(e){}subirFotoTrab(d,CARNE_FOTO);cnPrevia()});
   setTimeout(cnPrevia,50)}
 function cnFechas(){if(CN.edF)return;const I=autIndex()[CN.d]||{};const L=CN.sel.map(k=>cnEstado(I,k)).filter(e=>e.ok).map(e=>e.it);
   const em=L.map(x=>x.e).filter(Boolean).sort().pop()||hoyISO(),ca=L.map(x=>x.v).filter(Boolean).sort()[0]||masAnio(em);$('#cn-em').value=em;$('#cn-ca').value=ca}
@@ -1175,7 +1217,7 @@ function pintarAut(){if(!DATA)return;
   // resumen por tipo
   const R={};autTipos().forEach(x=>R[x.k]={vig:0,porv:0,venc:0,no:0,sf:0,li:0,tram:0});act.forEach(w=>autDe(w.d).forEach(it=>{const s=autEstado(it);if(R[it.t])R[it.t][s]++}));
   const FA=act.filter(w=>autFaltas(w).length),FAh=FA.filter(enMinaHoy).length,VN=autVencen().length;
-  $('#aut-res').innerHTML=`<div class="aut-acc"><button id="btn-base" onclick="descargarBase()">⬇ Descargar base (Excel)</button><button onclick="imprimirVarios()">🖨 Imprimir varios carnés</button>${ADMIN?'<button onclick="abrirBaseMaestra()">📊 Base maestra (Google)</button>':''}</div><div class="atajos" style="margin:12px 16px 0"><button onclick="$('#af-est').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v==='falta'));AF.est='falta';limAut=60;pintarAut();$('#aut-tit').scrollIntoView({behavior:'smooth'})"><b style="color:var(--rojo)">${FA.length}</b><span>Cargo sin autorización${FAh?` · ${FAh} en mina hoy`:''}</span></button><button onclick="verVencen()"><b style="color:var(--ambar-t)">${VN}</b><span>Vencen en 30 días</span></button></div><div class="panel"><h3>Resumen (personal activo)</h3><div class="aut-tabla">${autTipos().map(x=>{const r=R[x.k];const tot=r.vig+r.porv+r.venc+r.sf+r.no+r.li+r.tram;return `<button class="aut-fila ${AF.tipo===x.k?'on':''}" onclick="AF.tipo=AF.tipo==='${x.k}'?'':'${x.k}';$('#af-tipo').value=AF.tipo;limAut=60;pintarAut()"><span class="n">${esc(x.n)}</span>${tot?`<span class="c v">${r.vig+r.li}</span><span class="c a">${r.porv+r.tram+r.sf}</span><span class="c r">${r.venc+r.no}</span>`:`<span class="sb">${x.base===false?'Sin base · registrar en campo':'Sin datos aún'}</span>`}</button>`}).join('')}</div><p class="ley"><i class="v"></i>Vigentes <i class="a"></i>Por vencer / en trámite <i class="r"></i>Vencidas / no tiene</p>${ADMIN?`<button class="btn" style="margin-top:10px;width:100%;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="exportarAut()">⬇ Exportar correcciones de campo para SIG</button>`:''}</div>`;
+  $('#aut-res').innerHTML=`<div class="aut-acc"><button id="btn-base" onclick="descargarBase()">⬇ Descargar base (Excel)</button><button onclick="imprimirVarios()">🖨 Imprimir varios carnés</button><button onclick="verFotos()">📷 Fotos</button>${ADMIN?'<button onclick="abrirBaseMaestra()">📊 Base maestra (Google)</button>':''}</div><div class="atajos" style="margin:12px 16px 0"><button onclick="$('#af-est').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v==='falta'));AF.est='falta';limAut=60;pintarAut();$('#aut-tit').scrollIntoView({behavior:'smooth'})"><b style="color:var(--rojo)">${FA.length}</b><span>Cargo sin autorización${FAh?` · ${FAh} en mina hoy`:''}</span></button><button onclick="verVencen()"><b style="color:var(--ambar-t)">${VN}</b><span>Vencen en 30 días</span></button></div><div class="panel"><h3>Resumen (personal activo)</h3><div class="aut-tabla">${autTipos().map(x=>{const r=R[x.k];const tot=r.vig+r.porv+r.venc+r.sf+r.no+r.li+r.tram;return `<button class="aut-fila ${AF.tipo===x.k?'on':''}" onclick="AF.tipo=AF.tipo==='${x.k}'?'':'${x.k}';$('#af-tipo').value=AF.tipo;limAut=60;pintarAut()"><span class="n">${esc(x.n)}</span>${tot?`<span class="c v">${r.vig+r.li}</span><span class="c a">${r.porv+r.tram+r.sf}</span><span class="c r">${r.venc+r.no}</span>`:`<span class="sb">${x.base===false?'Sin base · registrar en campo':'Sin datos aún'}</span>`}</button>`}).join('')}</div><p class="ley"><i class="v"></i>Vigentes <i class="a"></i>Por vencer / en trámite <i class="r"></i>Vencidas / no tiene</p>${ADMIN?`<button class="btn" style="margin-top:10px;width:100%;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="exportarAut()">⬇ Exportar correcciones de campo para SIG</button>`:''}</div>`;
   const q=norm($('#aq').value).trim();const tk=q?q.split(/\s+/):[];
   let L=act.filter(w=>(!tk.length||tk.every(x=>w.key.split(' ').some(p=>p.startsWith(x))||w.d.startsWith(x)||(w.lp&&String(w.lp)===x)))&&(!AF.hoy||enMinaHoy(w)));
   L=L.map(w=>{const its=autDe(w.d).filter(it=>!AF.tipo||it.t===AF.tipo);const st=its.map(autEstado);const fa=autFaltas(w).filter(f=>!AF.tipo||f.t===AF.tipo);return {w,its,st,fa}}).filter(o=>{
@@ -1194,7 +1236,7 @@ function panelAut(w){const L=autDe(w.d);
      <div class="dt">${it.no?'Verificado en campo: no tiene esta autorización':`Emisión ${fDMY(it.e)} · Vence ${fDMY(it.v)}${it.num?' · N.° '+esc(it.num):''}`}</div>
      <div class="src">${it.src==='base'?(it.s?'📄 Según base Administración':'📄 Según base SIG')+(it.x?` · <b style="color:var(--ambar-t)">${it.s==='tram'?'⏳ '+esc(it.x):'⚠ Revisar en campo: '+esc(it.x)}</b>`:''):`✅ Verificado en campo por ${esc(tit(it.u||''))} · ${esc(it.f||'')}${it.pend?' <b style="color:var(--ambar-t)">⏳ por enviar</b>':''}${it.base?` · antes en base: vence ${fDMY(it.base.v)}`:''}`}${it.nota?`<br><i>${esc(it.nota)}</i>`:''}</div>
      <div class="acc">${it.foto?`<button class="mini b" onclick="verFotoAut('${it.id}')">📷 Ver carné</button>`:''}${autHist(w.d,it.t).length?`<button class="mini" onclick="verHistAut('${w.d}','${it.t}')">🕘 Historial (${autHist(w.d,it.t).length})</button>`:''}<button class="mini" onclick="formAut('${w.d}','${it.t}')">Corregir</button>${ADMIN&&it.src==='campo'&&!it.pend?`<button class="mini r" onclick="anularAut('${it.id}','${w.d}')">Anular</button>`:''}</div></div>`}).join(''):'<p>Sin autorizaciones registradas en la base SIG.</p>'}
-     <button class="btn ancho" style="margin-top:10px;background:#EEF4FF;color:#0B4FB8" onclick="formAut('${w.d}','')">＋ Agregar o verificar autorización en campo</button><button class="btn ancho" style="margin-top:8px;background:#002060;color:#fff" onclick="generarCarne('${w.d}')">🪪 Generar carné de autorización</button></div>`}
+     <button class="btn ancho" style="margin-top:10px;background:#EEF4FF;color:#0B4FB8" onclick="formAut('${w.d}','')">＋ Agregar o verificar autorización en campo</button><button class="btn ancho" style="margin-top:8px;background:#002060;color:#fff" onclick="generarCarne('${w.d}')">🪪 Generar carné de autorización</button><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="verFotos('${w.d}')">📷 Ver y descargar fotos</button></div>`}
 // historial: todas las correcciones de campo (también las anuladas y las por enviar), de la más antigua a la más reciente
 function autHist(d,t){return [...((DATA&&DATA.AUTC)||[]).filter(x=>x.d===d&&x.t===t),...store.get('fsbc_autq',[]).filter(x=>x.dni===d&&x.tipo===t).map(x=>({id:x.id,d,t,ac:x.accion,e:x.emision,v:x.venc,num:x.num,nota:x.nota,u:USER&&USER.nombre,f:'por enviar',pend:1,fotoLocal:x.foto}))]}
 function verHistAut(d,t){const w=W[d];const b=((DATA&&DATA.AUT)||[]).find(x=>x.d===d&&x.t===t);const H=autHist(d,t);
@@ -1762,6 +1804,7 @@ async function enviarPendientes(){
   if(!TOKEN||!navigator.onLine)return;
   try{enviarAut()}catch(e){}
   try{enviarRep()}catch(e){}
+  try{enviarFotosTrab()}catch(e){}
   const q=store.get('fsbc_log',[]);if(q.length){const r=await api({a:'log',items:q});if(r.ok)store.set('fsbc_log',[])}
   const c=store.get('fsbc_q',[]);if(c.length&&ADMIN){for(const x of c){const r=await api(x);if(r.ok)CONF=r.conf}store.set('fsbc_q',[]);guardarCache()}
 }
