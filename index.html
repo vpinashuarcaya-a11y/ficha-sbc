@@ -876,10 +876,12 @@ document.addEventListener('click',e=>{
 
 
 /* ===== v23: autorizaciones (base SIG + verificación en campo) ===== */
-const AUT_C={JACK:'Jack leg',AYMOT:'Ayudante motorista',ALT:'Trabajos en altura',LOCO:'Locomotora',PALA:'Pala neumática',UPH:'Unidad potencia hidráulica',CARP:'Taller de carpintería',CAL:'Trabajos en caliente'};
+// Las 10 autorizaciones del carné COPSEM + locomotora y pala (las emite Administración COPSEM)
+const AUT_LISTA=[['ALT','Trabajos en Altura'],['UPH','Unidad de Potencia Hidráulica'],['BOMBA','Bomba Eléctrica'],['ALIVA','Máquina Aliva Ocmer'],['JACK','Máquina Jack Leg'],['CAL','Trabajos en Caliente'],['SIERRA','Sierra Circular'],['MOTOS','Motosierra Eléctrica'],['TOLVA','Tolva Eléctrica'],['AYMOT','Ayudante Motorista'],['LOCO','Locomotora · Administración'],['PALA','Pala Neumática · Administración']];
+const AUT_C=Object.fromEntries(AUT_LISTA.concat([['CARP','Taller de carpintería']]));
 const AUT_ST={vig:['Vigente','v'],porv:['Por vencer','a'],venc:['Vencida','r'],sf:['Sin fecha','a'],li:['Vigente (licencia interna)','v'],tram:['En trámite','a'],no:['No tiene','r']};
 let AF={est:'',tipo:'',hoy:false},limAut=60,AUT_IDX=null,AUT_IDX_K='';
-const autTipos=()=>(DATA&&DATA.AUT_T)||Object.keys(AUT_C).map(k=>({k,n:AUT_C[k]}));
+let _AT=null,_ATk='';const autTipos=()=>{const k=(DATA?VER:'')+'|'+((DATA&&DATA.AUT)||[]).length;if(_AT&&_ATk===k)return _AT;const B=new Set(((DATA&&DATA.AUT)||[]).map(a=>a.t));_AT=AUT_LISTA.map(([k,n])=>({k,n,base:B.has(k)}));_ATk=k;return _AT};
 const autNom=k=>{const x=autTipos().find(y=>y.k===k);return x?x.n:k};
 const fDMY=s=>{if(!s)return '—';const m=String(s).match(/(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:s};
 function autEstado(it){if(it.no)return 'no';if(!it.v)return it.s==='li'?'li':it.s==='tram'?'tram':'sf';const v=new Date(it.v+'T00:00:00'),h=new Date(HOY.getFullYear(),HOY.getMonth(),HOY.getDate());const d=(v-h)/864e5;return d<0?'venc':d<=30?'porv':'vig'}
@@ -918,7 +920,7 @@ async function fotoFondoBlanco(file){const img=await cargarImg(URL.createObjectU
     g.putImageData(id,0,0);res.close&&res.close();ok=true}catch(e){console.log('segmentación',e)}
   return {url:c.toDataURL('image/jpeg',0.85),ok}}
 let CN={d:'',sel:[],edF:false};
-function cnEstado(I,k){const it=I[CARNE_AK[k]||k];if(!it)return {cl:'sin',tx:'Sin registro en la base',ok:false};const s=autEstado(it);const ok=['vig','porv','li'].includes(s);
+function cnEstado(I,k){const it=I[k]||I[CARNE_AK[k]];if(!it)return {cl:'sin',tx:'Sin registro en la base',ok:false};const s=autEstado(it);const ok=['vig','porv','li'].includes(s);
   return {cl:ok?'ok':'no',tx:ok?(it.v?'Vigente hasta '+fDMY(it.v):'Vigente · licencia interna'):AUT_ST[s][0]+(it.v?' ('+fDMY(it.v)+')':''),ok,it}}
 async function generarCarne(d){const w=W[d];if(!w)return;const I=autIndex()[d]||{};const pn=partirNombre(w.n);
   CARNE_FOTO=(await idbGet('foto_'+d).catch(()=>null))||'';
