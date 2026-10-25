@@ -559,7 +559,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
     <div class="buscador"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="aq" type="search" inputmode="search" autocomplete="off" placeholder="Nombre, DNI o N.° de lámpara"></div>
     <div class="filtros">
-      <div class="seg" id="af-est"><button data-v="" class="on">Todos</button><button data-v="venc">Vencidas</button><button data-v="porv">Por vencer</button><button data-v="sin">Sin registro</button></div>
+      <div class="seg" id="af-est"><button data-v="" class="on">Todos</button><button data-v="venc">Vencidas</button><button data-v="porv">Por vencer / trámite</button><button data-v="sin">Sin registro</button></div>
       <button type="button" class="tg-hoy" id="af-hoy">📍 Solo en mina hoy</button>
     </div>
     <select id="af-tipo" class="sel-tipo"></select>
@@ -863,14 +863,14 @@ document.addEventListener('click',e=>{
 
 /* ===== v23: autorizaciones (base SIG + verificación en campo) ===== */
 const AUT_C={JACK:'Jack leg',AYMOT:'Ayudante motorista',ALT:'Trabajos en altura',LOCO:'Locomotora',PALA:'Pala neumática',UPH:'Unidad potencia hidráulica',CARP:'Taller de carpintería',CAL:'Trabajos en caliente'};
-const AUT_ST={vig:['Vigente','v'],porv:['Por vencer','a'],venc:['Vencida','r'],sf:['Sin fecha','a'],no:['No tiene','r']};
+const AUT_ST={vig:['Vigente','v'],porv:['Por vencer','a'],venc:['Vencida','r'],sf:['Sin fecha','a'],li:['Vigente (licencia interna)','v'],tram:['En trámite','a'],no:['No tiene','r']};
 let AF={est:'',tipo:'',hoy:false},limAut=60,AUT_IDX=null,AUT_IDX_K='';
 const autTipos=()=>(DATA&&DATA.AUT_T)||Object.keys(AUT_C).map(k=>({k,n:AUT_C[k]}));
 const autNom=k=>{const x=autTipos().find(y=>y.k===k);return x?x.n:k};
 const fDMY=s=>{if(!s)return '—';const m=String(s).match(/(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:s};
-function autEstado(it){if(it.no)return 'no';if(!it.v)return 'sf';const v=new Date(it.v+'T00:00:00'),h=new Date(HOY.getFullYear(),HOY.getMonth(),HOY.getDate());const d=(v-h)/864e5;return d<0?'venc':d<=30?'porv':'vig'}
+function autEstado(it){if(it.no)return 'no';if(!it.v)return it.s==='li'?'li':it.s==='tram'?'tram':'sf';const v=new Date(it.v+'T00:00:00'),h=new Date(HOY.getFullYear(),HOY.getMonth(),HOY.getDate());const d=(v-h)/864e5;return d<0?'venc':d<=30?'porv':'vig'}
 function autIndex(){const k=(DATA?VER:'')+'|'+((DATA&&DATA.AUTC)||[]).length+'|'+store.get('fsbc_autq',[]).length;if(AUT_IDX&&AUT_IDX_K===k)return AUT_IDX;
-  const I={};((DATA&&DATA.AUT)||[]).forEach(b=>{(I[b.d]=I[b.d]||{})[b.t]={t:b.t,e:b.e,v:b.v,num:b.c,src:'base',x:b.x||''}});
+  const I={};((DATA&&DATA.AUT)||[]).forEach(b=>{(I[b.d]=I[b.d]||{})[b.t]={t:b.t,e:b.e,v:b.v,num:b.c,src:'base',x:b.x||'',s:b.s||''}});
   const corr=[...((DATA&&DATA.AUTC)||[]).filter(x=>x.est!=='ANULADO').map(x=>({...x,ts:x.f})),...store.get('fsbc_autq',[]).map(x=>({id:x.id,d:x.dni,t:x.tipo,ac:x.accion,e:x.emision,v:x.venc,num:x.num,nota:x.nota,u:USER&&USER.nombre,f:'por enviar',pend:1,fotoLocal:x.foto}))];
   corr.forEach(c=>{const o=(I[c.d]=I[c.d]||{});const base=o[c.t]&&o[c.t].src==='base'?o[c.t]:(o[c.t]&&o[c.t].base)||null;
     o[c.t]={t:c.t,e:c.e,v:c.v,num:c.num,no:c.ac==='notiene',src:'campo',u:c.u,f:c.f,id:c.id,foto:c.foto||c.fotoLocal?1:0,fotoLocal:c.fotoLocal,pend:c.pend,nota:c.nota,base}});
@@ -881,14 +881,14 @@ function pintarAut(){if(!DATA)return;
   const sel=$('#af-tipo');if(!sel.options.length)sel.innerHTML='<option value="">Todas las autorizaciones</option>'+autTipos().map(x=>`<option value="${x.k}">${esc(x.n)}${x.base===false?' (sin base, se registra en campo)':''}</option>`).join('');
   const act=Object.values(W).filter(w=>w.e==='ACTIVO');
   // resumen por tipo
-  const R={};autTipos().forEach(x=>R[x.k]={vig:0,porv:0,venc:0,no:0,sf:0});act.forEach(w=>autDe(w.d).forEach(it=>{const s=autEstado(it);if(R[it.t])R[it.t][s]++}));
-  $('#aut-res').innerHTML=`<div class="panel"><h3>Resumen (personal activo)</h3><div class="aut-tabla">${autTipos().map(x=>{const r=R[x.k];const tot=r.vig+r.porv+r.venc+r.sf+r.no;return `<button class="aut-fila ${AF.tipo===x.k?'on':''}" onclick="AF.tipo=AF.tipo==='${x.k}'?'':'${x.k}';$('#af-tipo').value=AF.tipo;limAut=60;pintarAut()"><span class="n">${esc(x.n)}</span>${tot?`<span class="c v">${r.vig}</span><span class="c a">${r.porv}</span><span class="c r">${r.venc+r.no}</span>`:`<span class="sb">${x.base===false?'Sin base · registrar en campo':'Sin datos aún'}</span>`}</button>`}).join('')}</div><p class="ley"><i class="v"></i>Vigentes <i class="a"></i>Por vencer <i class="r"></i>Vencidas / no tiene</p>${ADMIN?`<button class="btn" style="margin-top:10px;width:100%;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="exportarAut()">⬇ Exportar correcciones de campo para SIG</button>`:''}</div>`;
+  const R={};autTipos().forEach(x=>R[x.k]={vig:0,porv:0,venc:0,no:0,sf:0,li:0,tram:0});act.forEach(w=>autDe(w.d).forEach(it=>{const s=autEstado(it);if(R[it.t])R[it.t][s]++}));
+  $('#aut-res').innerHTML=`<div class="panel"><h3>Resumen (personal activo)</h3><div class="aut-tabla">${autTipos().map(x=>{const r=R[x.k];const tot=r.vig+r.porv+r.venc+r.sf+r.no+r.li+r.tram;return `<button class="aut-fila ${AF.tipo===x.k?'on':''}" onclick="AF.tipo=AF.tipo==='${x.k}'?'':'${x.k}';$('#af-tipo').value=AF.tipo;limAut=60;pintarAut()"><span class="n">${esc(x.n)}</span>${tot?`<span class="c v">${r.vig+r.li}</span><span class="c a">${r.porv+r.tram+r.sf}</span><span class="c r">${r.venc+r.no}</span>`:`<span class="sb">${x.base===false?'Sin base · registrar en campo':'Sin datos aún'}</span>`}</button>`}).join('')}</div><p class="ley"><i class="v"></i>Vigentes <i class="a"></i>Por vencer / en trámite <i class="r"></i>Vencidas / no tiene</p>${ADMIN?`<button class="btn" style="margin-top:10px;width:100%;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="exportarAut()">⬇ Exportar correcciones de campo para SIG</button>`:''}</div>`;
   const q=norm($('#aq').value).trim();const tk=q?q.split(/\s+/):[];
   let L=act.filter(w=>(!tk.length||tk.every(x=>w.key.split(' ').some(p=>p.startsWith(x))||w.d.startsWith(x)||(w.lp&&String(w.lp)===x)))&&(!AF.hoy||enMinaHoy(w)));
   L=L.map(w=>{const its=autDe(w.d).filter(it=>!AF.tipo||it.t===AF.tipo);const st=its.map(autEstado);return {w,its,st}}).filter(o=>{
     if(AF.est==='sin')return AF.tipo?!o.its.length:!autDe(o.w.d).length;
     if(AF.est==='venc')return o.st.some(s=>s==='venc'||s==='no');
-    if(AF.est==='porv')return o.st.includes('porv');
+    if(AF.est==='porv')return o.st.some(s=>s==='porv'||s==='tram'||s==='sf');
     if(AF.tipo&&!AF.est)return o.its.length>0;return true});
   const pr=o=>o.st.filter(s=>s==='venc'||s==='no').length*3+o.st.filter(s=>s==='porv').length;
   L.sort((a,b)=>pr(b)-pr(a)||(enMinaHoy(b.w)?1:0)-(enMinaHoy(a.w)?1:0)||a.w.n.localeCompare(b.w.n));
@@ -898,7 +898,7 @@ function pintarAut(){if(!DATA)return;
 function panelAut(w){const L=autDe(w.d);
   return `<div class="panel" id="aut-p-${w.d}"><h3>Autorizaciones</h3>${L.length?L.map(it=>{const s=autEstado(it);return `<div class="aut-it"><div class="tp"><b>${esc(autNom(it.t))}</b><span class="chip ${AUT_ST[s][1]}">${AUT_ST[s][0]}</span></div>
      <div class="dt">${it.no?'Verificado en campo: no tiene esta autorización':`Emisión ${fDMY(it.e)} · Vence ${fDMY(it.v)}${it.num?' · N.° '+esc(it.num):''}`}</div>
-     <div class="src">${it.src==='base'?'📄 Según base SIG'+(it.x?` · <b style="color:var(--ambar-t)">⚠ Revisar en campo: ${esc(it.x)}</b>`:''):`✅ Verificado en campo por ${esc(tit(it.u||''))} · ${esc(it.f||'')}${it.pend?' <b style="color:var(--ambar-t)">⏳ por enviar</b>':''}${it.base?` · antes en base: vence ${fDMY(it.base.v)}`:''}`}${it.nota?`<br><i>${esc(it.nota)}</i>`:''}</div>
+     <div class="src">${it.src==='base'?(it.s?'📄 Según base Administración':'📄 Según base SIG')+(it.x?` · <b style="color:var(--ambar-t)">${it.s==='tram'?'⏳ '+esc(it.x):'⚠ Revisar en campo: '+esc(it.x)}</b>`:''):`✅ Verificado en campo por ${esc(tit(it.u||''))} · ${esc(it.f||'')}${it.pend?' <b style="color:var(--ambar-t)">⏳ por enviar</b>':''}${it.base?` · antes en base: vence ${fDMY(it.base.v)}`:''}`}${it.nota?`<br><i>${esc(it.nota)}</i>`:''}</div>
      <div class="acc">${it.foto?`<button class="mini b" onclick="verFotoAut('${it.id}')">📷 Ver carné</button>`:''}<button class="mini" onclick="formAut('${w.d}','${it.t}')">Corregir</button>${ADMIN&&it.src==='campo'&&!it.pend?`<button class="mini r" onclick="anularAut('${it.id}','${w.d}')">Anular</button>`:''}</div></div>`}).join(''):'<p>Sin autorizaciones registradas en la base SIG.</p>'}
      <button class="btn ancho" style="margin-top:10px;background:#EEF4FF;color:#0B4FB8" onclick="formAut('${w.d}','')">＋ Agregar o verificar autorización en campo</button></div>`}
 let FOTO_AUT='';
