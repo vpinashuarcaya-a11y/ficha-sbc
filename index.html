@@ -904,7 +904,7 @@ async function fotoFondoBlanco(file){const img=await cargarImg(URL.createObjectU
   // recorte 3:4 centrado (un poco hacia arriba, donde está la cara) y a 600x800 máx.
   const r=3/4;let sw=img.width,sh=img.height;if(sw/sh>r)sw=sh*r;else sh=sw/r;const sx=(img.width-sw)/2,sy=Math.max(0,(img.height-sh)*0.35);
   const W=Math.min(600,Math.round(sw)),H=Math.round(W/r);const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(img,sx,sy,sw,sh,0,0,W,H);
-  let ok=false;try{const s=await Promise.race([segmentador(),new Promise((_,ko)=>setTimeout(()=>ko('t'),20000))]);const res=s.segment(c);const mk=res.confidenceMasks[0].getAsFloat32Array();
+  let ok=true;if(0)try{const s=await Promise.race([segmentador(),new Promise((_,ko)=>setTimeout(()=>ko('t'),20000))]);const res=s.segment(c);const mk=res.confidenceMasks[0].getAsFloat32Array();
     const id=g.getImageData(0,0,W,H),p=id.data;for(let i=0;i<mk.length;i++){const a=Math.min(1,Math.max(0,(mk[i]-0.35)/0.3));p[i*4]=p[i*4]*a+255*(1-a);p[i*4+1]=p[i*4+1]*a+255*(1-a);p[i*4+2]=p[i*4+2]*a+255*(1-a)}
     g.putImageData(id,0,0);res.close&&res.close();ok=true}catch(e){console.log('segmentación',e)}
   return {url:c.toDataURL('image/jpeg',0.85),ok}}
@@ -915,7 +915,7 @@ async function generarCarne(d){const w=W[d];if(!w)return;const I=autIndex()[d]||
   const vig=CARNE_T.filter(([k])=>{const it=I[k];return it&&['vig','porv','li'].includes(autEstado(it))}).map(([k])=>I[k]);
   const em=vig.map(x=>x.e).filter(Boolean).sort().pop()||hoyISO(),ca=vig.map(x=>x.v).filter(Boolean).sort()[0]||masAnio(em);
   abrirHoja(`<div class="hoja-cab"><h2>🪪 Carné de autorización interna</h2><p>${esc(tit(w.n))} · DNI ${w.d}. Solo se marcan las autorizaciones vigentes.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form rep-form">
-   <label>Foto (fondo blanco)</label><div class="cn-foto"><div id="cn-prev">${CARNE_FOTO?`<img src="${CARNE_FOTO}">`:'Sin foto'}</div><label class="foto-btn"><input type="file" accept="image/*" capture="user" id="cn-f" hidden>📷 ${CARNE_FOTO?'Cambiar foto':'Tomar foto'}</label></div><p id="cn-fmsg" class="nota-f"></p>
+   <label>Foto del trabajador</label><div class="cn-foto"><div id="cn-prev">${CARNE_FOTO?`<img src="${CARNE_FOTO}">`:'Sin foto'}</div><label class="foto-btn"><input type="file" accept="image/*" capture="environment" id="cn-f" hidden>📷 ${CARNE_FOTO?'Cambiar foto':'Tomar foto'}</label></div><p id="cn-fmsg" class="nota-f"></p>
    <label>Autorizado en el uso de</label><div class="cn-ts">${CARNE_T.map(fila).join('')}</div>
    <div class="dos-c"><div><label>Apellidos</label><input id="cn-ap" value="${esc(pn.ap)}"></div><div><label>Nombres</label><input id="cn-no" value="${esc(pn.no)}"></div></div>
    <div class="dos-c"><div><label>Zona</label><input id="cn-zo" value="${esc(minaDe(w)||'JULCANI')}"></div><div><label>Área</label><input id="cn-ar" value="MINA"></div></div>
@@ -923,8 +923,8 @@ async function generarCarne(d){const w=W[d];if(!w)return;const I=autIndex()[d]||
    <div class="dos-c"><div><label>Fecha emisión</label><input type="date" id="cn-em" value="${em}"></div><div><label>Fecha caducidad</label><input type="date" id="cn-ca" value="${ca}"></div></div>
    <p class="err" id="cn-err"></p><button class="btn pri ancho" style="margin-top:12px" onclick="imprimirCarne('${d}')">Generar carné (imprimir / PDF)</button>
    <p style="font-size:13px;color:var(--gris);margin-top:8px">Queda registrado quién lo generó. En el celular: Imprimir → Guardar como PDF.</p></div>`);
-  $('#cn-f').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;$('#cn-prev').innerHTML='<span class="spin"></span>';$('#cn-fmsg').textContent='Quitando el fondo…';
-    const r=await fotoFondoBlanco(f);CARNE_FOTO=r.url;$('#cn-prev').innerHTML=`<img src="${r.url}">`;$('#cn-fmsg').textContent=r.ok?'✓ Fondo blanco listo':'Sin señal: no se pudo quitar el fondo. Toma la foto contra una pared clara o vuelve a intentar con señal.';
+  $('#cn-f').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;$('#cn-prev').innerHTML='<span class="spin"></span>';$('#cn-fmsg').textContent='Procesando…';
+    const r=await fotoFondoBlanco(f);CARNE_FOTO=r.url;$('#cn-prev').innerHTML=`<img src="${r.url}">`;$('#cn-fmsg').textContent='✓ Foto lista';
     try{idbSet('foto_'+d,CARNE_FOTO)}catch(e){}})}
 function htmlCarne(x){const im=CARNE_IMG;const ch=k=>x.tipos.includes(k)?'✔':'';
   return `<div class="card"><div class="iz">
