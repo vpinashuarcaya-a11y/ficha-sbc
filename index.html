@@ -500,6 +500,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 .aut-form label{display:block;font-size:13px;font-weight:600;color:var(--gris);margin:10px 0 4px}.aut-form select,.aut-form input:not([type=file]){width:100%;height:44px;border-radius:11px;border:1.5px solid var(--linea);padding:0 10px;font:inherit;background:#fff}
 .dos-c{display:grid;grid-template-columns:1fr 1fr;gap:8px}.foto-btn{display:flex!important;align-items:center;justify-content:center;height:46px;border-radius:12px;background:#EEF4FF;color:#0B4FB8!important;font-size:15px!important;cursor:pointer}
 .foto-prev{width:100%;border-radius:12px;margin-top:8px}
+.hist-it{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #E5ECF6;font-size:14.5px;line-height:1.4}.hist-it .hn{width:26px;height:26px;border-radius:50%;background:#EEF4FF;color:#0B4FB8;font-weight:700;display:grid;place-items:center;font-size:13px}.hist-it.an{opacity:.55}.hist-it.an b{text-decoration:line-through}
 </style>
 </head>
 <body>
@@ -899,8 +900,17 @@ function panelAut(w){const L=autDe(w.d);
   return `<div class="panel" id="aut-p-${w.d}"><h3>Autorizaciones</h3>${L.length?L.map(it=>{const s=autEstado(it);return `<div class="aut-it"><div class="tp"><b>${esc(autNom(it.t))}</b><span class="chip ${AUT_ST[s][1]}">${AUT_ST[s][0]}</span></div>
      <div class="dt">${it.no?'Verificado en campo: no tiene esta autorización':`Emisión ${fDMY(it.e)} · Vence ${fDMY(it.v)}${it.num?' · N.° '+esc(it.num):''}`}</div>
      <div class="src">${it.src==='base'?(it.s?'📄 Según base Administración':'📄 Según base SIG')+(it.x?` · <b style="color:var(--ambar-t)">${it.s==='tram'?'⏳ '+esc(it.x):'⚠ Revisar en campo: '+esc(it.x)}</b>`:''):`✅ Verificado en campo por ${esc(tit(it.u||''))} · ${esc(it.f||'')}${it.pend?' <b style="color:var(--ambar-t)">⏳ por enviar</b>':''}${it.base?` · antes en base: vence ${fDMY(it.base.v)}`:''}`}${it.nota?`<br><i>${esc(it.nota)}</i>`:''}</div>
-     <div class="acc">${it.foto?`<button class="mini b" onclick="verFotoAut('${it.id}')">📷 Ver carné</button>`:''}<button class="mini" onclick="formAut('${w.d}','${it.t}')">Corregir</button>${ADMIN&&it.src==='campo'&&!it.pend?`<button class="mini r" onclick="anularAut('${it.id}','${w.d}')">Anular</button>`:''}</div></div>`}).join(''):'<p>Sin autorizaciones registradas en la base SIG.</p>'}
+     <div class="acc">${it.foto?`<button class="mini b" onclick="verFotoAut('${it.id}')">📷 Ver carné</button>`:''}${autHist(w.d,it.t).length?`<button class="mini" onclick="verHistAut('${w.d}','${it.t}')">🕘 Historial (${autHist(w.d,it.t).length})</button>`:''}<button class="mini" onclick="formAut('${w.d}','${it.t}')">Corregir</button>${ADMIN&&it.src==='campo'&&!it.pend?`<button class="mini r" onclick="anularAut('${it.id}','${w.d}')">Anular</button>`:''}</div></div>`}).join(''):'<p>Sin autorizaciones registradas en la base SIG.</p>'}
      <button class="btn ancho" style="margin-top:10px;background:#EEF4FF;color:#0B4FB8" onclick="formAut('${w.d}','')">＋ Agregar o verificar autorización en campo</button></div>`}
+// historial: todas las correcciones de campo (también las anuladas y las por enviar), de la más antigua a la más reciente
+function autHist(d,t){return [...((DATA&&DATA.AUTC)||[]).filter(x=>x.d===d&&x.t===t),...store.get('fsbc_autq',[]).filter(x=>x.dni===d&&x.tipo===t).map(x=>({id:x.id,d,t,ac:x.accion,e:x.emision,v:x.venc,num:x.num,nota:x.nota,u:USER&&USER.nombre,f:'por enviar',pend:1,fotoLocal:x.foto}))]}
+function verHistAut(d,t){const w=W[d];const b=((DATA&&DATA.AUT)||[]).find(x=>x.d===d&&x.t===t);const H=autHist(d,t);
+  const li=(n,tit_,cuerpo,cl)=>`<div class="hist-it ${cl||''}"><div class="hn">${n}</div><div><b>${tit_}</b><div>${cuerpo}</div></div></div>`;
+  const dat=x=>x.ac==='notiene'?'<b style="color:var(--rojo)">No tiene esta autorización</b>':`Emisión ${fDMY(x.e)} · Vence ${fDMY(x.v)}${x.num?' · N.° '+esc(x.num):''}`;
+  let n=0,html='';
+  html+=li(++n,b?(b.s?'Base Administración':'Base SIG'):'Sin registro en la base',b?(b.s==='li'?'Licencia interna emitida':b.s==='tram'?esc(b.x||'En trámite'):dat(b)):'No figuraba en la base');
+  H.forEach((x,i)=>{const an=x.est==='ANULADO',ult=i===H.length-1;html+=li(++n,`${esc(tit(x.u||''))} · ${esc(x.f||'')}${x.pend?' · ⏳ por enviar':''}${an?' · <span style="color:var(--rojo)">ANULADA</span>':ult?' · <span style="color:var(--verde)">vigente en la app</span>':''}`,dat(x)+(x.nota?`<br><i>${esc(x.nota)}</i>`:'')+(x.foto||x.fotoLocal?`<br><button class="mini b" style="margin-top:6px" onclick="verFotoAut('${x.id}')">📷 Ver carné</button>`:''),an?'an':'')});
+  abrirHoja(`<div class="hoja-cab"><h2>Historial · ${esc(autNom(t))}</h2><p>${esc(tit(w?w.n:''))} · DNI ${d}. Cada corrección queda registrada con quién la hizo; ninguna se borra.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">${html}</div>`)}
 let FOTO_AUT='';
 function formAut(d,t){const w=W[d];const it=t?(autIndex()[d]||{})[t]:null;FOTO_AUT='';
   abrirHoja(`<div class="hoja-cab"><h2>${t?'Corregir':'Agregar'} autorización</h2><p>${esc(tit(w.n))} · DNI ${w.d}. Verifica el carné físico y toma foto. Funciona sin señal.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form aut-form">
@@ -1614,7 +1624,7 @@ async function crearUsuario(d){const w=W[d];if(!confirm(`¿Dar acceso de Segurid
 async function subirDatos(){const fs=[...$('#up-f').files];if(!fs.length){toast('Elige el archivo de datos');return}
   const q={a:'subirDatos',nota:fs.map(f=>f.name).join(', ')};
   for(const f of fs){const t=await f.text();try{const j=JSON.parse(t);if(Array.isArray(j))q.mapa=t;else if(j.W&&j.A)q.data=t;else throw 0}catch(e){toast(`${f.name} no es un archivo de Alerta SBC`);return}}
-  cargando('Subiendo datos…');const r=await api(q);cargando(false);if(!r.ok){toast(r.error);return}toast('Datos subidos. Descargando…');VER=null;await descargar(true);pintarAdmin()}
+  cargando('Subiendo datos… (puede tardar 1-2 min)');const r=await api(q,180000);cargando(false);if(!r.ok){toast(r.error);return}toast('Datos subidos. Descargando…');VER=null;await descargar(true);pintarAdmin()}
 
 /* ---------- arranque ---------- */
 const est=()=>{const e=$('#estado');e.classList.toggle('off',!navigator.onLine);const g=DATA&&DATA.gen?DATA.gen.slice(0,5):'';e.querySelector('span').textContent=navigator.onLine?(g?'Datos al '+g:'En línea'):(g?'Sin señal · '+g:'Sin señal');e.title='Fecha en que se cargaron los datos'};
