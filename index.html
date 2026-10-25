@@ -502,6 +502,8 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 .foto-prev{width:100%;border-radius:12px;margin-top:8px}
 .hist-it{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #E5ECF6;font-size:14.5px;line-height:1.4}.hist-it .hn{width:26px;height:26px;border-radius:50%;background:#EEF4FF;color:#0B4FB8;font-weight:700;display:grid;place-items:center;font-size:13px}.hist-it.an{opacity:.55}.hist-it.an b{text-decoration:line-through}
 .aut-falta{background:#FDECEC;border:1.5px solid #F3B4B4;color:#8A1C1C;border-radius:12px;padding:10px 12px;margin:8px 0 10px;font-size:14.5px;line-height:1.45}.aut-falta small{color:#8A1C1C;opacity:.85}.vence-it{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;background:#fff;border:1px solid #E5ECF6;border-radius:12px;padding:10px 12px;margin-bottom:6px;font:inherit;font-size:14.5px;cursor:pointer}.vence-it small{color:var(--gris)}.vence-it .vd{text-align:right;white-space:nowrap;font-weight:700;color:var(--ambar-t)}.vence-it .vd.r{color:var(--rojo)}#af-est{flex-wrap:wrap}
+.rep-btn{background:#FDECEC!important;color:#B42318!important;border:1.5px solid #F3B4B4!important;font-weight:700}.rep-w{background:#EEF4FF;border-radius:12px;padding:10px 12px;font-size:14.5px}.rep-w small{color:var(--gris)}.rep-res button{display:block;width:100%;text-align:left;background:#fff;border:1px solid #E5ECF6;border-radius:10px;padding:9px 11px;margin-top:6px;font:inherit;font-size:14.5px}.rep-res small{color:var(--gris)}.rep-form select,.rep-form textarea{width:100%;border-radius:12px;border:1.5px solid var(--linea);padding:10px;font:inherit;background:#fff}.rep-form label{display:block;margin-top:12px}.opciones.multi,.rep-form .opciones{flex-wrap:wrap}.fotos-prev{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.fotos-prev span{position:relative}.fotos-prev img{width:72px;height:72px;object-fit:cover;border-radius:10px}.fotos-prev button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:0;background:#B42318;color:#fff;font-size:14px;line-height:1}.rep-it{padding:10px 0;border-bottom:1px solid #E5ECF6;font-size:14.5px;line-height:1.45}.rep-it .tp{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.rep-it .src{color:var(--gris);font-size:13.5px;margin-top:2px}.rep-it .acc{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.pot-alto{color:var(--rojo)}.pot-medio{color:var(--ambar-t)}
+.rep-form .dos-c{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}.rep-form input{width:100%;min-width:0;box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -521,7 +523,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
     </div>
     <div class="zonas" id="f-zona"></div>
   </header>
-  <div id="dds-hoy"></div>
+  <div id="dds-hoy"></div><div id="rep-ini"></div>
   <div id="nuevos-rojos"></div>
   <div id="retorno"></div>
   <div class="semaforo" id="semaforo"></div>
@@ -839,6 +841,7 @@ function filaPersona(w,extra){
 }
 function pintarInicio(){
   try{pintarDDS()}catch(e){}
+  try{pintarRepIni()}catch(e){}
   try{pintarRetorno()}catch(e){}
   try{$('#turnos-hoy').innerHTML='Hoy: '+turnoHoyTxt()}catch(e){}
   const base=Object.values(W).filter(w=>w.e==='ACTIVO'&&(!F.mina||minaDe(w)===F.mina)&&(!F.zona||zonaDe(w)===F.zona)&&(!F.gd||guardiaDe(w)===F.gd)&&(!F.hoy||enMinaHoy(w)));
@@ -880,6 +883,107 @@ function autIndex(){const k=(DATA?VER:'')+'|'+((DATA&&DATA.AUTC)||[]).length+'|'
 const autDe=d=>Object.values(autIndex()[d]||{});
 function autChips(w){const L=autDe(w.d);if(!L.length)return [['Sin autorizaciones registradas','']];return L.map(it=>{const s=autEstado(it);return [`${AUT_C[it.t]||autNom(it.t)}: ${AUT_ST[s][0]}`,AUT_ST[s][1]]})}
 
+
+/* ===== v28: reportes de campo (Seguridad reporta actos a SBC · Psicología arma su reporte de WhatsApp) ===== */
+const REP_ACTOS=[...new Set(TIPO_C.map(x=>x[1]))];
+const REP_TEMAS=['el cuidado de manos','la exposición a la línea de fuego','el uso correcto del EPP','el orden y limpieza','el desatado de rocas','los 3 puntos de apoyo','el bloqueo y etiquetado','el IPERC continuo'];
+const REP_ZONAS=['Rosario','Estela','Acchilla','Julcani'];
+const REP_EST={PENDIENTE:['Pendiente','a'],EVALUADO:['Evaluado','v'],SEGUIMIENTO:['Con seguimiento','v'],ANULADO:['No corresponde',''],'POR ENVIAR':['Por enviar','a'],REGISTRADO:['Registrado','v']};
+let FOTOS_REP=[],_envRep=false,REP_ID='';
+const repQ=()=>store.get('fsbc_repq',[]);
+function repTodos(){return [...((DATA&&DATA.REP)||[]),...repQ().map(x=>({id:x.id,f:'por enviar',u:USER&&USER.nombre,ur:USER&&USER.dni,tp:x.tipo,d:x.dni||'',n:x.nombre||'',ac:x.acto||'',po:x.pot||'',nv:x.nivel||'',zo:x.zona||'',lb:x.labor||'',te:x.tema||'',de:x.desc||'',fo:(x.fotos||[]).length,es:'POR ENVIAR',pend:1}))]}
+const repActos=()=>repTodos().filter(r=>r.tp==='ACTO');
+function comprimir(f){return new Promise(ok=>{const img=new Image();img.onload=()=>{const m=1000,sc=Math.min(1,m/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*sc;c.height=img.height*sc;c.getContext('2d').drawImage(img,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',0.6))};img.onerror=()=>ok('');img.src=URL.createObjectURL(f)})}
+function fotosInput(id){return `<label class="foto-btn"><input type="file" accept="image/*" multiple id="${id}" hidden>📷 Agregar fotos (máx. 4)</label><div class="fotos-prev" id="${id}-prev"></div>`}
+function fotosBind(id,cb){$('#'+id).addEventListener('change',async e=>{for(const f of [...e.target.files]){if(FOTOS_REP.length>=4)break;const u=await comprimir(f);if(u)FOTOS_REP.push(u)}e.target.value='';pintarFotosRep(id);cb&&cb()})}
+function pintarFotosRep(id){$('#'+id+'-prev').innerHTML=FOTOS_REP.map((u,i)=>`<span><img src="${u}"><button type="button" onclick="FOTOS_REP.splice(${i},1);pintarFotosRep('${id}')">×</button></span>`).join('')}
+const chipsSel=(id,arr,multi,on)=>`<div class="opciones ${multi?'multi':''}" id="${id}">${arr.map(x=>`<button type="button" data-v="${esc(x)}" class="${(on||[]).includes(x)?'on':''}">${esc(x)}</button>`).join('')}</div>`;
+function chipsBind(id,multi,cb){$('#'+id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(multi)b.classList.toggle('on');else{const was=b.classList.contains('on');$('#'+id).querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b&&!was))}cb&&cb()})}
+const chipsVal=(id,multi)=>{const L=[...$('#'+id).querySelectorAll('button.on')].map(b=>b.dataset.v);return multi?L:(L[0]||'')};
+
+/* --- Seguridad: Reportar acto a SBC --- */
+function reportarActo(d){FOTOS_REP=[];REP_ID='r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);const w=d?W[d]:null;const ds=(w&&w.ds)||{};
+  abrirHoja(`<div class="hoja-cab"><h2>⚠ Reportar acto a SBC</h2><p>Llega a Psicología para evaluar y dar seguimiento al trabajador. Funciona sin señal.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form rep-form">
+   <label>Trabajador</label>${w?`<div class="rep-w" id="ra-w" data-d="${w.d}"><b>${esc(tit(w.n))}</b><br><small>${esc(tit(w.c||''))} · DNI ${w.d}${w.lp?' · Lámpara '+esc(w.lp):''}</small></div>`:`<input id="ra-q" type="search" autocomplete="off" placeholder="Nombre, DNI o N.° de lámpara"><div id="ra-res" class="rep-res"></div><div class="rep-w" id="ra-w" data-d="" hidden></div>`}
+   <label>Acto observado</label><select id="ra-acto"><option value="">Elige…</option>${REP_ACTOS.map(x=>`<option>${esc(x)}</option>`).join('')}</select>
+   <label>Potencial</label>${chipsSel('ra-pot',['Bajo','Medio','Alto'])}
+   <div class="dos-c"><div><label>Nivel</label><input id="ra-nv" inputmode="numeric" value="${esc(ds.nv&&ds.nv!=='GLB'?ds.nv:'')}" placeholder="Ej. 610"></div><div><label>Labor</label><input id="ra-lb" value="${esc(ds.lb&&!/SIN LABOR|NO APLICA/.test(ds.lb)?ds.lb:'')}" placeholder="Ej. CX 024"></div></div>
+   <label>¿Qué pasó?</label><textarea id="ra-de" rows="3" placeholder="Ej. Perforaba sin desatar la corona; se detuvo la tarea."></textarea>
+   <label>Fotos (opcional)</label>${fotosInput('ra-f')}
+   <p class="err" id="ra-err"></p><button class="btn pri ancho" onclick="guardarActo()">Enviar reporte a SBC</button></div>`);
+  chipsBind('ra-pot');fotosBind('ra-f');
+  if(!w)$('#ra-q').addEventListener('input',()=>{const q=norm($('#ra-q').value).trim();const tk=q?q.split(/\s+/):[];
+    const L=tk.length?Object.values(W).filter(x=>x.e==='ACTIVO'&&tk.every(k=>x.key.split(' ').some(p=>p.startsWith(k))||x.d.startsWith(k)||(x.lp&&String(x.lp)===k))).slice(0,6):[];
+    $('#ra-res').innerHTML=L.map(x=>`<button type="button" onclick="elegirRepW('${x.d}')"><b>${esc(tit(x.n))}</b> <small>${esc(tit(x.c||''))} · ${x.d}</small></button>`).join('')})}
+function elegirRepW(d){const w=W[d],ds=w.ds||{};const e=$('#ra-w');e.dataset.d=d;e.hidden=false;e.innerHTML=`<b>${esc(tit(w.n))}</b><br><small>${esc(tit(w.c||''))} · DNI ${w.d}</small> <button type="button" class="mini" onclick="$('#ra-w').hidden=true;$('#ra-w').dataset.d='';$('#ra-q').hidden=false;$('#ra-q').focus()">Cambiar</button>`;
+  $('#ra-q').hidden=true;$('#ra-q').value='';$('#ra-res').innerHTML='';if(!$('#ra-nv').value&&ds.nv&&ds.nv!=='GLB')$('#ra-nv').value=ds.nv;if(!$('#ra-lb').value&&ds.lb&&!/SIN LABOR|NO APLICA/.test(ds.lb))$('#ra-lb').value=ds.lb}
+function guardarActo(){const d=$('#ra-w').dataset.d,acto=$('#ra-acto').value,pot=chipsVal('ra-pot');
+  if(!d){$('#ra-err').textContent='Elige al trabajador.';return}if(!acto){$('#ra-err').textContent='Elige el acto observado.';return}if(!pot){$('#ra-err').textContent='Marca el potencial.';return}
+  const w=W[d];const q=repQ();if(q.some(x=>x.id===REP_ID))return;
+  q.push({id:REP_ID,tipo:'ACTO',dni:d,nombre:w.n,acto,pot,nivel:$('#ra-nv').value.trim(),labor:$('#ra-lb').value.trim(),desc:$('#ra-de').value.trim(),fotos:FOTOS_REP});
+  try{store.set('fsbc_repq',q)}catch(e){q[q.length-1].fotos=[];store.set('fsbc_repq',q);toast('Sin espacio para fotos: se envía sin fotos')}
+  FOTOS_REP=[];cerrarHoja();toast(navigator.onLine?'Reporte enviado a SBC':'Guardado: se enviará a SBC cuando haya señal');refrescarRep(d);enviarRep()}
+async function enviarRep(){if(_envRep||!TOKEN||!navigator.onLine)return;let q=repQ();if(!q.length)return;_envRep=true;let n=0;
+  try{for(const it of [...q]){const r=await api({a:'rep',...it},90000);if(r&&r.ok){n++;q=repQ().filter(x=>x.id!==it.id);store.set('fsbc_repq',q);if(r.rep){DATA_RAW.REP=r.rep;if(DATA)DATA.REP=r.rep;guardarCache()}}else break}
+    if(n)refrescarRep()}finally{_envRep=false}}
+// refresca solo lo que está a la vista, sin cambiar de pantalla
+function refrescarRep(d){try{const dd=d||fichaD;const p=dd&&W[dd]&&$('#rep-p-'+dd);if(p&&$('#v-ficha').classList.contains('on'))p.outerHTML=panelRep(W[dd]);if($('#v-inicio').classList.contains('on'))pintarRepIni()}catch(e){}}
+function itemRep(r,conNombre){const st=REP_EST[r.es]||[r.es||'',''];return `<div class="rep-it"><div class="tp"><b>${conNombre&&r.d?`<a href="javascript:void 0" onclick="cerrarHoja();abrirFicha('${r.d}')">${esc(tit(r.n||''))}</a> · `:''}${esc(r.ac||'')}</b><span class="chip ${st[1]}">${esc(st[0])}</span></div>
+  <div class="dt">Potencial <b class="pot-${norm(r.po||'').toLowerCase()}">${esc(r.po||'—')}</b>${r.nv?' · NV '+esc(r.nv):''}${r.lb?' · '+esc(r.lb):''}</div>
+  <div class="src">Reportó ${esc(tit(r.u||''))} · ${esc(r.f||'')}${r.de?`<br><i>${esc(r.de)}</i>`:''}${r.at&&r.es!=='PENDIENTE'?`<br>✅ ${esc(st[0])} por ${esc(tit(r.at))}`:''}${ADMIN&&r.an?`<br><i>${esc(r.an)}</i>`:''}</div>
+  <div class="acc">${r.fo&&!r.pend?`<button class="mini b" onclick="verFotosRep('${r.id}')">📷 Fotos (${r.fo})</button>`:''}${ADMIN&&!r.pend?`<button class="mini" onclick="atenderRep('${r.id}')">${r.es==='PENDIENTE'?'Atender':'Cambiar estado'}</button>`:''}</div></div>`}
+function panelRep(w){const L=repActos().filter(r=>r.d===w.d).reverse();
+  return `<div class="panel" id="rep-p-${w.d}"><button class="btn ancho rep-btn" onclick="reportarActo('${w.d}')">⚠ Reportar acto a SBC</button>${L.length?`<h3 style="margin-top:12px">Actos reportados en campo <small style="color:var(--gris)">${L.length}</small></h3>${L.map(r=>itemRep(r)).join('')}`:''}</div>`}
+async function verFotosRep(id){cargando('Abriendo fotos…');const r=await api({a:'repFoto',id},60000);cargando(false);if(!r||!r.ok){toast((r&&r.error)||'Necesitas señal para ver las fotos');return}
+  abrirHoja(`<div class="hoja-cab"><h2>Fotos del reporte</h2><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">${r.fotos.map(u=>`<img src="${u}" style="width:100%;border-radius:12px;margin-bottom:10px">`).join('')}</div>`)}
+function atenderRep(id){const r=repTodos().find(x=>x.id===id);if(!r)return;
+  abrirHoja(`<div class="hoja-cab"><h2>Atender reporte</h2><p>${esc(tit(r.n||''))} · ${esc(r.ac||'')} · potencial ${esc(r.po||'')}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">
+   <label>Estado</label><div class="opciones" id="at-es"><button type="button" class="on" data-v="EVALUADO">Evaluado</button><button type="button" data-v="SEGUIMIENTO">Con seguimiento</button><button type="button" data-v="ANULADO">No corresponde</button><button type="button" data-v="PENDIENTE">Pendiente</button></div>
+   <label>Nota (solo la ves tú)</label><textarea id="at-nota" rows="3" placeholder="Ej. Evaluado 26/10, retroalimentación en labor."></textarea>
+   <button class="btn pri ancho" style="margin-top:12px" onclick="guardarAtencion('${id}')">Guardar</button></div>`);
+  $('#at-es').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#at-es').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))})}
+async function guardarAtencion(id){const estado=$('#at-es .on').dataset.v,nota=$('#at-nota').value.trim();cargando('Guardando…');const r=await api({a:'repAtender',id,estado,nota},45000);cargando(false);
+  if(!r||!r.ok){toast((r&&r.error)||'Necesitas señal');return}DATA_RAW.REP=r.rep;DATA.REP=r.rep;guardarCache();cerrarHoja();toast('Reporte actualizado');refrescarRep()}
+function verReportes(){const L=repActos().slice().reverse();const P=L.filter(r=>r.es==='PENDIENTE'||r.es==='POR ENVIAR'),A=L.filter(r=>!(r.es==='PENDIENTE'||r.es==='POR ENVIAR')).slice(0,40);
+  abrirHoja(`<div class="hoja-cab"><h2>${ADMIN?'Actos reportados por Seguridad':'Mis reportes a SBC'}</h2><p>${P.length} pendientes · ${A.length} atendidos (recientes)</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">
+   ${P.length?`<h3>Pendientes</h3>${P.map(r=>itemRep(r,1)).join('')}`:'<p>No hay reportes pendientes.</p>'}${A.length?`<h3 style="margin-top:14px">Atendidos</h3>${A.map(r=>itemRep(r,1)).join('')}`:''}</div>`)}
+function pintarRepIni(){const e=$('#rep-ini');if(!e)return;const L=repActos();const P=L.filter(r=>r.es==='PENDIENTE'||r.es==='POR ENVIAR');
+  if(ADMIN){const hoy=L.filter(r=>{const d=pf(r.f);return d&&d.toDateString()===HOY.toDateString()}).length;
+    e.innerHTML=`<div class="atajos" style="margin:12px 16px 0"><button onclick="verReportes()"><b style="color:${P.length?'var(--rojo)':'#0B4FB8'}">${P.length}</b><span>🔔 Actos reportados por Seguridad sin atender${hoy?` · ${hoy} hoy`:''}</span></button><button onclick="reporteCampo()"><b>📋</b><span>Reporte de campo (WhatsApp)</span></button></div>`}
+  else{const mios=L.length;e.innerHTML=`<div style="margin:12px 16px 0"><button class="btn ancho rep-btn" onclick="reportarActo()">⚠ Reportar acto a SBC</button>${mios?`<button class="mini" style="margin-top:8px" onclick="verReportes()">Mis reportes: ${mios} · ${mios-P.length} atendidos por Psicología</button>`:''}</div>`}}
+
+/* --- Psicología: reporte de campo para WhatsApp --- */
+function juntarTemas(L){if(!L.length)return '';if(L.length===1)return L[0];return L.slice(0,-1).join(', de ')+' y de '+L[L.length-1]}
+function textoRep(){const tp=chipsVal('rc-tp'),nv=$('#rc-nv').value.trim(),zo=chipsVal('rc-zo'),lb=$('#rc-lb').value.trim(),gd=chipsVal('rc-gd'),per=$('#rc-per').value.trim();
+  const tm=chipsVal('rc-tm',1).concat($('#rc-otro').value.trim()?[$('#rc-otro').value.trim()]:[]);const lugar=`el NV ${nv||'…'}${zo?' '+zo:''}`;
+  if(tp==='PARADA')return `Se realizó parada de seguridad en ${lugar}${lb?' '+lb:''}${gd?' con la guardia '+gd:''}.`;
+  return `Se realizó seguimiento comportamental en ${lugar}${lb?' '+lb:''}, donde se sensibilizó al personal${per?' de la '+per:''}${gd&&!per?' de la guardia '+gd:''} sobre ${juntarTemas(tm)||'…'}.`}
+function reporteCampo(){FOTOS_REP=[];REP_ID='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const mes=repTodos().filter(r=>r.tp!=='ACTO'&&r.ur===(USER&&USER.dni)&&(()=>{const d=pf(r.f);return r.pend||d&&d.getMonth()===HOY.getMonth()&&d.getFullYear()===HOY.getFullYear()})());
+  const nP=mes.filter(r=>r.tp==='PARADA').length,nS=mes.filter(r=>r.tp==='SEGUIMIENTO').length;
+  abrirHoja(`<div class="hoja-cab"><h2>📋 Reporte de campo</h2><p>Este mes: <b>${nS}</b> seguimientos · <b>${nP}</b> paradas. Arma el texto y las fotos, y envíalo al grupo.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form rep-form">
+   <label>Tipo</label><div class="opciones" id="rc-tp"><button type="button" class="on" data-v="SEGUIMIENTO">Seguimiento comportamental</button><button type="button" data-v="PARADA">Parada de seguridad</button></div>
+   <div class="dos-c"><div><label>Nivel</label><input id="rc-nv" inputmode="numeric" placeholder="610"></div><div><label>Labor (opcional)</label><input id="rc-lb" placeholder="CX 024"></div></div>
+   <label>Zona</label>${chipsSel('rc-zo',REP_ZONAS)}
+   <label>Guardia (opcional)</label>${chipsSel('rc-gd',['A','B','C'])}
+   <div id="rc-seg"><label>Personal de (opcional)</label><input id="rc-per" placeholder="LT 14"><label>Temas de sensibilización</label>${chipsSel('rc-tm',REP_TEMAS,1,['el cuidado de manos','la exposición a la línea de fuego'])}<input id="rc-otro" placeholder="Otro tema (opcional)" style="margin-top:6px"></div>
+   <label>Fotos</label>${fotosInput('rc-f')}
+   <label>Texto (puedes editarlo)</label><textarea id="rc-txt" rows="4"></textarea>
+   <button class="btn pri ancho" style="margin-top:10px" onclick="compartirRep()">Enviar por WhatsApp</button><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="copiarRep()">Copiar texto</button>
+   <p style="font-size:13px;color:var(--gris);margin-top:8px">Queda registrado para tu informe mensual.</p></div>`);
+  let edit=false;const upd=()=>{$('#rc-seg').hidden=chipsVal('rc-tp')==='PARADA';if(!edit)$('#rc-txt').value=textoRep()};
+  $('#rc-tp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#rc-tp').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));upd()});
+  chipsBind('rc-zo',0,upd);chipsBind('rc-gd',0,upd);chipsBind('rc-tm',1,upd);['rc-nv','rc-lb','rc-per','rc-otro'].forEach(i=>$('#'+i).addEventListener('input',upd));$('#rc-txt').addEventListener('input',()=>edit=true);fotosBind('rc-f');upd()}
+function guardarRepCampo(){const q=repQ();if(q.some(x=>x.id===REP_ID)||(DATA.REP||[]).some(x=>x.id===REP_ID))return;const tp=chipsVal('rc-tp');
+  q.push({id:REP_ID,tipo:tp,nivel:$('#rc-nv').value.trim(),zona:chipsVal('rc-zo'),labor:$('#rc-lb').value.trim(),tema:tp==='PARADA'?(chipsVal('rc-gd')?'Guardia '+chipsVal('rc-gd'):''):chipsVal('rc-tm',1).concat($('#rc-otro').value.trim()?[$('#rc-otro').value.trim()]:[]).join(' | '),desc:$('#rc-txt').value.trim(),fotos:FOTOS_REP.slice()});
+  try{store.set('fsbc_repq',q)}catch(e){q[q.length-1].fotos=[];store.set('fsbc_repq',q)}setTimeout(enviarRep,1500)}
+function dataUrlFile(u,n){const [h,b]=u.split(',');const bin=atob(b);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new File([a],n,{type:'image/jpeg'})}
+async function copiarRep(){const t=$('#rc-txt').value;try{await navigator.clipboard.writeText(t);toast('Texto copiado')}catch(e){toast('No se pudo copiar')}}
+async function compartirRep(){if(!$('#rc-nv').value.trim()){toast('Pon el nivel');return}const t=$('#rc-txt').value;guardarRepCampo();
+  const files=FOTOS_REP.map((u,i)=>dataUrlFile(u,'reporte-'+(i+1)+'.jpg'));
+  if(navigator.share){try{if(files.length&&navigator.canShare&&navigator.canShare({files})){await navigator.share({files,text:t});cerrarHoja();return}if(!files.length){await navigator.share({text:t});cerrarHoja();return}}catch(e){if(e&&e.name==='AbortError')return}}
+  try{await navigator.clipboard.writeText(t)}catch(e){}
+  toast(files.length?'Texto copiado. En la PC, adjunta las fotos en WhatsApp.':'Texto copiado');window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank')}
 /* ===== v27: cargo vs autorización + vencimientos del mes ===== */
 // Qué autorización exige cada cargo (se puede ajustar aquí)
 const AUT_REQ=[[/AYUDANTE\s+MOTORISTA/,['AYMOT']],[/MOTORISTA/,['LOCO']],[/MAESTRO\s+PER[FO]+[RO]+ISTA/,['JACK','ALT']],[/AYUDANTE.*(PERFORISTA|CHIMENERO)/,['ALT']],[/CHIMENERO|PIQUE|MAESTRO MINA|ENMADERADOR|SHOTCRETERO/,['ALT']]];
@@ -1325,7 +1429,7 @@ function abrirFicha(d){
   ${ADMIN?`<div class="acciones" style="grid-template-columns:1fr"><button class="btn pri" onclick="informe('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>Generar Informe de Reincidencia</button><button class="btn" style="margin-top:8px;${an.n>0&&!an.evaluado?'background:var(--ambar);color:#2b1d00':'background:#fff;color:#0B4FB8;border:1.5px solid #1070E8'}" onclick="evaluarPR('${d}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>${an.n>0&&!an.evaluado?'Evaluar percepción de riesgo (pendiente)':'Evaluar percepción de riesgo'}</button><button class="btn" style="margin-top:8px;background:#fff;color:#1F7650;border:1.5px solid var(--verde)" onclick="loVi('${d}')">👁 Lo vi hoy · registrar visita de campo</button></div>`:''}
   <div class="pestanas" id="pest">${[['todo','Todo'],['sbc','Psicología'],['grisli','GRISLI'],['ev','Eventos']].map(([k,t])=>`<button data-k="${k}" class="${fichaTab===k?'on':''}">${t}<em>${cnt[k]}</em></button>`).join('')}</div>
   <div class="tl" id="tl"></div>
-  ${panelAut(w)}${panelEval(w)}${ADMIN?`<div class="panel"><h3>Visitas de campo</h3><div id="vis-${d}" style="margin-top:6px"></div></div>`:''}`;
+  ${panelRep(w)}${panelAut(w)}${panelEval(w)}${ADMIN?`<div class="panel"><h3>Visitas de campo</h3><div id="vis-${d}" style="margin-top:6px"></div></div>`:''}`;
   if(ADMIN)setTimeout(()=>pintarVisitas(d),0);
   registrar('Consultó ficha',w.n);
   const pintarTL=()=>{const f=L.filter(x=>fichaTab==='todo'||x.k===fichaTab||(fichaTab==='grisli'&&x.k==='gc'));
@@ -1486,6 +1590,7 @@ function registrar(acc,det){const q=store.get('fsbc_log',[]);q.push({acc,det:(de
 async function enviarPendientes(){
   if(!TOKEN||!navigator.onLine)return;
   try{enviarAut()}catch(e){}
+  try{enviarRep()}catch(e){}
   const q=store.get('fsbc_log',[]);if(q.length){const r=await api({a:'log',items:q});if(r.ok)store.set('fsbc_log',[])}
   const c=store.get('fsbc_q',[]);if(c.length&&ADMIN){for(const x of c){const r=await api(x);if(r.ok)CONF=r.conf}store.set('fsbc_q',[]);guardarCache()}
 }
