@@ -918,11 +918,13 @@ function guardarAut(d){const ac=$('#fa-ac .on').dataset.v;const t=$('#fa-t').val
   const it={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),dni:d,nombre:W[d].n,tipo:t,accion:ac,emision:ac==='notiene'?'':e,venc:ac==='notiene'?'':v,num:ac==='notiene'?'':n,nota:($('#fa-nota').value||'').trim(),foto:ac==='notiene'?'':FOTO_AUT};
   const q=store.get('fsbc_autq',[]);q.push(it);try{store.set('fsbc_autq',q)}catch(x){}
   if(store.get('fsbc_autq',[]).length!==q.length){it.foto='';q[q.length-1]=it;store.set('fsbc_autq',q);toast('Foto muy pesada para guardar sin señal: se guardó sin foto')}
-  AUT_IDX=null;cerrarHoja();toast(navigator.onLine?'Verificación guardada':'Guardada en el equipo: se enviará cuando haya señal');abrirFicha(d);enviarAut()}
+  AUT_IDX=null;cerrarHoja();toast(navigator.onLine?'Verificación guardada':'Guardada en el equipo: se enviará cuando haya señal');{const p=$('#aut-p-'+d);if(p)p.outerHTML=panelAut(W[d]);else abrirFicha(d)}enviarAut()}
 let _envAut=false;
-async function enviarAut(){if(_envAut||!TOKEN||!navigator.onLine)return;_envAut=true;try{let q=store.get('fsbc_autq',[]);
-  for(const it of [...q]){const r=await api({a:'autCorr',...it},60000);if(r&&r.ok){q=store.get('fsbc_autq',[]).filter(x=>x.id!==it.id);store.set('fsbc_autq',q);if(r.aut){DATA_RAW.AUTC=r.aut;if(DATA)DATA.AUTC=r.aut;guardarCache()}}else break}
-  AUT_IDX=null;if(fichaD&&$('#aut-p-'+fichaD))abrirFicha(fichaD);if($('#v-aut').classList.contains('on'))pintarAut()}finally{_envAut=false}}
+async function enviarAut(){if(_envAut||!TOKEN||!navigator.onLine)return;let q=store.get('fsbc_autq',[]);if(!q.length)return;_envAut=true;let n=0;try{
+  for(const it of [...q]){const r=await api({a:'autCorr',...it},60000);if(r&&r.ok){n++;q=store.get('fsbc_autq',[]).filter(x=>x.id!==it.id);store.set('fsbc_autq',q);if(r.aut){DATA_RAW.AUTC=r.aut;if(DATA)DATA.AUTC=r.aut;guardarCache()}}else break}
+  if(n){AUT_IDX=null;// solo refresca lo que está a la vista, sin cambiar de pantalla
+    const p=fichaD&&W[fichaD]&&$('#aut-p-'+fichaD);if(p&&$('#v-ficha').classList.contains('on'))p.outerHTML=panelAut(W[fichaD]);
+    if($('#v-aut').classList.contains('on'))pintarAut()}}finally{_envAut=false}}
 async function verFotoAut(id){const loc=store.get('fsbc_autq',[]).find(x=>x.id===id);let src=loc&&loc.foto;
   if(!src){if(!navigator.onLine){toast('Ver la foto necesita señal');return}cargando('Cargando foto…');const r=await api({a:'autFoto',id});cargando(false);if(!r.ok){toast(r.error||'No se pudo cargar');return}src=r.foto}
   abrirHoja(`<div class="hoja-cab"><h2>Foto del carné</h2><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><img src="${src}" style="width:100%;border-radius:12px"></div>`)}
