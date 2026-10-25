@@ -990,7 +990,7 @@ function imprimirCarne(d){const w=W[d];const tipos=CN.sel.slice();
 /* ===== v28: reportes de campo (Seguridad reporta actos a SBC · Psicología arma su reporte de WhatsApp) ===== */
 const REP_ACTOS=[...new Set(TIPO_C.map(x=>x[1]))];
 const REP_TEMAS=['el cuidado de manos','la exposición a la línea de fuego','el uso correcto del EPP','el orden y limpieza','el desatado de rocas','los 3 puntos de apoyo','el bloqueo y etiquetado','el IPERC continuo'];
-const REP_ZONAS=['Rosario','Estela','Acchilla','Julcani'];
+const REP_ZONAS=['Rosario','Verito','Acchilla','Superficie'];
 const REP_EST={PENDIENTE:['Pendiente','a'],EVALUADO:['Evaluado','v'],SEGUIMIENTO:['Con seguimiento','v'],ANULADO:['No corresponde',''],'POR ENVIAR':['Por enviar','a'],REGISTRADO:['Registrado','v']};
 let FOTOS_REP=[],_envRep=false,REP_ID='';
 const repQ=()=>store.get('fsbc_repq',[]);
@@ -1058,9 +1058,9 @@ function pintarRepIni(){const e=$('#rep-ini');if(!e)return;const L=repActos();co
 /* --- Psicología: reporte de campo para WhatsApp --- */
 function juntarTemas(L){if(!L.length)return '';if(L.length===1)return L[0];return L.slice(0,-1).join(', de ')+' y de '+L[L.length-1]}
 function textoRep(){const tp=chipsVal('rc-tp'),nv=$('#rc-nv').value.trim(),zo=chipsVal('rc-zo'),lb=$('#rc-lb').value.trim(),gd=chipsVal('rc-gd'),per=$('#rc-per').value.trim();
-  const tm=chipsVal('rc-tm',1).concat($('#rc-otro').value.trim()?[$('#rc-otro').value.trim()]:[]);const lugar=`el NV ${nv||'…'}${zo?' '+zo:''}`;
-  if(tp==='PARADA')return `Se realizó parada de seguridad en ${lugar}${lb?' '+lb:''}${gd?' con la guardia '+gd:''}.`;
-  return `Se realizó seguimiento comportamental en ${lugar}${lb?' '+lb:''}, donde se sensibilizó al personal${per?' de la '+per:''}${gd&&!per?' de la guardia '+gd:''} sobre ${juntarTemas(tm)||'…'}.`}
+  const tm=chipsVal('rc-tm',1).concat($('#rc-otro').value.trim()?[$('#rc-otro').value.trim()]:[]);const lugar=zo==='Superficie'?(nv?`el NV ${nv} de superficie`:'superficie'):`el NV ${nv||'…'}${zo?' '+zo:''}`;
+  if(tp==='PARADA')return `Se realizó parada de seguridad en ${lugar}${lb?(zo==='Superficie'?' - ':' ')+lb:''}${gd?' con la guardia '+gd:''}.`;
+  return `Se realizó seguimiento comportamental en ${lugar}${lb?(zo==='Superficie'?' - ':' ')+lb:''}, donde se sensibilizó al personal${per?' de la '+per:''}${gd&&!per?' de la guardia '+gd:''} sobre ${juntarTemas(tm)||'…'}.`}
 function reporteCampo(){FOTOS_REP=[];REP_ID='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   const mes=repTodos().filter(r=>r.tp!=='ACTO'&&r.ur===(USER&&USER.dni)&&(()=>{const d=pf(r.f);return r.pend||d&&d.getMonth()===HOY.getMonth()&&d.getFullYear()===HOY.getFullYear()})());
   const nP=mes.filter(r=>r.tp==='PARADA').length,nS=mes.filter(r=>r.tp==='SEGUIMIENTO').length;
@@ -1082,7 +1082,7 @@ function guardarRepCampo(){const q=repQ();if(q.some(x=>x.id===REP_ID)||(DATA.REP
   try{store.set('fsbc_repq',q)}catch(e){q[q.length-1].fotos=[];store.set('fsbc_repq',q)}setTimeout(enviarRep,1500)}
 function dataUrlFile(u,n){const [h,b]=u.split(',');const bin=atob(b);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new File([a],n,{type:'image/jpeg'})}
 async function copiarRep(){const t=$('#rc-txt').value;try{await navigator.clipboard.writeText(t);toast('Texto copiado')}catch(e){toast('No se pudo copiar')}}
-async function compartirRep(){if(!$('#rc-nv').value.trim()){toast('Pon el nivel');return}const t=$('#rc-txt').value;guardarRepCampo();
+async function compartirRep(){if(!$('#rc-nv').value.trim()&&chipsVal('rc-zo')!=='Superficie'){toast('Pon el nivel');return}const t=$('#rc-txt').value;guardarRepCampo();
   const files=FOTOS_REP.map((u,i)=>dataUrlFile(u,'reporte-'+(i+1)+'.jpg'));
   if(navigator.share){try{if(files.length&&navigator.canShare&&navigator.canShare({files})){await navigator.share({files,text:t});cerrarHoja();return}if(!files.length){await navigator.share({text:t});cerrarHoja();return}}catch(e){if(e&&e.name==='AbortError')return}}
   try{await navigator.clipboard.writeText(t)}catch(e){}
