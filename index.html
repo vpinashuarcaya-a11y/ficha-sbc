@@ -515,6 +515,14 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
 .cn-vp{position:relative;overflow:hidden;border-radius:12px;background:#F3F6FB;border:1px solid #DCE5F2}.cn-vp iframe{position:absolute;left:0;top:0;width:700px;height:318px;border:0;transform-origin:0 0;pointer-events:none;background:#fff}
 .aut-acc{display:flex;gap:8px;flex-wrap:wrap;margin:12px 16px 0}.aut-acc button{flex:1 1 150px;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8;border-radius:12px;padding:10px 8px;font:inherit;font-weight:700;font-size:14px;cursor:pointer}.aut-acc button:disabled{opacity:.5}.cv-in{width:100%;box-sizing:border-box;border-radius:12px;border:1.5px solid var(--linea);padding:10px;font:inherit;background:#fff}.cv-l{display:flex;flex-direction:column;gap:6px}.cv-it{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #DCE5F2;border-radius:12px;padding:9px 12px}.cv-it>div{flex:1;min-width:0;display:flex;flex-direction:column}.cv-it small{color:var(--gris);font-size:13px}.cv-it button{width:30px;height:30px;border-radius:50%;border:0;background:#FDECEC;color:#B42318;font-size:18px;flex:none}
 .ft-cab{display:flex;flex-direction:column;margin:14px 0 8px}.ft-cab small{color:var(--gris)}.ft-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.ft-it{background:#fff;border:1px solid #DCE5F2;border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px}.ft-it img,.ft-ph{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;background:#F3F6FB;border:0;cursor:pointer;font-size:26px;color:var(--gris)}.ft-ph small{font-size:12px}.ft-tx{display:flex;flex-direction:column;min-width:0}.ft-tx b{font-size:13.5px}.ft-tx small{font-size:12px;color:var(--gris)}
+body:not(.es-jefe) .solo-jefe{display:none!important}body.es-jefe .barra{grid-template-columns:repeat(5,1fr)!important}body.es-admin .barra{grid-template-columns:repeat(7,1fr)!important}
+body.wide.vcum #v-ficha{display:none}body.wide #v-cum.on{grid-column:2 / 4}body.wide #v-cum .dos{grid-template-columns:1fr 1fr}body.wide #v-cum .kpis{grid-template-columns:repeat(6,1fr)}
+.sol-ini{margin:12px 16px 0;background:#FFF6F5;border:2px solid #F3B4B4;border-radius:16px;padding:12px;box-shadow:var(--sombra)}.sol-cab{font-weight:800;color:#B42318;font-size:15.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.sol-cab b{background:#B42318;color:#fff;border-radius:999px;padding:1px 9px;font-size:13px}.sol-tarde{background:#fff;border:1px solid #F3B4B4;color:#B42318;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:700}
+.sol-row{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:#fff;border:1px solid #F6D3D0;border-radius:12px;padding:8px 10px;margin-top:6px;font:inherit;cursor:pointer}.sol-row span{display:flex;flex-direction:column;min-width:0}.sol-row b{font-size:14.5px}.sol-row small{font-size:12.5px;color:var(--gris)}.sol-row .dot{width:10px;height:10px;border-radius:50%;flex:none;background:#E0A100}.sol-row .dot.r{background:#B42318}.sol-row .dot.v{background:#137A3A}
+.sol-ver{display:block;width:100%;margin-top:8px;background:none;border:0;color:#B42318;font:inherit;font-weight:700;font-size:14px;text-align:right;cursor:pointer}
+.sol-it{padding:10px 0;border-bottom:1px solid #E5ECF6;font-size:14.5px;line-height:1.45}.sol-it.tarde{background:#FFF6F5;margin:0 -8px;padding:10px 8px;border-radius:10px}.sol-it .tp{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.sol-it .src{color:var(--gris);font-size:13px;margin-top:2px}.sol-it .acc{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.cn-lb{display:block;font-size:13px;color:var(--gris);margin:12px 0 3px}.cm-tw{overflow-x:auto}.cm-t{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:8px}.cm-t th{text-align:left;font-size:12px;color:var(--gris);font-weight:700;padding:4px 6px;border-bottom:1.5px solid var(--linea)}.cm-t td{padding:5px 6px;border-bottom:1px solid #EEF2F8}.cm-t td.n{text-align:right;font-variant-numeric:tabular-nums}
+#toast,.toast{pointer-events:none}
 </style>
 </head>
 <body>
@@ -534,7 +542,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
     </div>
     <div class="zonas" id="f-zona"></div>
   </header>
-  <div id="dds-hoy"></div><div id="rep-ini"></div>
+  <div id="dds-hoy"></div><div id="sol-ini"></div><div id="rep-ini"></div>
   <div id="nuevos-rojos"></div>
   <div id="retorno"></div>
   <div class="semaforo" id="semaforo"></div>
@@ -582,6 +590,20 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
   <div id="aut-res"></div>
   <div class="bloque" style="padding-top:8px"><h2 id="aut-tit">Trabajadores <small id="aut-n"></small></h2><div class="lista" id="aut-lista"></div></div>
   <div style="height:24px"></div>
+</section>
+
+<!-- ================= CUMPLIMIENTO ================= -->
+<section class="vista" id="v-cum">
+  <header class="cab">
+    <div class="marca"><b>Cumplimiento</b></div>
+    <div class="titulo-inicio"><h1>Autorizaciones</h1><p>Duplicados y evaluaciones presenciales: qué se pidió, qué se atendió y a tiempo.</p></div>
+    <div class="filtros">
+      <div class="seg" id="cm-per"><button data-v="mes" class="on">Este mes</button><button data-v="ant">Mes anterior</button><button data-v="90">90 días</button><button data-v="todo">Todo</button></div>
+      <div class="seg" id="cm-gd"><button data-v="" class="on">Gdia</button><button data-v="A">A</button><button data-v="B">B</button><button data-v="C">C</button></div>
+    </div>
+    <select id="cm-tipo" class="sel-tipo"></select>
+  </header>
+  <div id="cm-body"></div>
 </section>
 
 <!-- ================= BUSCAR ================= -->
@@ -638,6 +660,7 @@ body.wide #adm-cont .kpis{grid-template-columns:repeat(3,1fr)}
   <button data-v="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar</button>
   <button data-v="aut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M6 16c.6-1.5 1.7-2.2 3-2.2s2.4.7 3 2.2M14 10h4M14 13.5h3"/></svg>Autoriz.</button>
   <button data-v="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Tablero</button>
+  <button data-v="cum" class="solo-jefe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Cumplim.</button>
   <button data-v="pend" class="solo-admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Confirmar<span class="badge" id="badge-p" hidden></span></button>
   <button data-v="admin" class="solo-admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6"/><path d="m16 19 2 2 4-4"/></svg>Admin</button>
   <button class="cuenta" onclick="menuUsuario()"><i id="yo-ini2">··</i><span id="yo-n2">Mi cuenta</span></button>
@@ -822,6 +845,7 @@ const ANCHO=()=>document.body.classList.contains('wide');
 function ir(v){
   document.body.classList.toggle('vmapa',v==='mapa');
   document.body.classList.toggle('vtab',v==='tab');
+  document.body.classList.toggle('vcum',v==='cum');
   document.querySelectorAll(ANCHO()?'.vista:not(#v-ficha)':'.vista').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
   document.querySelectorAll('.barra button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   if(v!=='ficha')vistaAnterior=v;
@@ -831,6 +855,7 @@ function ir(v){
   if(v==='mapa')pintarMapa();
   if(v==='tab')pintarTab();
   if(v==='aut')pintarAut();
+  if(v==='cum')pintarCum();
 }
 $('#barra').addEventListener('click',e=>{const b=e.target.closest('button');if(b)ir(b.dataset.v)});
 
@@ -853,6 +878,7 @@ function filaPersona(w,extra){
 function pintarInicio(){
   try{pintarDDS()}catch(e){}
   try{pintarRepIni()}catch(e){}
+  try{pintarSolIni()}catch(e){}
   try{pintarRetorno()}catch(e){}
   try{$('#turnos-hoy').innerHTML='Hoy: '+turnoHoyTxt()}catch(e){}
   const base=Object.values(W).filter(w=>w.e==='ACTIVO'&&(!F.mina||minaDe(w)===F.mina)&&(!F.zona||zonaDe(w)===F.zona)&&(!F.gd||guardiaDe(w)===F.gd)&&(!F.hoy||enMinaHoy(w)));
@@ -900,6 +926,145 @@ function autChips(w){const L=autDe(w.d);if(!L.length)return [['Sin autorizacione
 
 
 
+
+/* ===== v38: solicitudes de autorización (duplicado / evaluación presencial) + avisos IMPORTANTE + Cumplimiento ===== */
+const ESJEFE=()=>!!(ADMIN||(!VISTA_SEG&&USER&&/^\s*JEFE DE SEGURIDAD/i.test(USER.cargo||'')));
+const SOL_ABIERTOS=['PENDIENTE','APROBADO','DESAPROBADO'];
+const solQ=()=>store.get('fsbc_solq',[]);let _envSol=false;
+const solNomT=k=>(CARNE_T.find(x=>x[0]===k)||[k,autNom(k)])[1];
+function solTodos(){const M=new Map();((DATA&&DATA.SOL)||[]).forEach(s=>M.set(s.id,{...s}));
+  solQ().forEach(o=>{if(o.op==='nueva'){if(!M.has(o.id))M.set(o.id,{id:o.id,f:'por enviar',ur:USER&&USER.dni,u:USER&&USER.nombre,d:o.dni,n:o.nombre,t:o.tipo,mo:o.motivo,es:o.estado||'PENDIENTE',fa:'por enviar',ua:USER&&USER.nombre,fe:'',res:'',vig:'',nota:o.nota||'',h:'',prog:o.prog||'',pend:1})}
+    else{const s=M.get(o.id);if(s){Object.assign(s,{es:o.estado||s.es,fa:'por enviar',ua:USER&&USER.nombre,pend:1});['fe','res','vig','prog'].forEach(k=>{if(o[k]!==undefined)s[k]=o[k]});if(o.nota)s.nota=o.nota}}});
+  return [...M.values()]}
+const abierta=s=>SOL_ABIERTOS.includes(s.es);
+const diasDe=f=>{const d=pf(f);return d?Math.max(0,Math.floor((HOY-d)/864e5)):0};
+const atrasada=s=>abierta(s)&&s.f!=='por enviar'&&diasDe(s.f)>7;
+function solEstado(s){if(s.es==='PENDIENTE')return s.mo==='DUPLICADO'?['Duplicado por entregar','a']:s.prog?['Evaluación programada '+fDMY(s.prog),'a']:['Pendiente de evaluación','a'];
+  return {APROBADO:['Aprobado · falta entregar carné','v'],DESAPROBADO:['Desaprobado · reprogramar','r'],ENTREGADO:['Carné entregado','v'],ANULADA:['Anulada','']}[s.es]||[s.es,'']}
+function solOp(o){const q=solQ();q.push(o);store.set('fsbc_solq',q);refrescarSol();enviarSol()}
+async function enviarSol(){if(_envSol||!TOKEN||!navigator.onLine)return;let q=solQ();if(!q.length)return;_envSol=true;let n=0;
+  try{for(const it of [...q]){const r=await api({a:'sol',...it},60000);if(r&&r.ok){n++;q=solQ().filter(x=>!(x.id===it.id&&x.op===it.op&&x.estado===it.estado&&x.prog===it.prog));store.set('fsbc_solq',q);if(r.sol){DATA_RAW.SOL=r.sol;if(DATA)DATA.SOL=r.sol;guardarCache()}}else{if(r&&r.error&&!r.offline){toast(r.error);q=solQ().filter(x=>x!==it&&!(x.id===it.id&&x.op===it.op));store.set('fsbc_solq',q)}break}}
+    if(n)refrescarSol()}finally{_envSol=false}}
+function refrescarSol(){try{if($('#v-inicio').classList.contains('on'))pintarSolIni();if($('#v-cum')&&$('#v-cum').classList.contains('on'))pintarCum();const p=fichaD&&W[fichaD]&&$('#aut-p-'+fichaD);if(p&&$('#v-ficha').classList.contains('on'))p.outerHTML=panelAut(W[fichaD]);if($('#sol-lista'))pintarSolLista()}catch(e){}}
+// renovación automática: 30 días antes de vencer se crea la solicitud (una vez al día por equipo)
+function autoRenovar(){try{const hoy=hoyISO();if(store.get('fsbc_ren_dia','')===hoy||!DATA)return;store.set('fsbc_ren_dia',hoy);const S=solTodos(),I=autIndex();
+  Object.values(W).filter(w=>w.e==='ACTIVO').forEach(w=>CARNE_T.forEach(([k])=>{const it=(I[w.d]||{})[k];if(!it||autEstado(it)!=='porv')return;const id=`ren-${w.d}-${k}-${it.v}`;
+    if(S.some(s=>s.id===id||(s.d===w.d&&s.t===k&&abierta(s))))return;const q=solQ();q.push({op:'nueva',id,dni:w.d,nombre:w.n,tipo:k,motivo:'RENOVACIÓN',nota:'Creada automáticamente: vence el '+fDMY(it.v)});store.set('fsbc_solq',q)}));enviarSol()}catch(e){}}
+// aviso IMPORTANTE en Inicio (para todos)
+function pintarSolIni(){const e=$('#sol-ini');if(!e)return;autoRenovar();const L=solTodos().filter(abierta).sort((a,b)=>(atrasada(b)-atrasada(a))||diasDe(b.f)-diasDe(a.f));
+  if(!L.length){e.innerHTML='';return}const nt=L.filter(atrasada).length;
+  e.innerHTML=`<div class="sol-ini"><div class="sol-cab">⚠ IMPORTANTE · Autorizaciones <b>${L.length}</b>${nt?`<span class="sol-tarde">${nt} atrasada${nt>1?'s':''}</span>`:''}</div>
+   ${L.slice(0,4).map(s=>{const st=solEstado(s);return `<button class="sol-row" onclick="verSolicitudes()"><i class="dot ${atrasada(s)?'r':st[1]}"></i><span><b>${esc(tit(s.n||''))}</b><small>${esc(solNomT(s.t))} · ${esc(st[0])}${s.f!=='por enviar'?(diasDe(s.f)?' · hace '+diasDe(s.f)+' d':' · hoy'):''}</small></span></button>`}).join('')}
+   <button class="sol-ver" onclick="verSolicitudes()">Ver todas y atender →</button></div>`}
+let SOLF='abiertas';
+function verSolicitudes(){abrirHoja(`<div class="hoja-cab"><h2>⚠ Solicitudes de autorización</h2><p>Duplicados y evaluaciones presenciales. Las atienden el SIG o los ingenieros de Seguridad.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
+  <button class="btn ancho rep-btn" onclick="solicitar()">📝 Nueva solicitud</button>
+  <div class="seg" id="sol-f" style="margin:12px 0 4px"><button data-v="abiertas" class="${SOLF==='abiertas'?'on':''}">Abiertas</button><button data-v="cerradas" class="${SOLF==='cerradas'?'on':''}">Cerradas</button></div>
+  <div id="sol-lista"></div></div>`);$('#sol-f').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;SOLF=b.dataset.v;$('#sol-f').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));pintarSolLista()});pintarSolLista()}
+function pintarSolLista(){const L=solTodos().filter(s=>SOLF==='abiertas'?abierta(s):!abierta(s)).sort((a,b)=>SOLF==='abiertas'?((atrasada(b)-atrasada(a))||diasDe(b.f)-diasDe(a.f)):(pf(b.fa)||0)-(pf(a.fa)||0)).slice(0,80);
+  $('#sol-lista').innerHTML=L.length?L.map(itemSol).join(''):`<p class="nota-f">${SOLF==='abiertas'?'No hay solicitudes abiertas. 👍':'Aún no hay solicitudes cerradas.'}</p>`}
+function itemSol(s){const st=solEstado(s),w=W[s.d]||{};const ac=[];
+  if(!s.pend){if(s.es==='PENDIENTE'&&s.mo==='DUPLICADO')ac.push(`<button class="mini b" onclick="genDesdeSol('${s.id}')">🪪 Generar duplicado</button>`);
+    if(s.es==='PENDIENTE'&&s.mo!=='DUPLICADO')ac.push(`<button class="mini" onclick="programarSol('${s.id}')">📅 ${s.prog?'Cambiar fecha':'Programar'}</button><button class="mini b" onclick="registrarEval('${s.id}')">✔ Registrar evaluación</button>`);
+    if(s.es==='APROBADO')ac.push(`<button class="mini b" onclick="genDesdeSol('${s.id}')">🪪 Generar carné</button>`);
+    if(s.es==='DESAPROBADO')ac.push(`<button class="mini" onclick="programarSol('${s.id}')">📅 Reprogramar</button>`);
+    if(ESJEFE()&&abierta(s))ac.push(`<button class="mini r" onclick="anularSol('${s.id}')">Anular</button>`)}
+  return `<div class="sol-it ${atrasada(s)?'tarde':''}"><div class="tp"><b><a href="javascript:void 0" onclick="cerrarHoja();abrirFicha('${s.d}')">${esc(tit(s.n||w.n||''))}</a></b><span class="chip ${atrasada(s)?'r':st[1]}">${esc(st[0])}</span></div>
+   <div class="dt"><b>${esc(solNomT(s.t))}</b> · ${esc((s.mo||'').toLowerCase())}${w.d?' · Gdia '+esc(guardiaDe(w)):''}${w.d?turnoTag(w):''}</div>
+   <div class="src">Solicitó ${esc(tit(s.u||''))} · ${esc(s.f)}${s.f!=='por enviar'&&abierta(s)&&diasDe(s.f)?' · hace '+diasDe(s.f)+' días':''}${atrasada(s)?' · <b style="color:var(--rojo)">⏰ atrasada</b>':''}${s.res?`<br>Evaluación: <b>${esc(s.res)}</b>${s.fe?' el '+fDMY(s.fe):''}${s.vig?' · vigente hasta '+fDMY(s.vig):''}`:''}${!abierta(s)&&s.ua?`<br>Cerró ${esc(tit(s.ua))} · ${esc(s.fa)}`:''}${s.nota?`<br><i>${esc(s.nota)}</i>`:''}${s.pend?' <b style="color:var(--ambar-t)">⏳ por enviar</b>':''}</div>
+   ${ac.length?`<div class="acc">${ac.join('')}</div>`:''}</div>`}
+function solicitar(d,k,mo){const w=d?W[d]:null;const I=d?(autIndex()[d]||{}):{};
+  const sug=k=>{const it=I[k];if(!it)return 'NUEVA';const s=autEstado(it);return s==='vig'||s==='li'?'DUPLICADO':s==='no'?'NUEVA':'RENOVACIÓN'};
+  abrirHoja(`<div class="hoja-cab"><h2>📝 Nueva solicitud</h2><p>Duplicado (perdió su carné vigente) o evaluación presencial (vencida o nueva). Llega como IMPORTANTE a todos.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
+   <div class="cn-paso"><b>1</b>Trabajador</div>${w?`<div class="rep-w" id="sl-w" data-d="${w.d}"><b>${esc(tit(w.n))}</b><br><small>${esc(tit(w.c||''))} · DNI ${w.d}</small></div>`:`<input id="sl-q" type="search" autocomplete="off" placeholder="Nombre, DNI o N.° de lámpara" class="cv-in"><div id="sl-res" class="rep-res"></div><div class="rep-w" id="sl-w" data-d="" hidden></div>`}
+   <div class="cn-paso"><b>2</b>Autorización</div><select id="sl-t" class="cv-in">${CARNE_T.map(([kk,n])=>`<option value="${kk}" ${kk===k?'selected':''}>${esc(n)}</option>`).join('')}</select><p class="nota-f" id="sl-est"></p>
+   <div class="cn-paso"><b>3</b>Motivo</div><div class="opciones" id="sl-mo"><button type="button" data-v="DUPLICADO">Duplicado (lo perdió)</button><button type="button" data-v="RENOVACIÓN">Renovación (vencida)</button><button type="button" data-v="NUEVA">Nueva (no la tiene)</button></div>
+   <div id="sl-prog-w"><label class="cn-lb">Fecha de evaluación presencial (opcional)</label><input type="date" id="sl-prog" class="cv-in"></div>
+   <label class="cn-lb">Nota (opcional)</label><input id="sl-nota" class="cv-in" placeholder="Ej. lo perdió en la bocamina; evaluar en guardia B">
+   <p class="err" id="sl-err"></p><button class="btn pri ancho" style="margin-top:10px" onclick="guardarSol()">Enviar solicitud</button></div>`);
+  const upd=(setMo)=>{const dd=$('#sl-w').dataset.d;const kk=$('#sl-t').value;const II=dd?(autIndex()[dd]||{}):{};const it=II[kk];const s=it?autEstado(it):'';
+    $('#sl-est').innerHTML=dd?(it?`En la base: <b>${AUT_ST[s][0]}</b>${it.v?' · vence '+fDMY(it.v):''}`:'Sin registro de esta autorización'):'';
+    if(setMo&&dd){const m=mo&&kk===k?mo:(()=>{if(!it)return 'NUEVA';return s==='vig'||s==='li'?'DUPLICADO':s==='no'?'NUEVA':'RENOVACIÓN'})();$('#sl-mo').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===m))}
+    $('#sl-prog-w').hidden=chipsVal('sl-mo')==='DUPLICADO'};
+  $('#sl-mo').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#sl-mo').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));upd()});
+  $('#sl-t').addEventListener('change',()=>upd(true));
+  if(!w)$('#sl-q').addEventListener('input',()=>{const q=norm($('#sl-q').value).trim();const tk=q?q.split(/\s+/):[];
+    const L=tk.length?Object.values(W).filter(x=>x.e==='ACTIVO'&&tk.every(kk=>x.key.split(' ').some(p=>p.startsWith(kk))||x.d.startsWith(kk)||(x.lp&&String(x.lp)===kk))).slice(0,6):[];
+    $('#sl-res').innerHTML=L.map(x=>`<button type="button" onclick="elegirSolW('${x.d}')"><b>${esc(tit(x.n))}</b> <small>${esc(tit(x.c||''))} · ${x.d}</small></button>`).join('')});
+  window._solUpd=upd;upd(true)}
+function elegirSolW(d){const w=W[d];const e=$('#sl-w');e.dataset.d=d;e.hidden=false;e.innerHTML=`<b>${esc(tit(w.n))}</b><br><small>${esc(tit(w.c||''))} · DNI ${w.d}</small>`;$('#sl-q').hidden=true;$('#sl-res').innerHTML='';window._solUpd(true)}
+function guardarSol(){const d=$('#sl-w').dataset.d,k=$('#sl-t').value,mo=chipsVal('sl-mo');if(!d){$('#sl-err').textContent='Elige al trabajador.';return}if(!mo){$('#sl-err').textContent='Elige el motivo.';return}
+  const it=(autIndex()[d]||{})[k];const s=it?autEstado(it):'';
+  if(mo==='DUPLICADO'&&!['vig','porv','li'].includes(s)){$('#sl-err').textContent='Solo hay duplicado si la autorización está vigente. Si está vencida o no la tiene, elige Renovación o Nueva: necesita evaluación presencial.';return}
+  if(solTodos().some(x=>x.d===d&&x.t===k&&abierta(x))){$('#sl-err').textContent='Ya tiene una solicitud abierta de esta autorización.';return}
+  solOp({op:'nueva',id:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),dni:d,nombre:W[d].n,tipo:k,motivo:mo,nota:$('#sl-nota').value.trim(),prog:mo==='DUPLICADO'?'':$('#sl-prog').value});
+  cerrarHoja();toast('Solicitud enviada: aparece como IMPORTANTE en Inicio')}
+function programarSol(id){const s=solTodos().find(x=>x.id===id);abrirHoja(`<div class="hoja-cab"><h2>📅 Programar evaluación</h2><p>${esc(tit(s.n))} · ${esc(solNomT(s.t))}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
+  <label class="cn-lb">Fecha de la evaluación presencial</label><input type="date" id="pg-f" class="cv-in" value="${s.prog||hoyISO()}"><label class="cn-lb">Nota (opcional)</label><input id="pg-n" class="cv-in" placeholder="Ej. en la sala de inducción, 7:00 am">
+  <button class="btn pri ancho" style="margin-top:12px" onclick="solOp({op:'act',id:'${id}',estado:'PENDIENTE',prog:$('#pg-f').value,nota:$('#pg-n').value.trim()});cerrarHoja();toast('Evaluación programada')">Guardar</button></div>`)}
+function registrarEval(id){const s=solTodos().find(x=>x.id===id);const hoy=hoyISO();
+  abrirHoja(`<div class="hoja-cab"><h2>✔ Registrar evaluación presencial</h2><p>${esc(tit(s.n))} · ${esc(solNomT(s.t))}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
+   <div class="cn-paso"><b>1</b>Resultado</div><div class="opciones" id="ev-r"><button type="button" data-v="APROBADO">✅ Aprobado</button><button type="button" data-v="DESAPROBADO">❌ Desaprobado</button></div>
+   <div class="cn-datos" style="margin-top:10px"><div class="cn-c"><label>Fecha de evaluación</label><input type="date" id="ev-f" value="${hoy}"></div><div class="cn-c" id="ev-vw"><label>Vigente hasta</label><input type="date" id="ev-v" value="${masAnio(hoy)}"></div><div class="cn-c" id="ev-nw"><label>N.° de carné (opcional)</label><input id="ev-n"></div></div>
+   <label class="cn-lb">Nota (opcional)</label><input id="ev-nota" class="cv-in" placeholder="Ej. nota 16/20, práctica correcta">
+   <p class="err" id="ev-err"></p><button class="btn pri ancho" style="margin-top:12px" onclick="guardarEval('${id}')">Guardar resultado</button></div>`);
+  $('#ev-r').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#ev-r').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));const ap=b.dataset.v==='APROBADO';$('#ev-vw').hidden=!ap;$('#ev-nw').hidden=!ap});
+  $('#ev-f').addEventListener('change',()=>{$('#ev-v').value=masAnio($('#ev-f').value||hoy)})}
+function guardarEval(id){const s=solTodos().find(x=>x.id===id);const r=chipsVal('ev-r');if(!r){$('#ev-err').textContent='Marca si aprobó o desaprobó.';return}
+  const fe=$('#ev-f').value||hoyISO(),vig=$('#ev-v').value,nota=$('#ev-nota').value.trim();if(r==='APROBADO'&&!vig){$('#ev-err').textContent='Pon hasta cuándo es vigente.';return}
+  solOp({op:'act',id,estado:r,fe,res:r,vig:r==='APROBADO'?vig:'',nota});
+  if(r==='APROBADO'){const q=store.get('fsbc_autq',[]);q.push({id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),dni:s.d,nombre:s.n,tipo:s.t,accion:'agregar',emision:fe,venc:vig,num:$('#ev-n').value.trim(),nota:'Evaluación presencial aprobada'+(nota?' · '+nota:''),foto:''});store.set('fsbc_autq',q);AUT_IDX=null;enviarAut();
+    abrirHoja(`<div class="hoja-cab"><h2>✅ Aprobado</h2><p>${esc(tit(s.n))} ya tiene ${esc(solNomT(s.t))} vigente hasta ${fDMY(vig)}.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><button class="btn pri ancho" onclick="genDesdeSol('${id}')">🪪 Generar su carné ahora</button><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid var(--linea)" onclick="cerrarHoja()">Después</button></div>`)}
+  else{cerrarHoja();toast('Desaprobado: queda la alerta y puedes reprogramar')}}
+function anularSol(id){if(!confirm('¿Anular esta solicitud?'))return;const n=prompt('Motivo de la anulación (opcional)')||'';solOp({op:'act',id,estado:'ANULADA',nota:n})}
+function genDesdeSol(id){const s=solTodos().find(x=>x.id===id);if(!s)return;generarCarne(s.d,{sol:id,dup:s.mo==='DUPLICADO',tipo:s.t})}
+// recuadro en la ficha: lo que está pendiente y no debe hacer
+function solFicha(w){const L=solTodos().filter(s=>s.d===w.d&&abierta(s));const ev=L.filter(s=>s.mo!=='DUPLICADO'&&s.es!=='APROBADO');let h='';
+  if(ev.length)h+=`<div class="aut-falta">⛔ No realizar <b>${ev.map(s=>esc(solNomT(s.t))).join(', ')}</b> hasta aprobar la evaluación presencial.<br><small>${ev.map(s=>esc(solEstado(s)[0])).join(' · ')}</small></div>`;
+  const dp=L.filter(s=>s.mo==='DUPLICADO'||s.es==='APROBADO');if(dp.length)h+=`<div class="cn-av">🪪 Carné por entregar: ${dp.map(s=>`<b>${esc(solNomT(s.t))}</b> <button class="mini b" onclick="genDesdeSol('${s.id}')">Generar</button>`).join(' ')}</div>`;
+  if(ESJEFE()){const nd=solTodos().filter(s=>s.d===w.d&&s.mo==='DUPLICADO'&&s.es!=='ANULADA'&&(pf(s.f)||HOY).getFullYear()===HOY.getFullYear()).length;if(nd>=2)h+=`<div class="cn-av">⚠ <b>${nd} duplicados</b> en el año: revisar orden y cuidado de sus documentos.</div>`}
+  return h}
+// paso siguiente después de registrar en campo
+function sigPaso(d,t,ac,v){if(!CARNE_T.some(x=>x[0]===t))return;const w=W[d];
+  if(ac==='notiene')abrirHoja(`<div class="hoja-cab"><h2>⛔ No tiene ${esc(solNomT(t))}</h2><p>${esc(tit(w.n))} no debe realizar esta tarea. Para obtenerla debe aprobar la evaluación presencial.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><button class="btn pri ancho" onclick="solicitar('${d}','${t}','NUEVA')">📝 Solicitar evaluación presencial</button><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid var(--linea)" onclick="cerrarHoja()">Ahora no</button></div>`);
+  else if(v&&v>=hoyISO())abrirHoja(`<div class="hoja-cab"><h2>✅ Registrado</h2><p>${esc(tit(w.n))} · ${esc(solNomT(t))} vigente hasta ${fDMY(v)}.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><button class="btn pri ancho" onclick="generarCarne('${d}',{tipo:'${t}'})">🪪 Generar su carné ahora</button><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid var(--linea)" onclick="cerrarHoja()">Ahora no</button></div>`);
+  else abrirHoja(`<div class="hoja-cab"><h2>⏰ Vencida</h2><p>${esc(tit(w.n))} · ${esc(solNomT(t))}. Para renovarla debe aprobar la evaluación presencial.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><button class="btn pri ancho" onclick="solicitar('${d}','${t}','RENOVACIÓN')">📝 Solicitar evaluación presencial</button><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid var(--linea)" onclick="cerrarHoja()">Ahora no</button></div>`)}
+
+/* --- pestaña Cumplimiento (Psicología y Jefe de Seguridad) --- */
+let CMF={per:'mes',tipo:'',gd:''};
+function cumDatos(){const ini=(()=>{const h=HOY;if(CMF.per==='mes')return new Date(h.getFullYear(),h.getMonth(),1);if(CMF.per==='ant')return new Date(h.getFullYear(),h.getMonth()-1,1);if(CMF.per==='90')return new Date(h-90*864e5);return new Date(2000,0,1)})();
+  const fin=CMF.per==='ant'?new Date(HOY.getFullYear(),HOY.getMonth(),1):new Date(HOY.getFullYear()+1,0,1);
+  return solTodos().filter(s=>{const d=s.f==='por enviar'?HOY:pf(s.f);return d&&d>=ini&&d<fin&&(!CMF.tipo||s.t===CMF.tipo)&&(!CMF.gd||guardiaDe(W[s.d]||{})===CMF.gd)})}
+const durS=s=>{const a=pf(s.f),b=pf(s.fa);return a&&b?Math.max(0,Math.round((b-a)/864e5)):null};
+function pintarCum(){if(!DATA||!$('#cm-body'))return;if(!ESJEFE()){$('#cm-body').innerHTML='<div class="vacio">Solo para Psicología y el Jefe de Seguridad.</div>';return}
+  const sel=$('#cm-tipo');if(!sel.options.length){sel.innerHTML='<option value="">Todas las autorizaciones</option>'+CARNE_T.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('');sel.onchange=()=>{CMF.tipo=sel.value;pintarCum()}}
+  const L=cumDatos().filter(s=>s.es!=='ANULADA');const ent=L.filter(s=>s.es==='ENTREGADO'),ab=L.filter(abierta),tard=ab.filter(atrasada);
+  const atiempo=ent.filter(s=>(durS(s)??99)<=7).length;const prom=ent.length?Math.round(ent.reduce((a,s)=>a+(durS(s)||0),0)/ent.length*10)/10:0;const pct=L.length?Math.round(ent.length/L.length*100):0;
+  const kpi=(n,t,c)=>`<div class="kpi"><div class="n" style="${c?'color:'+c:''}">${n}</div><div class="t">${t}</div></div>`;
+  const tabla=(enc,filas)=>filas.length?`<div class="cm-tw"><table class="cm-t"><tr>${enc.map(x=>`<th>${x}</th>`).join('')}</tr>${filas.map(r=>`<tr>${r.map((x,i)=>`<td${i?' class="n"':''}>${x}</td>`).join('')}</tr>`).join('')}</table></div>`:'<p class="nota-f">Sin datos en este periodo.</p>';
+  const grupo=(fk,lab)=>{const G={};L.forEach(s=>{const k=fk(s);if(!k)return;(G[k]=G[k]||[]).push(s)});return Object.entries(G).sort((a,b)=>b[1].length-a[1].length).map(([k,v])=>[lab(k),v.length,v.filter(s=>s.es==='ENTREGADO').length,v.filter(s=>s.es==='DESAPROBADO').length,v.filter(abierta).length,v.filter(atrasada).length])};
+  const porT=grupo(s=>s.t,k=>esc(solNomT(k))),porM=grupo(s=>s.mo,k=>esc(k.toLowerCase())),porG=grupo(s=>guardiaDe(W[s.d]||{})||'—',k=>'Guardia '+esc(k));
+  const P={};L.filter(s=>!abierta(s)&&s.ua).forEach(s=>{const k=s.ua;(P[k]=P[k]||[]).push(s)});const porP=Object.entries(P).sort((a,b)=>b[1].length-a[1].length).map(([k,v])=>{const dd=v.map(durS).filter(x=>x!=null);return [esc(tit(k)),v.length,dd.length?Math.round(dd.reduce((a,b)=>a+b,0)/dd.length*10)/10+' d':'—']});
+  const evs=L.filter(s=>s.res);const ap=evs.filter(s=>s.res==='APROBADO').length,de=evs.filter(s=>s.res==='DESAPROBADO').length;
+  const dupA={};solTodos().filter(s=>s.mo==='DUPLICADO'&&s.es!=='ANULADA'&&(pf(s.f)||HOY).getFullYear()===HOY.getFullYear()).forEach(s=>dupA[s.d]=(dupA[s.d]||0)+1);const dup2=Object.entries(dupA).filter(([,n])=>n>=2);
+  const I=autIndex(),S=solTodos();const sinRen=[];Object.values(W).filter(w=>w.e==='ACTIVO').forEach(w=>CARNE_T.forEach(([k])=>{const it=(I[w.d]||{})[k];if(it&&autEstado(it)==='porv'&&!S.some(s=>s.d===w.d&&s.t===k&&abierta(s)))sinRen.push([w,k,it])}));
+  $('#cm-body').innerHTML=`<div class="kpis">${kpi(L.length,'Solicitudes recibidas')}${kpi(ent.length,'Atendidas (carné entregado)','#137A3A')}${kpi(ab.length,'Pendientes','#8A5A00')}${kpi(pct+'%','Cumplimiento',pct>=80?'#137A3A':pct>=50?'#8A5A00':'#B42318')}${kpi(atiempo+' / '+ent.length,'Atendidas a tiempo (≤7 días)')}${kpi(prom+' d','Tiempo promedio de atención')}</div>
+   ${tard.length?`<div class="panel" style="border:1.5px solid #F3B4B4"><h3 style="color:#B42318">⏰ Atrasadas (más de 7 días) · ${tard.length}</h3>${tard.map(itemSol).join('')}</div>`:''}
+   <div class="dos"><div class="panel"><h3>Por autorización</h3>${tabla(['Autorización','Recib.','Entreg.','Desapr.','Pend.','Atras.'],porT)}</div>
+   <div class="panel"><h3>Por motivo</h3>${tabla(['Motivo','Recib.','Entreg.','Desapr.','Pend.','Atras.'],porM)}</div>
+   <div class="panel"><h3>Por persona que atendió</h3>${tabla(['Ingeniero / SIG','Cerradas','Promedio'],porP)}</div>
+   <div class="panel"><h3>Por guardia</h3>${tabla(['Guardia','Recib.','Entreg.','Desapr.','Pend.','Atras.'],porG)}</div>
+   <div class="panel"><h3>Evaluaciones presenciales</h3><p><b style="color:#137A3A">${ap}</b> aprobados · <b style="color:#B42318">${de}</b> desaprobados${evs.length?' · '+Math.round(ap/evs.length*100)+'% de aprobación':''}</p>${L.filter(s=>s.es==='DESAPROBADO').map(itemSol).join('')}</div>
+   <div class="panel"><h3>Alertas</h3>
+    <p><b>${dup2.length}</b> trabajador(es) con 2 o más duplicados en el año${dup2.length?':':''}</p>${dup2.map(([d,n])=>`<p class="nota-f">• <a href="javascript:void 0" onclick="abrirFicha('${d}')">${esc(tit((W[d]||{}).n||d))}</a> · ${n} duplicados</p>`).join('')}
+    <p style="margin-top:8px"><b>${sinRen.length}</b> autorización(es) por vencer (30 días) sin solicitud de renovación</p>${sinRen.slice(0,15).map(([w,k,it])=>`<p class="nota-f">• ${esc(tit(w.n))} · ${esc(solNomT(k))} · vence ${fDMY(it.v)}</p>`).join('')}</div></div>
+   <button class="btn pri ancho" style="margin:6px 16px 18px;width:calc(100% - 32px)" onclick="bajarCum()">⬇ Descargar cumplimiento (Excel)</button>`}
+function bajarCum(){const L=cumDatos();const per={mes:'Este mes',ant:'Mes anterior','90':'Últimos 90 días',todo:'Todo'}[CMF.per];
+  const F=[['Fecha solicitud','Solicitó','DNI','Trabajador','Guardia','Autorización','Motivo','Estado','Días abiertos / de atención','A tiempo (≤7 d)','Evaluación programada','Fecha evaluación','Resultado','Vigente hasta','Cerró','Fecha cierre','Nota']];
+  L.forEach(s=>{const w=W[s.d]||{};const dur=abierta(s)?diasDe(s.f):durS(s);F.push([s.f,s.u||'',s.d,s.n||w.n||'',guardiaDe(w),solNomT(s.t),s.mo||'',solEstado(s)[0].toUpperCase(),dur==null?'':dur,abierta(s)?(atrasada(s)?'NO (ATRASADA)':''):s.es==='ENTREGADO'?((dur??99)<=7?'SÍ':'NO'):'',s.prog?fDMY(s.prog):'',s.fe?fDMY(s.fe):'',s.res||'',s.vig?fDMY(s.vig):'',abierta(s)?'':(s.ua||''),abierta(s)?'':(s.fa||''),s.nota||''])});
+  const ok=L.filter(s=>s.es!=='ANULADA'),ent=ok.filter(s=>s.es==='ENTREGADO');
+  const R=[['Indicador','Valor'],['Periodo',per],['Solicitudes recibidas',ok.length],['Atendidas (carné entregado)',ent.length],['Pendientes',ok.filter(abierta).length],['Atrasadas',ok.filter(atrasada).length],['Cumplimiento %',ok.length?Math.round(ent.length/ok.length*100):0],['Atendidas a tiempo (≤7 días)',ent.filter(s=>(durS(s)??99)<=7).length],['Desaprobados',ok.filter(s=>s.res==='DESAPROBADO').length]];
+  const n=new Date(),p=x=>String(x).padStart(2,'0');bajarArchivo(libroXlsx([{nombre:'Resumen',filas:R,anchos:[34,18]},{nombre:'Solicitudes',filas:F,anchos:[17,28,11,32,8,28,13,30,12,14,14,14,13,13,28,17,34]}]),`Cumplimiento_Autorizaciones_${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}.xlsx`)}
 /* ===== v37: fotos — foto del trabajador en el servidor + apartado para buscar y descargar fotos ===== */
 const ftQ=()=>store.get('fsbc_ftq',[]);let _envFt=false;
 function subirFotoTrab(d,url){const q=ftQ().filter(x=>x.dni!==d);q.push({dni:d,nombre:(W[d]||{}).n||'',foto:url});try{store.set('fsbc_ftq',q)}catch(e){}enviarFotosTrab()}
@@ -1030,10 +1195,10 @@ async function fotoFondoBlanco(file){const img=await cargarImg(URL.createObjectU
 let CN={d:'',sel:[],edF:false};
 function cnEstado(I,k){const it=I[k]||I[CARNE_AK[k]];if(!it)return {cl:'sin',tx:'Sin registro en la base',ok:false};const s=autEstado(it);const ok=['vig','porv','li'].includes(s);
   return {cl:ok?'ok':'no',tx:ok?(it.v?'Vigente hasta '+fDMY(it.v):'Vigente · licencia interna'):AUT_ST[s][0]+(it.v?' ('+fDMY(it.v)+')':''),ok,it}}
-async function generarCarne(d){const w=W[d];if(!w)return;const I=autIndex()[d]||{};const pn=partirNombre(w.n);
+async function generarCarne(d,ctx){ctx=ctx||{};const w=W[d];if(!w)return;const I=autIndex()[d]||{};const pn=partirNombre(w.n);
   CARNE_FOTO=await fotoTrab(d);
-  CN={d,sel:CARNE_T.filter(([k])=>cnEstado(I,k).ok).map(([k])=>k),edF:false};
-  abrirHoja(`<div class="hoja-cab"><h2>🪪 Carné de autorización</h2><p>${esc(tit(w.n))} · DNI ${w.d}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
+  CN={d,ctx,sel:CARNE_T.filter(([k])=>cnEstado(I,k).ok).map(([k])=>k),edF:false};if(ctx.tipo&&cnEstado(I,ctx.tipo).ok&&!CN.sel.includes(ctx.tipo))CN.sel.push(ctx.tipo);
+  abrirHoja(`<div class="hoja-cab"><h2>🪪 ${ctx.dup?'Duplicado de carné':'Carné de autorización'}</h2><p>${esc(tit(w.n))} · DNI ${w.d}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
    <div class="cn-paso"><b>1</b>¿Qué autoriza el carné?</div><p class="nota-f">Toca para marcar o desmarcar. Al lado ves cómo figura en la base.</p>
    <div class="cn-ops" id="cn-ops">${CARNE_T.map(([k,nm])=>{const e=cnEstado(I,k);return `<button type="button" class="cn-op ${CN.sel.includes(k)?'on':''}" data-k="${k}"><span class="ck"></span><span class="tx"><b>${esc(nm)}</b><small class="${e.cl}">${esc(e.tx)}</small></span></button>`}).join('')}</div>
    <div id="cn-aviso"></div>
@@ -1049,7 +1214,7 @@ async function generarCarne(d){const w=W[d];if(!w)return;const I=autIndex()[d]||
    <p class="err" id="cn-err"></p><button class="btn pri ancho" style="margin-top:10px" onclick="imprimirCarne('${d}')">🖨 Generar carné (imprimir / PDF)</button>
    <p class="nota-f" style="text-align:center">Queda registrado quién lo generó. Funciona sin señal.</p></div>`);
   cnFechas();cnAviso();
-  $('#cn-ops').addEventListener('click',e=>{const b=e.target.closest('.cn-op');if(!b)return;const k=b.dataset.k;b.classList.toggle('on');CN.sel=b.classList.contains('on')?[...CN.sel,k]:CN.sel.filter(x=>x!==k);CN.sel=CARNE_T.map(x=>x[0]).filter(x=>CN.sel.includes(x));cnFechas();cnAviso();cnPrevia()});
+  $('#cn-ops').addEventListener('click',e=>{const b=e.target.closest('.cn-op');if(!b)return;const k=b.dataset.k;if(!b.classList.contains('on')&&!cnEstado(autIndex()[d]||{},k).ok){cnBloqueo(d,k);return}b.classList.toggle('on');CN.sel=b.classList.contains('on')?[...CN.sel,k]:CN.sel.filter(x=>x!==k);CN.sel=CARNE_T.map(x=>x[0]).filter(x=>CN.sel.includes(x));cnFechas();cnAviso();cnPrevia()});
   ['cn-ap','cn-no','cn-oc','cn-zo'].forEach(i=>$('#'+i).addEventListener('input',cnPrevia));
   ['cn-em','cn-ca'].forEach(i=>$('#'+i).addEventListener('change',()=>{CN.edF=true;cnPrevia()}));
   $('#cn-f').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;$('#cn-prev').innerHTML='<span class="spin"></span>';$('#cn-fmsg').textContent='Procesando…';
@@ -1057,6 +1222,8 @@ async function generarCarne(d){const w=W[d];if(!w)return;const I=autIndex()[d]||
   setTimeout(cnPrevia,50)}
 function cnFechas(){if(CN.edF)return;const I=autIndex()[CN.d]||{};const L=CN.sel.map(k=>cnEstado(I,k)).filter(e=>e.ok).map(e=>e.it);
   const em=L.map(x=>x.e).filter(Boolean).sort().pop()||hoyISO(),ca=L.map(x=>x.v).filter(Boolean).sort()[0]||masAnio(em);$('#cn-em').value=em;$('#cn-ca').value=ca}
+function cnBloqueo(d,k){const I=autIndex()[d]||{};const it=I[k];const s=it?autEstado(it):'';const ya=solTodos().find(x=>x.d===d&&x.t===k&&abierta(x));const mo=!it||s==='no'?'NUEVA':'RENOVACIÓN';
+  $('#cn-aviso').innerHTML=`<div class="aut-falta">⛔ <b>${esc(solNomT(k))}</b> ${it?(s==='no'?'figura como "no tiene"':'está '+AUT_ST[s][0].toLowerCase()):'no está registrada'}. Para entregarla en el carné debe <b>aprobar la evaluación presencial</b>.${ya?`<br><small>Ya tiene solicitud: ${esc(solEstado(ya)[0])}</small>`:`<br><button class="mini b" style="margin-top:6px" onclick="solicitar('${d}','${k}','${mo}')">📝 Solicitar evaluación presencial</button>`}</div>`}
 function cnAviso(){const I=autIndex()[CN.d]||{};const no=CN.sel.filter(k=>!cnEstado(I,k).ok).map(k=>CARNE_T.find(x=>x[0]===k)[1]);
   $('#cn-aviso').innerHTML=no.length?`<div class="cn-av">⚠ <b>${esc(no.join(', '))}</b> no figura vigente en la base. Verifica que el trabajador esté autorizado antes de entregar el carné (puedes registrarlo con "Corregir").</div>`:''}
 function cnDatos(d){const w=W[d];return {d:w.d,ap:$('#cn-ap').value.trim().toUpperCase(),no:$('#cn-no').value.trim().toUpperCase(),zo:$('#cn-zo').value.trim().toUpperCase(),ar:$('#cn-ar').value.trim().toUpperCase(),oc:$('#cn-oc').value.trim().toUpperCase(),ing:fDMYc(w.i),em:fDMYc($('#cn-em').value),ca:fDMYc($('#cn-ca').value),tipos:CN.sel.slice(),foto:CARNE_FOTO}}
@@ -1065,7 +1232,7 @@ function cnPrevia(){const f=$('#cn-if'),c=$('#cn-vp');if(!f||!c)return;const sc=
   f.srcdoc=`<!doctype html><html><head><meta charset="utf-8"><style>${CARNE_CSS}body{margin:6px}.card{margin:0;outline:none}</style></head><body>${htmlCarne(cnDatos(CN.d))}</body></html>`}
 function htmlCarne(x){const im=CARNE_IMG;const ch=k=>x.tipos.includes(k)?'✔':'';
   return `<div class="card"><div class="iz">
-   <div class="cab"><div class="lg"><img src="${im.logo}"></div><div class="tt"><div>CIA BUENAVENTURA S.A.A.</div><div>AUTORIZACIÓN INTERNA</div></div></div>
+   <div class="cab"><div class="lg"><img src="${im.logo}"></div><div class="tt"><div>CIA BUENAVENTURA S.A.A.</div><div>AUTORIZACIÓN INTERNA${x.dup?' · DUPLICADO':''}</div></div></div>
    <div class="cu"><img class="wm" src="${im.marca}"><div class="ft">${x.foto?`<img src="${x.foto}">`:''}</div>
     <table class="dt">${[['Unidad','U.E.A. JULCANI',1],['Fecha Ingreso',x.ing],['Zona',x.zo,1],['DNI',x.d],['Nombres',x.no],['Apellidos',x.ap],['Área',x.ar,1],['Ocupación',x.oc,1],['Fecha Emisión',x.em],['Fecha Caducidad',x.ca]].map(([a,b,bo])=>`<tr><th>${a}</th><td>:</td><td class="${bo?'b':''}">${esc(b||'')}</td></tr>`).join('')}</table>
     <div class="fir"><div><img src="${im.f1}"><span>Jefe de Obra</span></div><div><img src="${im.f2}"><span>Jefe de Seguridad</span></div></div></div>
@@ -1092,11 +1259,11 @@ const CARNE_CSS=`@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}body
 function imprimirCarne(d){const w=W[d];const tipos=CN.sel.slice();
   if(!tipos.length){$('#cn-err').textContent='Marca al menos una autorización (paso 1).';$('#cn-ops').scrollIntoView({behavior:'smooth'});return}
   if(!CARNE_FOTO&&!confirm('¿Generar sin foto?'))return;
-  const x=cnDatos(d);const I=autIndex()[d]||{};const sinV=tipos.filter(k=>!cnEstado(I,k).ok);
+  const x=cnDatos(d);x.dup=!!(CN.ctx&&CN.ctx.dup);const I=autIndex()[d]||{};const sinV=tipos.filter(k=>!cnEstado(I,k).ok);if(sinV.length){$('#cn-err').textContent='Desmarca las que no están vigentes: necesitan evaluación presencial.';return}
   const v=window.open('','_blank');if(!v){toast('Permite las ventanas emergentes para imprimir');return}
   v.document.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Carné ${esc(x.ap)} ${esc(x.no)}</title><style>${CARNE_CSS}</style></head><body><div class="bar"><button onclick="print()" style="font-size:16px;padding:10px 18px">🖨 Imprimir / Guardar PDF</button></div>${htmlCarne(x)}</body></html>`);v.document.close();
   setTimeout(()=>{try{v.focus();v.print()}catch(e){}},900);
-  registrar('Generó carné de autorización',`${w.d} | ${tipos.join(',')} | vence ${x.ca}${sinV.length?' | SIN VIGENCIA EN BASE: '+sinV.join(','):''}`);cerrarHoja();toast('Carné generado')}
+  registrar(x.dup?'Generó duplicado de carné':'Generó carné de autorización',`${w.d} | ${tipos.join(',')} | vence ${x.ca}`);if(CN.ctx&&CN.ctx.sol)solOp({op:'act',id:CN.ctx.sol,estado:'ENTREGADO',nota:x.dup?'Duplicado entregado':'Carné entregado'});cerrarHoja();toast('Carné generado')}
 /* ===== v28: reportes de campo (Seguridad reporta actos a SBC · Psicología arma su reporte de WhatsApp) ===== */
 const REP_ACTOS=[...new Set(TIPO_C.map(x=>x[1]))];
 const REP_TEMAS=['el cuidado de manos','la exposición a la línea de fuego','el uso correcto del EPP','el orden y limpieza','el desatado de rocas','los 3 puntos de apoyo','el bloqueo y etiquetado','el IPERC continuo'];
@@ -1232,11 +1399,11 @@ function pintarAut(){if(!DATA)return;
   $('#aut-lista').innerHTML=L.slice(0,limAut).map(o=>filaPersona(o.w,(AF.est==='falta'?o.fa.map(f=>[autFaltaTxt(f),'r']):[]).concat(o.its.length?o.its.map(it=>{const s=autEstado(it);return [`${AUT_C[it.t]||autNom(it.t)}: ${AUT_ST[s][0]}${it.src==='campo'?' ✅':''}`,AUT_ST[s][1]]}):[[AF.tipo?'Sin '+(AUT_C[AF.tipo]||'').toLowerCase():'Sin autorizaciones registradas','']]))).join('')+(L.length>limAut?`<button class="mas" onclick="limAut+=60;pintarAut()">Ver ${Math.min(60,L.length-limAut)} más</button>`:'')||'<div class="vacio">Nadie con estos filtros.</div>'}
 // ficha
 function panelAut(w){const L=autDe(w.d);
-  const FA=autFaltas(w);return `<div class="panel" id="aut-p-${w.d}"><h3>Autorizaciones</h3>${FA.length?`<div class="aut-falta">⚠ Su cargo (${esc(tit(w.c||''))}) exige:<br>${FA.map(f=>`<b>${esc(AUT_C[f.t]||autNom(f.t))}</b> — ${f.m}`).join('<br>')}<br><small>No debe realizar esa tarea hasta regularizar.</small></div>`:''}${L.length?L.map(it=>{const s=autEstado(it);return `<div class="aut-it"><div class="tp"><b>${esc(autNom(it.t))}</b><span class="chip ${AUT_ST[s][1]}">${AUT_ST[s][0]}</span></div>
+  const FA=autFaltas(w);return `<div class="panel" id="aut-p-${w.d}"><h3>Autorizaciones</h3>${solFicha(w)}${FA.length?`<div class="aut-falta">⚠ Su cargo (${esc(tit(w.c||''))}) exige:<br>${FA.map(f=>`<b>${esc(AUT_C[f.t]||autNom(f.t))}</b> — ${f.m}`).join('<br>')}<br><small>No debe realizar esa tarea hasta regularizar.</small></div>`:''}${L.length?L.map(it=>{const s=autEstado(it);return `<div class="aut-it"><div class="tp"><b>${esc(autNom(it.t))}</b><span class="chip ${AUT_ST[s][1]}">${AUT_ST[s][0]}</span></div>
      <div class="dt">${it.no?'Verificado en campo: no tiene esta autorización':`Emisión ${fDMY(it.e)} · Vence ${fDMY(it.v)}${it.num?' · N.° '+esc(it.num):''}`}</div>
      <div class="src">${it.src==='base'?(it.s?'📄 Según base Administración':'📄 Según base SIG')+(it.x?` · <b style="color:var(--ambar-t)">${it.s==='tram'?'⏳ '+esc(it.x):'⚠ Revisar en campo: '+esc(it.x)}</b>`:''):`✅ Verificado en campo por ${esc(tit(it.u||''))} · ${esc(it.f||'')}${it.pend?' <b style="color:var(--ambar-t)">⏳ por enviar</b>':''}${it.base?` · antes en base: vence ${fDMY(it.base.v)}`:''}`}${it.nota?`<br><i>${esc(it.nota)}</i>`:''}</div>
      <div class="acc">${it.foto?`<button class="mini b" onclick="verFotoAut('${it.id}')">📷 Ver carné</button>`:''}${autHist(w.d,it.t).length?`<button class="mini" onclick="verHistAut('${w.d}','${it.t}')">🕘 Historial (${autHist(w.d,it.t).length})</button>`:''}<button class="mini" onclick="formAut('${w.d}','${it.t}')">Corregir</button>${ADMIN&&it.src==='campo'&&!it.pend?`<button class="mini r" onclick="anularAut('${it.id}','${w.d}')">Anular</button>`:''}</div></div>`}).join(''):'<p>Sin autorizaciones registradas en la base SIG.</p>'}
-     <button class="btn ancho" style="margin-top:10px;background:#EEF4FF;color:#0B4FB8" onclick="formAut('${w.d}','')">＋ Agregar o verificar autorización en campo</button><button class="btn ancho" style="margin-top:8px;background:#002060;color:#fff" onclick="generarCarne('${w.d}')">🪪 Generar carné de autorización</button><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="verFotos('${w.d}')">📷 Ver y descargar fotos</button></div>`}
+     <button class="btn ancho" style="margin-top:10px;background:#EEF4FF;color:#0B4FB8" onclick="formAut('${w.d}','')">✔ Registrar autorización <small style="font-weight:500">(paso 1)</small></button><p class="nota-f" style="text-align:center;margin:4px 0 0">Primero registra lo que verificaste en campo; luego genera el carné.</p><button class="btn ancho" style="margin-top:8px;background:#FDECEC;color:#B42318;border:1.5px solid #F3B4B4" onclick="solicitar('${w.d}')">📝 Solicitar duplicado o evaluación</button><button class="btn ancho" style="margin-top:8px;background:#002060;color:#fff" onclick="generarCarne('${w.d}')">🪪 Generar carné de autorización</button><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="verFotos('${w.d}')">📷 Ver y descargar fotos</button></div>`}
 // historial: todas las correcciones de campo (también las anuladas y las por enviar), de la más antigua a la más reciente
 function autHist(d,t){return [...((DATA&&DATA.AUTC)||[]).filter(x=>x.d===d&&x.t===t),...store.get('fsbc_autq',[]).filter(x=>x.dni===d&&x.tipo===t).map(x=>({id:x.id,d,t,ac:x.accion,e:x.emision,v:x.venc,num:x.num,nota:x.nota,u:USER&&USER.nombre,f:'por enviar',pend:1,fotoLocal:x.foto}))]}
 function verHistAut(d,t){const w=W[d];const b=((DATA&&DATA.AUT)||[]).find(x=>x.d===d&&x.t===t);const H=autHist(d,t);
@@ -1263,7 +1430,7 @@ function guardarAut(d){const ac=$('#fa-ac .on').dataset.v;const t=$('#fa-t').val
   const it={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),dni:d,nombre:W[d].n,tipo:t,accion:ac,emision:ac==='notiene'?'':e,venc:ac==='notiene'?'':v,num:ac==='notiene'?'':n,nota:($('#fa-nota').value||'').trim(),foto:ac==='notiene'?'':FOTO_AUT};
   const q=store.get('fsbc_autq',[]);q.push(it);try{store.set('fsbc_autq',q)}catch(x){}
   if(store.get('fsbc_autq',[]).length!==q.length){it.foto='';q[q.length-1]=it;store.set('fsbc_autq',q);toast('Foto muy pesada para guardar sin señal: se guardó sin foto')}
-  AUT_IDX=null;cerrarHoja();toast(navigator.onLine?'Verificación guardada':'Guardada en el equipo: se enviará cuando haya señal');{const p=$('#aut-p-'+d);if(p)p.outerHTML=panelAut(W[d]);else abrirFicha(d)}enviarAut()}
+  AUT_IDX=null;cerrarHoja();toast(navigator.onLine?'Verificación guardada':'Guardada en el equipo: se enviará cuando haya señal');{const p=$('#aut-p-'+d);if(p)p.outerHTML=panelAut(W[d]);else abrirFicha(d)}enviarAut();setTimeout(()=>sigPaso(d,t,ac,v),350)}
 let _envAut=false;
 async function enviarAut(){if(_envAut||!TOKEN||!navigator.onLine)return;let q=store.get('fsbc_autq',[]);if(!q.length)return;_envAut=true;let n=0;try{
   for(const it of [...q]){const r=await api({a:'autCorr',...it},60000);if(r&&r.ok){n++;q=store.get('fsbc_autq',[]).filter(x=>x.id!==it.id);store.set('fsbc_autq',q);if(r.aut){DATA_RAW.AUTC=r.aut;if(DATA)DATA.AUTC=r.aut;guardarCache()}}else break}
@@ -1558,6 +1725,8 @@ function pintarTab(){
 function segT(id,key){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$(id).querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));TF[key]=key==='per'?+b.dataset.v:b.dataset.v;pintarTab()})}
 segT('#t-per','per');segT('#t-mina','mina');
 
+
+['cm-per','cm-gd'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;e.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));CMF[id==='cm-per'?'per':'gd']=b.dataset.v;pintarCum()})});
 /* ---------- buscar ---------- */
 let modoB='p';
 let LABORES={};
@@ -1804,6 +1973,7 @@ async function enviarPendientes(){
   if(!TOKEN||!navigator.onLine)return;
   try{enviarAut()}catch(e){}
   try{enviarRep()}catch(e){}
+  try{enviarSol()}catch(e){}
   try{enviarFotosTrab()}catch(e){}
   const q=store.get('fsbc_log',[]);if(q.length){const r=await api({a:'log',items:q});if(r.ok)store.set('fsbc_log',[])}
   const c=store.get('fsbc_q',[]);if(c.length&&ADMIN){for(const x of c){const r=await api(x);if(r.ok)CONF=r.conf}store.set('fsbc_q',[]);guardarCache()}
@@ -1870,7 +2040,7 @@ $('#f-cambio').addEventListener('submit',async e=>{
 const pila=n=>{const t=(n||'').split(' ');return tit(t[2]||t[0]||'')};
 const trato=c=>{const u=norm(c);return /INGENIER/.test(u)?'Ing. ':/PSICOLOG/.test(u)?'Ps. ':''};
 function aplicarUsuario(){
-  ADMIN=USER&&USER.rol==='admin'&&!VISTA_SEG;document.body.classList.toggle('es-admin',!!ADMIN);
+  ADMIN=USER&&USER.rol==='admin'&&!VISTA_SEG;document.body.classList.toggle('es-admin',!!ADMIN);document.body.classList.toggle('es-jefe',ESJEFE());
   const bv=$('#banda-vista');if(bv)bv.hidden=!VISTA_SEG;
   $('#yo-ini').textContent=USER?ini(USER.nombre):'··';$('#yo-ini2').textContent=$('#yo-ini').textContent;$('#yo-n2').textContent=USER?pila(USER.nombre):'Mi cuenta';
   $('#saludo').textContent=USER?`Hola, ${trato(USER.cargo)}${pila(USER.nombre)}`:'¿A quién buscar hoy?';
