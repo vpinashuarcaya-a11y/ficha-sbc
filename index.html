@@ -1438,8 +1438,8 @@ function formAut(d,t){const w=W[d];FOTO_AUT='';const I=autIndex()[d]||{};
     $('#fa-ac').querySelectorAll('.cs').forEach(x=>x.hidden=admin);if(admin&&['perdio','vencida'].includes(op)){$('#fa-ac').querySelectorAll('button').forEach(x=>x.classList.remove('on'))}
     const op2=chipsVal('fa-ac');const nom=k=>esc(solNomT(k));const lista=L=>L.map(nom).join(', ');
     const ya=K.filter(k=>solTodos().some(x=>x.d===d&&x.t===k&&abierta(x)));const est=k=>{const it=I[k];return it?autEstado(it):''};
-    let h='';btn.hidden=!(op2&&K.length);
-    if(!K.length&&op2){h='<p class="nota-f" style="margin-top:8px">Marca al menos una autorización en el paso 1.</p>'}
+    let h='';btn.hidden=!op2;
+    if(!K.length&&op2){h='<div class="cn-av" style="margin-top:10px">☝ Marca en el paso 1 la(s) autorización(es).</div>';btn.textContent={tiene:'💾 Guardar verificación',perdio:'📝 Solicitar duplicado',vencida:'📝 Solicitar evaluación presencial',notiene:'📝 Registrar y solicitar evaluación'}[op2]}
     else if(op2==='tiene'){h=`<div class="cn-paso"><b>3</b>Datos del carné${K.length>1?` <small style="font-weight:500;color:var(--gris)">(${K.length} autorizaciones)</small>`:''}</div><div class="cn-datos"><div class="cn-c"><label>Fecha de emisión</label><input type="date" id="fa-e"></div><div class="cn-c"><label>Fecha de vencimiento</label><input type="date" id="fa-v"></div></div>
        <label class="cn-lb">N.° de carné / código</label><input id="fa-n" class="cv-in" placeholder="Ej. 182">
        <label class="cn-lb">Foto del carné (evidencia)</label><label class="foto-btn"><input type="file" accept="image/*" capture="environment" id="fa-f" hidden>📷 Tomar foto</label><img id="fa-prev" class="foto-prev" hidden>
@@ -1449,10 +1449,10 @@ function formAut(d,t){const w=W[d];FOTO_AUT='';const I=autIndex()[d]||{};
       if(ya.length)h+=`<div class="cn-av" style="margin-top:10px">Ya tienen solicitud abierta (no se repite): <b>${lista(ya)}</b>. <button class="mini b" onclick="verSolicitudes()">Ver</button></div>`;
       if(op2==='perdio'){const noV=okK.filter(k=>!['vig','porv','li'].includes(est(k)));
         h+=`<div class="cn-paso"><b>3</b>Solicitar duplicado</div>${noV.length?`<div class="aut-falta">No figura vigente en la base: <b>${lista(noV)}</b>. Desmárcala o elige "⏰ Está vencida": necesita evaluación presencial.</div>`:`<div class="cn-av">Se solicita <b>duplicado</b> de: ${lista(okK)}. Aparece como IMPORTANTE en Inicio.</div>`}<label class="cn-lb">Nota (opcional)</label><input id="fa-nota" class="cv-in" placeholder="Ej. lo perdió en la bocamina">`;
-        btn.textContent='📝 Solicitar duplicado';btn.hidden=!okK.length||noV.length>0}
+        btn.textContent='📝 Solicitar duplicado'+(okK.length>1?' ('+okK.length+')':'')}
       else{h+=`<div class="cn-paso"><b>3</b>Solicitar evaluación presencial</div><div class="aut-falta">⛔ No debe realizar: <b>${lista(okK.length?okK:K)}</b>, hasta aprobar la evaluación presencial.</div>
          <label class="cn-lb">Fecha programada de la evaluación (opcional)</label><input type="date" id="fa-prog" class="cv-in"><label class="cn-lb">Nota (opcional)</label><input id="fa-nota" class="cv-in" placeholder="Ej. evaluar al regreso de su guardia">`;
-        btn.textContent=(op2==='notiene'?'📝 Registrar y solicitar evaluación':'📝 Solicitar evaluación presencial')+(okK.length>1?' ('+okK.length+')':'');btn.hidden=!okK.length}}
+        btn.textContent=(op2==='notiene'?'📝 Registrar y solicitar evaluación':'📝 Solicitar evaluación presencial')+(okK.length>1?' ('+okK.length+')':'')}}
     $('#fa-p3').innerHTML=h;
     const ff=$('#fa-f');if(ff)ff.addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;FOTO_AUT=await comprimir(f);$('#fa-prev').src=FOTO_AUT;$('#fa-prev').hidden=!FOTO_AUT})};
   $('#fa-t').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;b.classList.toggle('on');pinta()});
@@ -1471,7 +1471,8 @@ function guardarAut(d){const op=chipsVal('fa-ac');const K=faSel();const nota=($(
     K.forEach((t,i)=>reg(t,I[t]?'corregir':'agregar',e,v,n,i===0?FOTO_AUT:''));fin(navigator.onLine?'Verificación guardada':'Guardada: se enviará cuando haya señal');
     const KC=K.filter(k=>CARNE_T.some(x=>x[0]===k));if(KC.length)setTimeout(()=>sigPaso(d,KC,'agregar',v),350);return}
   if(admin){K.forEach(t=>reg(t,'notiene','','','',''));fin('Registrado: no tiene');return}
-  const okK=K.filter(k=>!solTodos().some(x=>x.d===d&&x.t===k&&abierta(x)));if(!okK.length){$('#fa-err').textContent='Todas ya tienen solicitud abierta.';return}
+  const okK=K.filter(k=>!solTodos().some(x=>x.d===d&&x.t===k&&abierta(x)));if(!okK.length){$('#fa-err').textContent='Ya tiene solicitud abierta de lo que marcaste: revísala en Inicio → IMPORTANTE.';return}
+  if(op==='perdio'){const noV=okK.filter(k=>{const it=I[k];return !it||!['vig','porv','li'].includes(autEstado(it))});if(noV.length){$('#fa-err').textContent='No se puede pedir duplicado de '+noV.map(solNomT).join(', ')+': no figura vigente en la base. Desmárcala o elige "⏰ Está vencida" (necesita evaluación presencial).';return}}
   const nid=()=>'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   if(op==='perdio'){okK.forEach(t=>solOp({op:'nueva',id:nid(),dni:d,nombre:W[d].n,tipo:t,motivo:'DUPLICADO',nota}));fin(`Duplicado solicitado (${okK.length}): aparece como IMPORTANTE en Inicio`);return}
   const prog=$('#fa-prog').value;
