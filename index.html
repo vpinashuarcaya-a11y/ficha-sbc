@@ -927,6 +927,7 @@ function autChips(w){const L=autDe(w.d);if(!L.length)return [['Sin autorizacione
 
 
 
+const PLAZO_SOL=3; // días para atender una solicitud; más de esto = atrasada (rojo)
 /* ===== v38: solicitudes de autorización (duplicado / evaluación presencial) + avisos IMPORTANTE + Cumplimiento ===== */
 const ESJEFE=()=>!!(ADMIN||(!VISTA_SEG&&USER&&/^\s*JEFE DE SEGURIDAD/i.test(USER.cargo||'')));
 const SOL_ABIERTOS=['PENDIENTE','APROBADO','DESAPROBADO'];
@@ -938,7 +939,7 @@ function solTodos(){const M=new Map();((DATA&&DATA.SOL)||[]).forEach(s=>M.set(s.
   return [...M.values()]}
 const abierta=s=>SOL_ABIERTOS.includes(s.es);
 const diasDe=f=>{const d=pf(f);return d?Math.max(0,Math.floor((HOY-d)/864e5)):0};
-const atrasada=s=>abierta(s)&&s.f!=='por enviar'&&diasDe(s.f)>7;
+const atrasada=s=>abierta(s)&&s.f!=='por enviar'&&diasDe(s.f)>PLAZO_SOL;
 function solEstado(s){if(s.es==='PENDIENTE')return s.mo==='DUPLICADO'?['Duplicado por entregar','a']:s.prog?['Evaluación programada '+fDMY(s.prog),'a']:['Pendiente de evaluación','a'];
   return {APROBADO:['Aprobado · falta entregar carné','v'],DESAPROBADO:['Desaprobado · reprogramar','r'],ENTREGADO:['Carné entregado','v'],ANULADA:['Anulada','']}[s.es]||[s.es,'']}
 function solOp(o){const q=solQ();q.push(o);store.set('fsbc_solq',q);refrescarSol();enviarSol()}
@@ -1039,7 +1040,7 @@ const durS=s=>{const a=pf(s.f),b=pf(s.fa);return a&&b?Math.max(0,Math.round((b-a
 function pintarCum(){if(!DATA||!$('#cm-body'))return;if(!ESJEFE()){$('#cm-body').innerHTML='<div class="vacio">Solo para Psicología y el Jefe de Seguridad.</div>';return}
   const sel=$('#cm-tipo');if(!sel.options.length){sel.innerHTML='<option value="">Todas las autorizaciones</option>'+CARNE_T.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('');sel.onchange=()=>{CMF.tipo=sel.value;pintarCum()}}
   const L=cumDatos().filter(s=>s.es!=='ANULADA');const ent=L.filter(s=>s.es==='ENTREGADO'),ab=L.filter(abierta),tard=ab.filter(atrasada);
-  const atiempo=ent.filter(s=>(durS(s)??99)<=7).length;const prom=ent.length?Math.round(ent.reduce((a,s)=>a+(durS(s)||0),0)/ent.length*10)/10:0;const pct=L.length?Math.round(ent.length/L.length*100):0;
+  const atiempo=ent.filter(s=>(durS(s)??99)<=PLAZO_SOL).length;const prom=ent.length?Math.round(ent.reduce((a,s)=>a+(durS(s)||0),0)/ent.length*10)/10:0;const pct=L.length?Math.round(ent.length/L.length*100):0;
   const kpi=(n,t,c)=>`<div class="kpi"><div class="n" style="${c?'color:'+c:''}">${n}</div><div class="t">${t}</div></div>`;
   const tabla=(enc,filas)=>filas.length?`<div class="cm-tw"><table class="cm-t"><tr>${enc.map(x=>`<th>${x}</th>`).join('')}</tr>${filas.map(r=>`<tr>${r.map((x,i)=>`<td${i?' class="n"':''}>${x}</td>`).join('')}</tr>`).join('')}</table></div>`:'<p class="nota-f">Sin datos en este periodo.</p>';
   const grupo=(fk,lab)=>{const G={};L.forEach(s=>{const k=fk(s);if(!k)return;(G[k]=G[k]||[]).push(s)});return Object.entries(G).sort((a,b)=>b[1].length-a[1].length).map(([k,v])=>[lab(k),v.length,v.filter(s=>s.es==='ENTREGADO').length,v.filter(s=>s.es==='DESAPROBADO').length,v.filter(abierta).length,v.filter(atrasada).length])};
@@ -1048,8 +1049,8 @@ function pintarCum(){if(!DATA||!$('#cm-body'))return;if(!ESJEFE()){$('#cm-body')
   const evs=L.filter(s=>s.res);const ap=evs.filter(s=>s.res==='APROBADO').length,de=evs.filter(s=>s.res==='DESAPROBADO').length;
   const dupA={};solTodos().filter(s=>s.mo==='DUPLICADO'&&s.es!=='ANULADA'&&(pf(s.f)||HOY).getFullYear()===HOY.getFullYear()).forEach(s=>dupA[s.d]=(dupA[s.d]||0)+1);const dup2=Object.entries(dupA).filter(([,n])=>n>=2);
   const I=autIndex(),S=solTodos();const sinRen=[];Object.values(W).filter(w=>w.e==='ACTIVO').forEach(w=>CARNE_T.forEach(([k])=>{const it=(I[w.d]||{})[k];if(it&&autEstado(it)==='porv'&&!S.some(s=>s.d===w.d&&s.t===k&&abierta(s)))sinRen.push([w,k,it])}));
-  $('#cm-body').innerHTML=`<div class="kpis">${kpi(L.length,'Solicitudes recibidas')}${kpi(ent.length,'Atendidas (carné entregado)','#137A3A')}${kpi(ab.length,'Pendientes','#8A5A00')}${kpi(pct+'%','Cumplimiento',pct>=80?'#137A3A':pct>=50?'#8A5A00':'#B42318')}${kpi(atiempo+' / '+ent.length,'Atendidas a tiempo (≤7 días)')}${kpi(prom+' d','Tiempo promedio de atención')}</div>
-   ${tard.length?`<div class="panel" style="border:1.5px solid #F3B4B4"><h3 style="color:#B42318">⏰ Atrasadas (más de 7 días) · ${tard.length}</h3>${tard.map(itemSol).join('')}</div>`:''}
+  $('#cm-body').innerHTML=`<div class="kpis">${kpi(L.length,'Solicitudes recibidas')}${kpi(ent.length,'Atendidas (carné entregado)','#137A3A')}${kpi(ab.length,'Pendientes','#8A5A00')}${kpi(pct+'%','Cumplimiento',pct>=80?'#137A3A':pct>=50?'#8A5A00':'#B42318')}${kpi(atiempo+' / '+ent.length,'Atendidas a tiempo (≤3 días)')}${kpi(prom+' d','Tiempo promedio de atención')}</div>
+   ${tard.length?`<div class="panel" style="border:1.5px solid #F3B4B4"><h3 style="color:#B42318">⏰ Atrasadas (más de 3 días) · ${tard.length}</h3>${tard.map(itemSol).join('')}</div>`:''}
    <div class="dos"><div class="panel"><h3>Por autorización</h3>${tabla(['Autorización','Recib.','Entreg.','Desapr.','Pend.','Atras.'],porT)}</div>
    <div class="panel"><h3>Por motivo</h3>${tabla(['Motivo','Recib.','Entreg.','Desapr.','Pend.','Atras.'],porM)}</div>
    <div class="panel"><h3>Por persona que atendió</h3>${tabla(['Ingeniero / SIG','Cerradas','Promedio'],porP)}</div>
@@ -1060,10 +1061,10 @@ function pintarCum(){if(!DATA||!$('#cm-body'))return;if(!ESJEFE()){$('#cm-body')
     <p style="margin-top:8px"><b>${sinRen.length}</b> autorización(es) por vencer (30 días) sin solicitud de renovación</p>${sinRen.slice(0,15).map(([w,k,it])=>`<p class="nota-f">• ${esc(tit(w.n))} · ${esc(solNomT(k))} · vence ${fDMY(it.v)}</p>`).join('')}</div></div>
    <button class="btn pri ancho" style="margin:6px 16px 18px;width:calc(100% - 32px)" onclick="bajarCum()">⬇ Descargar cumplimiento (Excel)</button>`}
 function bajarCum(){const L=cumDatos();const per={mes:'Este mes',ant:'Mes anterior','90':'Últimos 90 días',todo:'Todo'}[CMF.per];
-  const F=[['Fecha solicitud','Solicitó','DNI','Trabajador','Guardia','Autorización','Motivo','Estado','Días abiertos / de atención','A tiempo (≤7 d)','Evaluación programada','Fecha evaluación','Resultado','Vigente hasta','Cerró','Fecha cierre','Nota']];
-  L.forEach(s=>{const w=W[s.d]||{};const dur=abierta(s)?diasDe(s.f):durS(s);F.push([s.f,s.u||'',s.d,s.n||w.n||'',guardiaDe(w),solNomT(s.t),s.mo||'',solEstado(s)[0].toUpperCase(),dur==null?'':dur,abierta(s)?(atrasada(s)?'NO (ATRASADA)':''):s.es==='ENTREGADO'?((dur??99)<=7?'SÍ':'NO'):'',s.prog?fDMY(s.prog):'',s.fe?fDMY(s.fe):'',s.res||'',s.vig?fDMY(s.vig):'',abierta(s)?'':(s.ua||''),abierta(s)?'':(s.fa||''),s.nota||''])});
+  const F=[['Fecha solicitud','Solicitó','DNI','Trabajador','Guardia','Autorización','Motivo','Estado','Días abiertos / de atención','A tiempo (≤3 d)','Evaluación programada','Fecha evaluación','Resultado','Vigente hasta','Cerró','Fecha cierre','Nota']];
+  L.forEach(s=>{const w=W[s.d]||{};const dur=abierta(s)?diasDe(s.f):durS(s);F.push([s.f,s.u||'',s.d,s.n||w.n||'',guardiaDe(w),solNomT(s.t),s.mo||'',solEstado(s)[0].toUpperCase(),dur==null?'':dur,abierta(s)?(atrasada(s)?'NO (ATRASADA)':''):s.es==='ENTREGADO'?((dur??99)<=PLAZO_SOL?'SÍ':'NO'):'',s.prog?fDMY(s.prog):'',s.fe?fDMY(s.fe):'',s.res||'',s.vig?fDMY(s.vig):'',abierta(s)?'':(s.ua||''),abierta(s)?'':(s.fa||''),s.nota||''])});
   const ok=L.filter(s=>s.es!=='ANULADA'),ent=ok.filter(s=>s.es==='ENTREGADO');
-  const R=[['Indicador','Valor'],['Periodo',per],['Solicitudes recibidas',ok.length],['Atendidas (carné entregado)',ent.length],['Pendientes',ok.filter(abierta).length],['Atrasadas',ok.filter(atrasada).length],['Cumplimiento %',ok.length?Math.round(ent.length/ok.length*100):0],['Atendidas a tiempo (≤7 días)',ent.filter(s=>(durS(s)??99)<=7).length],['Desaprobados',ok.filter(s=>s.res==='DESAPROBADO').length]];
+  const R=[['Indicador','Valor'],['Periodo',per],['Solicitudes recibidas',ok.length],['Atendidas (carné entregado)',ent.length],['Pendientes',ok.filter(abierta).length],['Atrasadas',ok.filter(atrasada).length],['Cumplimiento %',ok.length?Math.round(ent.length/ok.length*100):0],['Atendidas a tiempo (≤3 días)',ent.filter(s=>(durS(s)??99)<=PLAZO_SOL).length],['Desaprobados',ok.filter(s=>s.res==='DESAPROBADO').length]];
   const n=new Date(),p=x=>String(x).padStart(2,'0');bajarArchivo(libroXlsx([{nombre:'Resumen',filas:R,anchos:[34,18]},{nombre:'Solicitudes',filas:F,anchos:[17,28,11,32,8,28,13,30,12,14,14,14,13,13,28,17,34]}]),`Cumplimiento_Autorizaciones_${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}.xlsx`)}
 /* ===== v37: fotos — foto del trabajador en el servidor + apartado para buscar y descargar fotos ===== */
 const ftQ=()=>store.get('fsbc_ftq',[]);let _envFt=false;
