@@ -523,6 +523,8 @@ body.wide.vcum #v-ficha{display:none}body.wide #v-cum.on{grid-column:2 / 4}body.
 .sol-it{padding:10px 0;border-bottom:1px solid #E5ECF6;font-size:14.5px;line-height:1.45}.sol-it.tarde{background:#FFF6F5;margin:0 -8px;padding:10px 8px;border-radius:10px}.sol-it .tp{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.sol-it .src{color:var(--gris);font-size:13px;margin-top:2px}.sol-it .acc{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .cn-lb{display:block;font-size:13px;color:var(--gris);margin:12px 0 3px}.cm-tw{overflow-x:auto}.cm-t{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:8px}.cm-t th{text-align:left;font-size:12px;color:var(--gris);font-weight:700;padding:4px 6px;border-bottom:1.5px solid var(--linea)}.cm-t td{padding:5px 6px;border-bottom:1px solid #EEF2F8}.cm-t td.n{text-align:right;font-variant-numeric:tabular-nums}
 #toast,.toast{pointer-events:none}
+.fa-ops{display:flex;flex-direction:column;gap:8px}.fa-ops button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1.5px solid #DCE5F2;border-radius:14px;padding:11px 12px;font:inherit;cursor:pointer}.fa-ops button>span:first-child{font-size:20px}.fa-ops button span{display:flex;flex-direction:column}.fa-ops b{font-size:15px}.fa-ops small{font-size:13px;color:var(--gris)}.fa-ops button.on{border-color:#1070E8;background:#EEF4FF;box-shadow:0 0 0 2px #1070E833}.fa-ops button[hidden]{display:none}
+#fa-btn[hidden],.btn[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -1415,23 +1417,54 @@ function verHistAut(d,t){const w=W[d];const b=((DATA&&DATA.AUT)||[]).find(x=>x.d
   H.forEach((x,i)=>{const an=x.est==='ANULADO',ult=i===H.length-1;html+=li(++n,`${esc(tit(x.u||''))} · ${esc(x.f||'')}${x.pend?' · ⏳ por enviar':''}${an?' · <span style="color:var(--rojo)">ANULADA</span>':ult?' · <span style="color:var(--verde)">vigente en la app</span>':''}`,dat(x)+(x.nota?`<br><i>${esc(x.nota)}</i>`:'')+(x.foto||x.fotoLocal?`<br><button class="mini b" style="margin-top:6px" onclick="verFotoAut('${x.id}')">📷 Ver carné</button>`:''),an?'an':'')});
   abrirHoja(`<div class="hoja-cab"><h2>Historial · ${esc(autNom(t))}</h2><p>${esc(tit(w?w.n:''))} · DNI ${d}. Cada corrección queda registrada con quién la hizo; ninguna se borra.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">${html}</div>`)}
 let FOTO_AUT='';
-function formAut(d,t){const w=W[d];const it=t?(autIndex()[d]||{})[t]:null;FOTO_AUT='';
-  abrirHoja(`<div class="hoja-cab"><h2>${t?'Corregir':'Agregar'} autorización</h2><p>${esc(tit(w.n))} · DNI ${w.d}. Verifica el carné físico y toma foto. Funciona sin señal.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form aut-form">
-   <label>Autorización</label><select id="fa-t">${autTipos().map(x=>`<option value="${x.k}" ${x.k===t?'selected':''}>${esc(x.n)}</option>`).join('')}</select>
-   <label>Resultado de la verificación</label><div class="opciones" id="fa-ac"><button type="button" class="on" data-v="${t?'corregir':'agregar'}">Tiene autorización</button><button type="button" data-v="notiene">No tiene</button></div>
-   <div id="fa-tiene"><div class="dos-c"><div><label>Fecha de emisión</label><input type="date" id="fa-e" value="${it&&it.e||''}"></div><div><label>Fecha de vencimiento</label><input type="date" id="fa-v" value="${it&&it.v||''}"></div></div>
-   <label>N.° de carné / código</label><input id="fa-n" value="${esc(it&&it.num||'')}" placeholder="Ej. 182">
-   <label>Foto del carné</label><label class="foto-btn"><input type="file" accept="image/*" capture="environment" id="fa-f" hidden>📷 Tomar foto</label><img id="fa-prev" class="foto-prev" hidden></div>
-   <label>Nota (opcional)</label><input id="fa-nota" placeholder="Ej. carné físico vigente, falta registrar en SIG">
-   <p class="err" id="fa-err"></p><button class="btn pri ancho" onclick="guardarAut('${d}')">Guardar verificación</button></div>`);
-  $('#fa-ac').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#fa-ac').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));$('#fa-tiene').hidden=b.dataset.v==='notiene'});
-  $('#fa-f').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{const m=1000,sc=Math.min(1,m/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=img.width*sc;c.height=img.height*sc;c.getContext('2d').drawImage(img,0,0,c.width,c.height);FOTO_AUT=c.toDataURL('image/jpeg',0.6);$('#fa-prev').src=FOTO_AUT;$('#fa-prev').hidden=false};img.src=URL.createObjectURL(f)})}
-function guardarAut(d){const ac=$('#fa-ac .on').dataset.v;const t=$('#fa-t').value;const e=$('#fa-e')?$('#fa-e').value:'',v=$('#fa-v')?$('#fa-v').value:'',n=($('#fa-n')?$('#fa-n').value:'').trim();
-  if(ac!=='notiene'){if(!v){$('#fa-err').textContent='Pon la fecha de vencimiento del carné.';return}if(!FOTO_AUT&&!n){$('#fa-err').textContent='Toma foto del carné o anota su número, como evidencia.';return}}
-  const it={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),dni:d,nombre:W[d].n,tipo:t,accion:ac,emision:ac==='notiene'?'':e,venc:ac==='notiene'?'':v,num:ac==='notiene'?'':n,nota:($('#fa-nota').value||'').trim(),foto:ac==='notiene'?'':FOTO_AUT};
-  const q=store.get('fsbc_autq',[]);q.push(it);try{store.set('fsbc_autq',q)}catch(x){}
-  if(store.get('fsbc_autq',[]).length!==q.length){it.foto='';q[q.length-1]=it;store.set('fsbc_autq',q);toast('Foto muy pesada para guardar sin señal: se guardó sin foto')}
-  AUT_IDX=null;cerrarHoja();toast(navigator.onLine?'Verificación guardada':'Guardada en el equipo: se enviará cuando haya señal');{const p=$('#aut-p-'+d);if(p)p.outerHTML=panelAut(W[d]);else abrirFicha(d)}enviarAut();setTimeout(()=>sigPaso(d,t,ac,v),350)}
+// Registrar autorización: formulario paso a paso según lo que se encontró en campo
+function formAut(d,t){const w=W[d];FOTO_AUT='';
+  abrirHoja(`<div class="hoja-cab"><h2>✔ Registrar autorización</h2><p>${esc(tit(w.n))} · DNI ${w.d}. Sigue los pasos según lo que encontraste en campo. Funciona sin señal.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
+   <div class="cn-paso"><b>1</b>¿Qué autorización?</div><select id="fa-t" class="cv-in">${autTipos().map(x=>`<option value="${x.k}" ${x.k===t?'selected':''}>${esc(x.n)}</option>`).join('')}</select><p class="nota-f" id="fa-base"></p>
+   <div class="cn-paso"><b>2</b>¿Qué encontraste en campo?</div>
+   <div class="fa-ops" id="fa-ac">
+    <button type="button" data-v="tiene"><span>✅</span><span><b>Tiene su carné vigente</b><small>Lo muestra y está al día</small></span></button>
+    <button type="button" data-v="perdio" class="cs"><span>🔎</span><span><b>Lo perdió (estaba vigente)</b><small>Se solicita duplicado</small></span></button>
+    <button type="button" data-v="vencida" class="cs"><span>⏰</span><span><b>Está vencida</b><small>Necesita evaluación presencial</small></span></button>
+    <button type="button" data-v="notiene"><span>❌</span><span><b>No tiene esta autorización</b><small>Necesita evaluación presencial</small></span></button>
+   </div>
+   <div id="fa-p3"></div>
+   <p class="err" id="fa-err"></p><button class="btn pri ancho" id="fa-btn" style="margin-top:12px" hidden onclick="guardarAut('${d}')"></button></div>`);
+  const pinta=()=>{const k=$('#fa-t').value,op=chipsVal('fa-ac');const it=(autIndex()[d]||{})[k];const s=it?autEstado(it):'';const enCarne=CARNE_T.some(x=>x[0]===k);
+    $('#fa-base').innerHTML=it?`En la base: <b>${AUT_ST[s][0]}</b>${it.v?' · vence '+fDMY(it.v):''}`:'Sin registro de esta autorización en la base.';
+    $('#fa-ac').querySelectorAll('.cs').forEach(x=>x.hidden=!enCarne);
+    const ya=solTodos().find(x=>x.d===d&&x.t===k&&abierta(x));const btn=$('#fa-btn');$('#fa-err').textContent='';
+    let h='';btn.hidden=!op;
+    if(op==='tiene'){h=`<div class="cn-paso"><b>3</b>Datos del carné</div><div class="cn-datos"><div class="cn-c"><label>Fecha de emisión</label><input type="date" id="fa-e" value="${it&&it.e||''}"></div><div class="cn-c"><label>Fecha de vencimiento</label><input type="date" id="fa-v" value="${it&&it.v&&s!=='venc'?it.v:''}"></div></div>
+       <label class="cn-lb">N.° de carné / código</label><input id="fa-n" class="cv-in" value="${esc(it&&it.num||'')}" placeholder="Ej. 182">
+       <label class="cn-lb">Foto del carné (evidencia)</label><label class="foto-btn"><input type="file" accept="image/*" capture="environment" id="fa-f" hidden>📷 Tomar foto</label><img id="fa-prev" class="foto-prev" hidden>
+       <label class="cn-lb">Nota (opcional)</label><input id="fa-nota" class="cv-in" placeholder="Ej. carné físico vigente, falta registrar en SIG">`;btn.textContent='💾 Guardar verificación'}
+    else if(!enCarne&&op){h=`<div class="cn-av" style="margin-top:10px">La gestiona <b>Administración COPSEM</b>: queda registrado que no la tiene, para que lo vean.</div><label class="cn-lb">Nota (opcional)</label><input id="fa-nota" class="cv-in">`;btn.textContent='💾 Registrar "no tiene"'}
+    else if(ya&&op){h=`<div class="cn-av" style="margin-top:10px">Ya tiene una solicitud abierta de esta autorización: <b>${esc(solEstado(ya)[0])}</b>.<br><button class="mini b" style="margin-top:6px" onclick="verSolicitudes()">Ver solicitudes</button></div>`;btn.hidden=true}
+    else if(op==='perdio'){h=`<div class="cn-paso"><b>3</b>Solicitar duplicado</div>${['vig','porv','li'].includes(s)?`<div class="cn-av">Se crea la solicitud de <b>duplicado</b> y aparece como IMPORTANTE en Inicio para que le entreguen su carné.</div>`:`<div class="aut-falta">En la base <b>no figura vigente</b>. Si estaba vencida, elige "⏰ Está vencida": necesita evaluación presencial.</div>`}<label class="cn-lb">Nota (opcional)</label><input id="fa-nota" class="cv-in" placeholder="Ej. lo perdió en la bocamina">`;btn.textContent='📝 Solicitar duplicado';btn.hidden=!['vig','porv','li'].includes(s)}
+    else if(op==='vencida'||op==='notiene'){h=`<div class="cn-paso"><b>3</b>Solicitar evaluación presencial</div><div class="aut-falta">⛔ No debe realizar esta tarea hasta aprobar la evaluación presencial.</div>
+       <label class="cn-lb">Fecha programada de la evaluación (opcional)</label><input type="date" id="fa-prog" class="cv-in"><label class="cn-lb">Nota (opcional)</label><input id="fa-nota" class="cv-in" placeholder="Ej. evaluar al regreso de su guardia">`;btn.textContent=op==='notiene'?'📝 Registrar y solicitar evaluación':'📝 Solicitar evaluación presencial'}
+    $('#fa-p3').innerHTML=h;
+    const ff=$('#fa-f');if(ff)ff.addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;FOTO_AUT=await comprimir(f);$('#fa-prev').src=FOTO_AUT;$('#fa-prev').hidden=!FOTO_AUT})};
+  $('#fa-ac').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#fa-ac').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));pinta()});
+  $('#fa-t').addEventListener('change',()=>{$('#fa-ac').querySelectorAll('button').forEach(x=>x.classList.remove('on'));pinta()});pinta()}
+function guardarAut(d){const op=chipsVal('fa-ac');const t=$('#fa-t').value;const nota=($('#fa-nota')?$('#fa-nota').value:'').trim();const enCarne=CARNE_T.some(x=>x[0]===t);
+  if(!op){$('#fa-err').textContent='Marca qué encontraste en campo (paso 2).';return}
+  const reg=(ac,e,v,n,foto)=>{const it={id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),dni:d,nombre:W[d].n,tipo:t,accion:ac,emision:e,venc:v,num:n,nota,foto};
+    const q=store.get('fsbc_autq',[]);q.push(it);try{store.set('fsbc_autq',q)}catch(x){}
+    if(store.get('fsbc_autq',[]).length!==q.length){it.foto='';q[q.length-1]=it;store.set('fsbc_autq',q);toast('Foto muy pesada para guardar sin señal: se guardó sin foto')}AUT_IDX=null;enviarAut()};
+  const fin=msg=>{cerrarHoja();toast(msg);const p=$('#aut-p-'+d);if(p)p.outerHTML=panelAut(W[d]);else abrirFicha(d)};
+  if(op==='tiene'){const e=$('#fa-e').value,v=$('#fa-v').value,n=$('#fa-n').value.trim();
+    if(!v){$('#fa-err').textContent='Pon la fecha de vencimiento del carné.';return}if(v<hoyISO()){$('#fa-err').textContent='Esa fecha ya venció: elige "⏰ Está vencida".';return}
+    if(!FOTO_AUT&&!n){$('#fa-err').textContent='Toma foto del carné o anota su número, como evidencia.';return}
+    reg((autIndex()[d]||{})[t]?'corregir':'agregar',e,v,n,FOTO_AUT);fin(navigator.onLine?'Verificación guardada':'Guardada: se enviará cuando haya señal');
+    if(enCarne)setTimeout(()=>sigPaso(d,t,'agregar',v),350);return}
+  if(!enCarne){reg('notiene','','','','');fin('Registrado: no tiene');return}
+  const sid='s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  if(op==='perdio'){solOp({op:'nueva',id:sid,dni:d,nombre:W[d].n,tipo:t,motivo:'DUPLICADO',nota});fin('Duplicado solicitado: aparece como IMPORTANTE en Inicio');return}
+  if(op==='notiene')reg('notiene','','','','');
+  solOp({op:'nueva',id:sid,dni:d,nombre:W[d].n,tipo:t,motivo:op==='notiene'?'NUEVA':'RENOVACIÓN',nota,prog:$('#fa-prog').value});
+  fin('Evaluación presencial solicitada: aparece como IMPORTANTE en Inicio')}
 let _envAut=false;
 async function enviarAut(){if(_envAut||!TOKEN||!navigator.onLine)return;let q=store.get('fsbc_autq',[]);if(!q.length)return;_envAut=true;let n=0;try{
   for(const it of [...q]){const r=await api({a:'autCorr',...it},60000);if(r&&r.ok){n++;q=store.get('fsbc_autq',[]).filter(x=>x.id!==it.id);store.set('fsbc_autq',q);if(r.aut){DATA_RAW.AUTC=r.aut;if(DATA)DATA.AUTC=r.aut;guardarCache()}}else break}
