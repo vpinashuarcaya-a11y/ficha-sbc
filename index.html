@@ -526,6 +526,7 @@ body.wide.vcum #v-ficha{display:none}body.wide #v-cum.on{grid-column:2 / 4}body.
 .fa-ops{display:flex;flex-direction:column;gap:8px}.fa-ops button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1.5px solid #DCE5F2;border-radius:14px;padding:11px 12px;font:inherit;cursor:pointer}.fa-ops button>span:first-child{font-size:20px}.fa-ops button span{display:flex;flex-direction:column}.fa-ops b{font-size:15px}.fa-ops small{font-size:13px;color:var(--gris)}.fa-ops button.on{border-color:#1070E8;background:#EEF4FF;box-shadow:0 0 0 2px #1070E833}.fa-ops button[hidden]{display:none}
 #fa-btn[hidden],.btn[hidden]{display:none!important}
 .fa-ts{gap:6px}.fa-ts .cn-op{padding:9px 12px}
+.sol-t{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:4px 0;font-size:14px}
 </style>
 </head>
 <body>
@@ -955,27 +956,33 @@ function autoRenovar(){try{const hoy=hoyISO();if(store.get('fsbc_ren_dia','')===
   Object.values(W).filter(w=>w.e==='ACTIVO').forEach(w=>CARNE_T.forEach(([k])=>{const it=(I[w.d]||{})[k];if(!it||autEstado(it)!=='porv')return;const id=`ren-${w.d}-${k}-${it.v}`;
     if(S.some(s=>s.id===id||(s.d===w.d&&s.t===k&&abierta(s))))return;const q=solQ();q.push({op:'nueva',id,dni:w.d,nombre:w.n,tipo:k,motivo:'RENOVACIÓN',nota:'Creada automáticamente: vence el '+fDMY(it.v)});store.set('fsbc_solq',q)}));enviarSol()}catch(e){}}
 // aviso IMPORTANTE en Inicio (para todos)
-function pintarSolIni(){const e=$('#sol-ini');if(!e)return;autoRenovar();const L=solTodos().filter(abierta).sort((a,b)=>(atrasada(b)-atrasada(a))||diasDe(b.f)-diasDe(a.f));
-  if(!L.length){e.innerHTML='';return}const nt=L.filter(atrasada).length;
-  e.innerHTML=`<div class="sol-ini"><div class="sol-cab">⚠ IMPORTANTE · Autorizaciones <b>${L.length}</b>${nt?`<span class="sol-tarde">${nt} atrasada${nt>1?'s':''}</span>`:''}</div>
-   ${L.slice(0,4).map(s=>{const st=solEstado(s);return `<button class="sol-row" onclick="verSolicitudes()"><i class="dot ${atrasada(s)?'r':st[1]}"></i><span><b>${esc(tit(s.n||''))}</b><small>${esc(solNomT(s.t))} · ${esc(st[0])}${s.f!=='por enviar'?(diasDe(s.f)?' · hace '+diasDe(s.f)+' d':' · hoy'):''}</small></span></button>`}).join('')}
+const solGrupoK=s=>/^g[a-z0-9]+_/i.test(s.id)?s.id.split('_')[0]+'|'+s.d:s.id;
+function solGrupos(L){const M=new Map();L.forEach(s=>{const k=solGrupoK(s);if(!M.has(k))M.set(k,[]);M.get(k).push(s)});return [...M.entries()].map(([k,it])=>({k,it,d:it[0].d}))}
+const solDeGrupo=k=>solTodos().filter(s=>solGrupoK(s)===k);
+const listoCarne=s=>{if(s.es==='APROBADO')return true;if(s.es==='PENDIENTE'&&s.mo==='DUPLICADO'){const it=(autIndex()[s.d]||{})[s.t];return !!it&&['vig','porv','li'].includes(autEstado(it))}return false};
+function pintarSolIni(){const e=$('#sol-ini');if(!e)return;autoRenovar();const G=solGrupos(solTodos().filter(abierta)).map(g=>({...g,tarde:g.it.some(atrasada),dias:Math.max(...g.it.map(s=>diasDe(s.f)))})).sort((a,b)=>(b.tarde-a.tarde)||b.dias-a.dias);
+  if(!G.length){e.innerHTML='';return}const nt=G.filter(g=>g.tarde).length;
+  e.innerHTML=`<div class="sol-ini"><div class="sol-cab">⚠ IMPORTANTE · Autorizaciones <b>${G.length}</b>${nt?`<span class="sol-tarde">${nt} atrasada${nt>1?'s':''}</span>`:''}</div>
+   ${G.slice(0,4).map(g=>{const s=g.it[0],st=solEstado(s);return `<button class="sol-row" onclick="verSolicitudes()"><i class="dot ${g.tarde?'r':st[1]}"></i><span><b>${esc(tit(s.n||''))}</b><small>${g.it.map(x=>esc(solNomT(x.t))).join(', ')} · ${esc(st[0])}${s.f!=='por enviar'?(g.dias?' · hace '+g.dias+' d':' · hoy'):''}</small></span></button>`}).join('')}
    <button class="sol-ver" onclick="verSolicitudes()">Ver todas y atender →</button></div>`}
 let SOLF='abiertas';
 function verSolicitudes(){abrirHoja(`<div class="hoja-cab"><h2>⚠ Solicitudes de autorización</h2><p>Duplicados y evaluaciones presenciales. Las atienden el SIG o los ingenieros de Seguridad.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
   <button class="btn ancho rep-btn" onclick="solicitar()">📝 Nueva solicitud</button>
   <div class="seg" id="sol-f" style="margin:12px 0 4px"><button data-v="abiertas" class="${SOLF==='abiertas'?'on':''}">Abiertas</button><button data-v="cerradas" class="${SOLF==='cerradas'?'on':''}">Cerradas</button></div>
   <div id="sol-lista"></div></div>`);$('#sol-f').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;SOLF=b.dataset.v;$('#sol-f').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));pintarSolLista()});pintarSolLista()}
-function pintarSolLista(){const L=solTodos().filter(s=>SOLF==='abiertas'?abierta(s):!abierta(s)).sort((a,b)=>SOLF==='abiertas'?((atrasada(b)-atrasada(a))||diasDe(b.f)-diasDe(a.f)):(pf(b.fa)||0)-(pf(a.fa)||0)).slice(0,80);
-  $('#sol-lista').innerHTML=L.length?L.map(itemSol).join(''):`<p class="nota-f">${SOLF==='abiertas'?'No hay solicitudes abiertas. 👍':'Aún no hay solicitudes cerradas.'}</p>`}
-function itemSol(s){const st=solEstado(s),w=W[s.d]||{};const ac=[];
-  if(!s.pend){if(s.es==='PENDIENTE'&&s.mo==='DUPLICADO')ac.push(`<button class="mini b" onclick="genDesdeSol('${s.id}')">🪪 Generar duplicado</button>`);
-    if(s.es==='PENDIENTE'&&s.mo!=='DUPLICADO')ac.push(`<button class="mini" onclick="programarSol('${s.id}')">📅 ${s.prog?'Cambiar fecha':'Programar'}</button><button class="mini b" onclick="registrarEval('${s.id}')">✔ Registrar evaluación</button>`);
-    if(s.es==='APROBADO')ac.push(`<button class="mini b" onclick="genDesdeSol('${s.id}')">🪪 Generar carné</button>`);
-    if(s.es==='DESAPROBADO')ac.push(`<button class="mini" onclick="programarSol('${s.id}')">📅 Reprogramar</button>`);
-    if(ESJEFE()&&abierta(s))ac.push(`<button class="mini r" onclick="anularSol('${s.id}')">Anular</button>`)}
-  return `<div class="sol-it ${atrasada(s)?'tarde':''}"><div class="tp"><b><a href="javascript:void 0" onclick="cerrarHoja();abrirFicha('${s.d}')">${esc(tit(s.n||w.n||''))}</a></b><span class="chip ${atrasada(s)?'r':st[1]}">${esc(st[0])}</span></div>
-   <div class="dt"><b>${esc(solNomT(s.t))}</b> · ${esc((s.mo||'').toLowerCase())}${w.d?' · Gdia '+esc(guardiaDe(w)):''}${w.d?turnoTag(w):''}</div>
-   <div class="src">Solicitó ${esc(tit(s.u||''))} · ${esc(s.f)}${s.f!=='por enviar'&&abierta(s)&&diasDe(s.f)?' · hace '+diasDe(s.f)+' días':''}${atrasada(s)?' · <b style="color:var(--rojo)">⏰ atrasada</b>':''}${s.res?`<br>Evaluación: <b>${esc(s.res)}</b>${s.fe?' el '+fDMY(s.fe):''}${s.vig?' · vigente hasta '+fDMY(s.vig):''}`:''}${!abierta(s)&&s.ua?`<br>Cerró ${esc(tit(s.ua))} · ${esc(s.fa)}`:''}${s.nota?`<br><i>${esc(s.nota)}</i>`:''}${s.pend?' <b style="color:var(--ambar-t)">⏳ por enviar</b>':''}</div>
+function pintarSolLista(){const G=solGrupos(solTodos().filter(s=>SOLF==='abiertas'?abierta(s):!abierta(s))).map(g=>({...g,tarde:g.it.some(atrasada),dias:Math.max(...g.it.map(s=>diasDe(s.f)))}));
+  G.sort((a,b)=>SOLF==='abiertas'?((b.tarde-a.tarde)||b.dias-a.dias):(pf(b.it[0].fa)||0)-(pf(a.it[0].fa)||0));
+  $('#sol-lista').innerHTML=G.length?G.slice(0,80).map(g=>itemSol(g)).join(''):`<p class="nota-f">${SOLF==='abiertas'?'No hay solicitudes abiertas. 👍':'Aún no hay solicitudes cerradas.'}</p>`}
+function itemSol(g){if(!g.it)g={k:solGrupoK(g),it:[g],d:g.d};const s=g.it[0],w=W[s.d]||{};const ac=[];const tarde=g.it.some(atrasada);
+  const listos=g.it.filter(listoCarne),ev=g.it.filter(x=>x.es==='PENDIENTE'&&x.mo!=='DUPLICADO'),des=g.it.filter(x=>x.es==='DESAPROBADO'),pend=g.it.some(x=>x.pend);
+  if(!pend){if(listos.length)ac.push(`<button class="mini b" onclick="genDesdeSol('${g.k}')">🪪 Generar carné${g.it.some(x=>x.mo==='DUPLICADO')?' (duplicado)':''}</button>`);
+    if(ev.length)ac.push(`<button class="mini" onclick="programarSol('${g.k}')">📅 ${ev.some(x=>x.prog)?'Cambiar fecha':'Programar'}</button><button class="mini b" onclick="registrarEval('${g.k}')">✔ Registrar evaluación</button>`);
+    if(des.length)ac.push(`<button class="mini" onclick="programarSol('${g.k}')">📅 Reprogramar</button>`);
+    if(ESJEFE()&&g.it.some(abierta))ac.push(`<button class="mini r" onclick="anularSol('${g.k}')">Anular</button>`)}
+  const filas=g.it.map(x=>{const st=solEstado(x);return `<div class="sol-t"><b>${esc(solNomT(x.t))}</b><span class="chip ${atrasada(x)?'r':st[1]}">${esc(st[0])}</span></div>${x.res?`<div class="src" style="margin:-2px 0 4px">Evaluación: <b>${esc(x.res)}</b>${x.fe?' el '+fDMY(x.fe):''}${x.vig?' · vigente hasta '+fDMY(x.vig):''}</div>`:''}`}).join('');
+  return `<div class="sol-it ${tarde?'tarde':''}"><div class="tp"><b><a href="javascript:void 0" onclick="cerrarHoja();abrirFicha('${s.d}')">${esc(tit(s.n||w.n||''))}</a></b>${g.it.length>1?`<span class="chip">🪪 ${g.it.length} en un carné</span>`:''}</div>
+   <div class="dt">${esc((s.mo||'').toLowerCase())}${w.d?' · Gdia '+esc(guardiaDe(w)):''}${w.d?turnoTag(w):''}</div>${filas}
+   <div class="src">Solicitó ${esc(tit(s.u||''))} · ${esc(s.f)}${s.f!=='por enviar'&&g.it.some(abierta)&&diasDe(s.f)?' · hace '+diasDe(s.f)+' días':''}${tarde?' · <b style="color:var(--rojo)">⏰ atrasada</b>':''}${!g.it.some(abierta)&&s.ua?`<br>Cerró ${esc(tit(s.ua))} · ${esc(s.fa)}`:''}${s.nota?`<br><i>${esc(s.nota)}</i>`:''}${pend?' <b style="color:var(--ambar-t)">⏳ por enviar</b>':''}</div>
    ${ac.length?`<div class="acc">${ac.join('')}</div>`:''}</div>`}
 function solicitar(d,k,mo){const w=d?W[d]:null;const I=d?(autIndex()[d]||{}):{};
   const sug=k=>{const it=I[k];if(!it)return 'NUEVA';const s=autEstado(it);return s==='vig'||s==='li'?'DUPLICADO':s==='no'?'NUEVA':'RENOVACIÓN'};
@@ -1003,29 +1010,37 @@ function guardarSol(){const d=$('#sl-w').dataset.d,k=$('#sl-t').value,mo=chipsVa
   if(solTodos().some(x=>x.d===d&&x.t===k&&abierta(x))){$('#sl-err').textContent='Ya tiene una solicitud abierta de esta autorización.';return}
   solOp({op:'nueva',id:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),dni:d,nombre:W[d].n,tipo:k,motivo:mo,nota:$('#sl-nota').value.trim(),prog:mo==='DUPLICADO'?'':$('#sl-prog').value});
   cerrarHoja();toast('Solicitud enviada: aparece como IMPORTANTE en Inicio')}
-function programarSol(id){const s=solTodos().find(x=>x.id===id);abrirHoja(`<div class="hoja-cab"><h2>📅 Programar evaluación</h2><p>${esc(tit(s.n))} · ${esc(solNomT(s.t))}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
+function programarSol(k){const L=solDeGrupo(k).filter(x=>x.es==='PENDIENTE'&&x.mo!=='DUPLICADO'||x.es==='DESAPROBADO');const s=L[0];if(!s)return;
+  abrirHoja(`<div class="hoja-cab"><h2>📅 Programar evaluación</h2><p>${esc(tit(s.n))} · ${L.map(x=>esc(solNomT(x.t))).join(', ')}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
   <label class="cn-lb">Fecha de la evaluación presencial</label><input type="date" id="pg-f" class="cv-in" value="${s.prog||hoyISO()}"><label class="cn-lb">Nota (opcional)</label><input id="pg-n" class="cv-in" placeholder="Ej. en la sala de inducción, 7:00 am">
-  <button class="btn pri ancho" style="margin-top:12px" onclick="solOp({op:'act',id:'${id}',estado:'PENDIENTE',prog:$('#pg-f').value,nota:$('#pg-n').value.trim()});cerrarHoja();toast('Evaluación programada')">Guardar</button></div>`)}
-function registrarEval(id){const s=solTodos().find(x=>x.id===id);const hoy=hoyISO();
-  abrirHoja(`<div class="hoja-cab"><h2>✔ Registrar evaluación presencial</h2><p>${esc(tit(s.n))} · ${esc(solNomT(s.t))}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
-   <div class="cn-paso"><b>1</b>Resultado</div><div class="opciones" id="ev-r"><button type="button" data-v="APROBADO">✅ Aprobado</button><button type="button" data-v="DESAPROBADO">❌ Desaprobado</button></div>
+  <button class="btn pri ancho" style="margin-top:12px" onclick="programarGrupo('${k}')">Guardar</button></div>`)}
+function programarGrupo(k){const f=$('#pg-f').value,n=$('#pg-n').value.trim();solDeGrupo(k).filter(x=>x.es==='PENDIENTE'&&x.mo!=='DUPLICADO'||x.es==='DESAPROBADO').forEach(x=>solOp({op:'act',id:x.id,estado:'PENDIENTE',prog:f,nota:n}));cerrarHoja();toast('Evaluación programada')}
+function registrarEval(k){const L=solDeGrupo(k).filter(x=>x.es==='PENDIENTE'&&x.mo!=='DUPLICADO');const s=L[0];if(!s)return;const hoy=hoyISO();
+  abrirHoja(`<div class="hoja-cab"><h2>✔ Registrar evaluación presencial</h2><p>${esc(tit(s.n))}</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form cn-form">
+   <div class="cn-paso"><b>1</b>¿De qué autorizaciones?</div><div class="cn-ops fa-ts" id="ev-t">${L.map(x=>`<button type="button" class="cn-op on" data-id="${x.id}"><span class="ck"></span><span class="tx"><b>${esc(solNomT(x.t))}</b><small>${esc(solEstado(x)[0])}</small></span></button>`).join('')}</div>
+   <div class="cn-paso"><b>2</b>Resultado</div><div class="opciones" id="ev-r"><button type="button" data-v="APROBADO">✅ Aprobado</button><button type="button" data-v="DESAPROBADO">❌ Desaprobado</button></div>
    <div class="cn-datos" style="margin-top:10px"><div class="cn-c"><label>Fecha de evaluación</label><input type="date" id="ev-f" value="${hoy}"></div><div class="cn-c" id="ev-vw"><label>Vigente hasta</label><input type="date" id="ev-v" value="${masAnio(hoy)}"></div><div class="cn-c" id="ev-nw"><label>N.° de carné (opcional)</label><input id="ev-n"></div></div>
    <label class="cn-lb">Nota (opcional)</label><input id="ev-nota" class="cv-in" placeholder="Ej. nota 16/20, práctica correcta">
-   <p class="err" id="ev-err"></p><button class="btn pri ancho" style="margin-top:12px" onclick="guardarEval('${id}')">Guardar resultado</button></div>`);
+   <p class="err" id="ev-err"></p><button class="btn pri ancho" style="margin-top:12px" onclick="guardarEval('${k}')">Guardar resultado</button></div>`);
+  $('#ev-t').addEventListener('click',e=>{const b=e.target.closest('.cn-op');if(b)b.classList.toggle('on')});
   $('#ev-r').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#ev-r').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));const ap=b.dataset.v==='APROBADO';$('#ev-vw').hidden=!ap;$('#ev-nw').hidden=!ap});
   $('#ev-f').addEventListener('change',()=>{$('#ev-v').value=masAnio($('#ev-f').value||hoy)})}
-function guardarEval(id){const s=solTodos().find(x=>x.id===id);const r=chipsVal('ev-r');if(!r){$('#ev-err').textContent='Marca si aprobó o desaprobó.';return}
-  const fe=$('#ev-f').value||hoyISO(),vig=$('#ev-v').value,nota=$('#ev-nota').value.trim();if(r==='APROBADO'&&!vig){$('#ev-err').textContent='Pon hasta cuándo es vigente.';return}
-  solOp({op:'act',id,estado:r,fe,res:r,vig:r==='APROBADO'?vig:'',nota});
-  if(r==='APROBADO'){const q=store.get('fsbc_autq',[]);q.push({id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),dni:s.d,nombre:s.n,tipo:s.t,accion:'agregar',emision:fe,venc:vig,num:$('#ev-n').value.trim(),nota:'Evaluación presencial aprobada'+(nota?' · '+nota:''),foto:''});store.set('fsbc_autq',q);AUT_IDX=null;enviarAut();
-    abrirHoja(`<div class="hoja-cab"><h2>✅ Aprobado</h2><p>${esc(tit(s.n))} ya tiene ${esc(solNomT(s.t))} vigente hasta ${fDMY(vig)}.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><button class="btn pri ancho" onclick="genDesdeSol('${id}')">🪪 Generar su carné ahora</button><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid var(--linea)" onclick="cerrarHoja()">Después</button></div>`)}
+function guardarEval(k){const ids=[...document.querySelectorAll('#ev-t .cn-op.on')].map(b=>b.dataset.id);const r=chipsVal('ev-r');
+  if(!ids.length){$('#ev-err').textContent='Marca al menos una autorización.';return}if(!r){$('#ev-err').textContent='Marca si aprobó o desaprobó.';return}
+  const fe=$('#ev-f').value||hoyISO(),vig=$('#ev-v').value,nota=$('#ev-nota').value.trim(),num=$('#ev-n').value.trim();if(r==='APROBADO'&&!vig){$('#ev-err').textContent='Pon hasta cuándo es vigente.';return}
+  const L=solTodos().filter(x=>ids.includes(x.id));
+  L.forEach(s=>{solOp({op:'act',id:s.id,estado:r,fe,res:r,vig:r==='APROBADO'?vig:'',nota});
+    if(r==='APROBADO'){const q=store.get('fsbc_autq',[]);q.push({id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()),dni:s.d,nombre:s.n,tipo:s.t,accion:'agregar',emision:fe,venc:vig,num,nota:'Evaluación presencial aprobada'+(nota?' · '+nota:''),foto:''});store.set('fsbc_autq',q)}});
+  if(r==='APROBADO'){AUT_IDX=null;enviarAut();const s=L[0];
+    abrirHoja(`<div class="hoja-cab"><h2>✅ Aprobado</h2><p>${esc(tit(s.n))}: ${L.map(x=>esc(solNomT(x.t))).join(', ')} vigente hasta ${fDMY(vig)}.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><button class="btn pri ancho" onclick="genDesdeSol('${k}')">🪪 Generar su carné ahora (todo en uno)</button><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid var(--linea)" onclick="cerrarHoja()">Después</button></div>`)}
   else{cerrarHoja();toast('Desaprobado: queda la alerta y puedes reprogramar')}}
-function anularSol(id){if(!confirm('¿Anular esta solicitud?'))return;const n=prompt('Motivo de la anulación (opcional)')||'';solOp({op:'act',id,estado:'ANULADA',nota:n})}
-function genDesdeSol(id){const s=solTodos().find(x=>x.id===id);if(!s)return;generarCarne(s.d,{sol:id,dup:s.mo==='DUPLICADO',tipo:s.t})}
+function anularSol(k){if(!confirm('¿Anular esta solicitud?'))return;const n=prompt('Motivo de la anulación (opcional)')||'';solDeGrupo(k).filter(abierta).forEach(x=>solOp({op:'act',id:x.id,estado:'ANULADA',nota:n}))}
+function genDesdeSol(k){const L=solDeGrupo(k);const s=L[0];if(!s)return;const R=solTodos().filter(x=>x.d===s.d&&abierta(x)&&listoCarne(x));
+  generarCarne(s.d,{dup:L.some(x=>x.mo==='DUPLICADO'),tipos:R.map(x=>x.t),sols:R.map(x=>x.id)})}
 // recuadro en la ficha: lo que está pendiente y no debe hacer
 function solFicha(w){const L=solTodos().filter(s=>s.d===w.d&&abierta(s));const ev=L.filter(s=>s.mo!=='DUPLICADO'&&s.es!=='APROBADO');let h='';
   if(ev.length)h+=`<div class="aut-falta">⛔ No realizar <b>${ev.map(s=>esc(solNomT(s.t))).join(', ')}</b> hasta aprobar la evaluación presencial.<br><small>${ev.map(s=>esc(solEstado(s)[0])).join(' · ')}</small></div>`;
-  const dp=L.filter(s=>s.mo==='DUPLICADO'||s.es==='APROBADO');if(dp.length)h+=`<div class="cn-av">🪪 Carné por entregar: ${dp.map(s=>`<b>${esc(solNomT(s.t))}</b> <button class="mini b" onclick="genDesdeSol('${s.id}')">Generar</button>`).join(' ')}</div>`;
+  const dp=L.filter(listoCarne);if(dp.length)h+=`<div class="cn-av">🪪 Carné por entregar: <b>${dp.map(s=>esc(solNomT(s.t))).join(', ')}</b> <button class="mini b" onclick="genDesdeSol('${solGrupoK(dp[0])}')">Generar (todo en uno)</button></div>`;
   if(ESJEFE()){const nd=solTodos().filter(s=>s.d===w.d&&s.mo==='DUPLICADO'&&s.es!=='ANULADA'&&(pf(s.f)||HOY).getFullYear()===HOY.getFullYear()).length;if(nd>=2)h+=`<div class="cn-av">⚠ <b>${nd} duplicados</b> en el año: revisar orden y cuidado de sus documentos.</div>`}
   return h}
 // paso siguiente después de registrar en campo
@@ -1267,7 +1282,7 @@ function imprimirCarne(d){const w=W[d];const tipos=CN.sel.slice();
   const v=window.open('','_blank');if(!v){toast('Permite las ventanas emergentes para imprimir');return}
   v.document.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Carné ${esc(x.ap)} ${esc(x.no)}</title><style>${CARNE_CSS}</style></head><body><div class="bar"><button onclick="print()" style="font-size:16px;padding:10px 18px">🖨 Imprimir / Guardar PDF</button></div>${htmlCarne(x)}</body></html>`);v.document.close();
   setTimeout(()=>{try{v.focus();v.print()}catch(e){}},900);
-  registrar(x.dup?'Generó duplicado de carné':'Generó carné de autorización',`${w.d} | ${tipos.join(',')} | vence ${x.ca}`);if(CN.ctx&&CN.ctx.sol)solOp({op:'act',id:CN.ctx.sol,estado:'ENTREGADO',nota:x.dup?'Duplicado entregado':'Carné entregado'});cerrarHoja();toast('Carné generado')}
+  registrar(x.dup?'Generó duplicado de carné':'Generó carné de autorización',`${w.d} | ${tipos.join(',')} | vence ${x.ca}`);solTodos().filter(s=>s.d===w.d&&abierta(s)&&listoCarne(s)&&tipos.includes(s.t)).forEach(s=>solOp({op:'act',id:s.id,estado:'ENTREGADO',nota:(s.mo==='DUPLICADO'?'Duplicado entregado':'Carné entregado')+(tipos.length>1?' · en un carné con '+tipos.length+' autorizaciones':'')}));cerrarHoja();toast('Carné generado')}
 /* ===== v28: reportes de campo (Seguridad reporta actos a SBC · Psicología arma su reporte de WhatsApp) ===== */
 const REP_ACTOS=[...new Set(TIPO_C.map(x=>x[1]))];
 const REP_TEMAS=['el cuidado de manos','la exposición a la línea de fuego','el uso correcto del EPP','el orden y limpieza','el desatado de rocas','los 3 puntos de apoyo','el bloqueo y etiquetado','el IPERC continuo'];
@@ -1473,10 +1488,10 @@ function guardarAut(d){const op=chipsVal('fa-ac');const K=faSel();const nota=($(
   if(admin){K.forEach(t=>reg(t,'notiene','','','',''));fin('Registrado: no tiene');return}
   const okK=K.filter(k=>!solTodos().some(x=>x.d===d&&x.t===k&&abierta(x)));if(!okK.length){$('#fa-err').textContent='Ya tiene solicitud abierta de lo que marcaste: revísala en Inicio → IMPORTANTE.';return}
   if(op==='perdio'){const noV=okK.filter(k=>{const it=I[k];return !it||!['vig','porv','li'].includes(autEstado(it))});if(noV.length){$('#fa-err').textContent='No se puede pedir duplicado de '+noV.map(solNomT).join(', ')+': no figura vigente en la base. Desmárcala o elige "⏰ Está vencida" (necesita evaluación presencial).';return}}
-  const nid=()=>'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-  if(op==='perdio'){okK.forEach(t=>solOp({op:'nueva',id:nid(),dni:d,nombre:W[d].n,tipo:t,motivo:'DUPLICADO',nota}));fin(`Duplicado solicitado (${okK.length}): aparece como IMPORTANTE en Inicio`);return}
+  const grupo='g'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);const nid=k=>okK.length>1?grupo+'_'+k:'s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  if(op==='perdio'){okK.forEach(t=>solOp({op:'nueva',id:nid(t),dni:d,nombre:W[d].n,tipo:t,motivo:'DUPLICADO',nota}));fin(`Duplicado solicitado (${okK.length}): aparece como IMPORTANTE en Inicio`);return}
   const prog=$('#fa-prog').value;
-  okK.forEach(t=>{if(op==='notiene')reg(t,'notiene','','','','');solOp({op:'nueva',id:nid(),dni:d,nombre:W[d].n,tipo:t,motivo:op==='notiene'?'NUEVA':'RENOVACIÓN',nota,prog})});
+  okK.forEach(t=>{if(op==='notiene')reg(t,'notiene','','','','');solOp({op:'nueva',id:nid(t),dni:d,nombre:W[d].n,tipo:t,motivo:op==='notiene'?'NUEVA':'RENOVACIÓN',nota,prog})});
   fin(`Evaluación presencial solicitada (${okK.length}): aparece como IMPORTANTE en Inicio`)}
 let _envAut=false;
 async function enviarAut(){if(_envAut||!TOKEN||!navigator.onLine)return;let q=store.get('fsbc_autq',[]);if(!q.length)return;_envAut=true;let n=0;try{
