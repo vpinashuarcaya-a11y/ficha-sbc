@@ -1736,7 +1736,7 @@ table{width:100%;border-collapse:collapse;font-size:7.8pt}th{background:#141C2F;
 <tr><td><b>Retroalimentación positiva</b></td><td>Reconocer en campo a los trabajadores que llevan más de 90 días sin actos tras haber tenido reportes, para consolidar la conducta segura.</td><td>Supervisión y Seguridad (lista "Refuerzo positivo" de Alerta SBC)</td></tr>
 <tr><td><b>Modificación de antecedentes</b></td><td>Verificación al inicio de la tarea, orden de la labor y revisión de equipos donde se concentran los actos; separar parejas de riesgo recurrentes.</td><td>${esc(l1)} y parejas con 2+ actos juntos</td></tr>
 <tr><td><b>Evaluación y capacitación pendiente</b></td><td>Completar la evaluación de percepción de riesgo de los ${pend} trabajadores con actos y cerrar las ${cs.atr} capacitaciones atrasadas.</td><td>Psicología SBC</td></tr></table>
-<div class="firma"><div>Víctor Hugo Piñas Huarcaya<small>Psicólogo – Programa SBC · COPSEM</small></div><div>Comité de Seguridad<small>Nombre, firma y fecha</small></div></div>
+<div class="firma"><div><b>Víctor Hugo Piñas Huarcaya</b><small>Psicólogo Junior · Programa SBC – COPSEM</small><small>Unidad Julcani – Ccochaccasa, Angaraes – Huancavelica · Tlf. 934 918 006</small></div><div>Comité de Seguridad<small>Nombre, firma y fecha</small></div></div>
 <button class="print" onclick="print()">Guardar como PDF</button></body></html>`;
   const win=window.open('','_blank');if(win){win.document.write(html);win.document.close()}else toast('Permite ventanas emergentes para generar el informe');
 }
@@ -2013,7 +2013,7 @@ ${(()=>{const e=evDe(w);return `<h2>${S()}. Evaluación de percepción de riesgo
 <h2>${S()}. Base normativa</h2><table class="norm"><thead><tr><th style="width:28mm">Norma</th><th style="width:34mm">Artículo</th><th>Qué establece</th></tr></thead><tbody>${NORM.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table>
 <h2>${S()}. Conclusión y recomendación</h2>
 <div class="concl"><div class="top">MEDIDA QUE CORRESPONDE: ${ESC[an.toca-1].toUpperCase()} (ESCALÓN ${an.toca})</div><div class="bd">Desde Psicología SBC se recomienda:<ul><li><b>Operaciones:</b> aplicar la medida indicada conforme al Reglamento Interno de Trabajo.</li><li><b>Supervisión directa:</b> verificación al inicio de la tarea de las conductas reportadas mientras se resuelve el caso.</li><li><b>Psicología SBC:</b> seguimiento conductual en labor y evaluación/reevaluación de percepción de riesgo.</li></ul></div></div><p class="nota">Documento interno de sustento técnico para Operaciones y Recursos Humanos. La calificación de la falta y la sanción corresponden a COPSEM (RIT, Art. 81 y 83). Si se optara por el despido, el RIT exige carta de preaviso y un plazo de 6 días para descargos (Art. 81 c).</p>
-<div class="firma"><div>Víctor Hugo Piñas Huarcaya<small>Psicólogo – Programa SBC · COPSEM</small></div><div>Recibido por Operaciones<small>Nombre, firma y fecha</small></div></div>
+<div class="firma"><div><b>Víctor Hugo Piñas Huarcaya</b><small>Psicólogo Junior · Programa SBC – COPSEM</small><small>Unidad Julcani – Ccochaccasa, Angaraes – Huancavelica · Tlf. 934 918 006</small></div><div>Recibido por Operaciones<small>Nombre, firma y fecha</small></div></div>
 <button class="print" onclick="print()">Guardar como PDF</button></body></html>`;
   const win=window.open('','_blank');
   if(win){win.document.write(html);win.document.close()}else{toast('Permite ventanas emergentes para generar el informe')}
