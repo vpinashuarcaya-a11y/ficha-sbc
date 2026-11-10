@@ -790,9 +790,20 @@ function panelEval(w){
   <div class="panel"><h3>Capacitaciones asignadas</h3>${curH}</div>`;
 }
 const EXAMEN_URL='https://script.google.com/macros/s/AKfycby3OOvBzs2kUFrLbybuJbhXpyLk72198gZaHou-6OfLAGtSwpVSNaxljZay59CQ6kJ23g/exec';
+function antiguedad(f){if(!f)return '';const p=String(f).slice(0,10).split('-');if(p.length<3)return '';const i=new Date(+p[0],+p[1]-1,+p[2]);let m=(HOY.getFullYear()-i.getFullYear())*12+(HOY.getMonth()-i.getMonth());if(HOY.getDate()<i.getDate())m--;if(m<0)return '';const a=Math.floor(m/12),r=m%12;
+  if(!a)return `${Math.max(r,1)} ${r===1?'MES':'MESES'}`;return `${a} ${a===1?'AÑO':'AÑOS'}${r?` Y ${r} ${r===1?'MES':'MESES'}`:''}`}
+function datosPre(d){const w=W[d],an=AN[d]||{},ds=w.ds||{};const y=HOY.getFullYear();
+  const acts=(an.acts||[]).map(x=>x.a).filter(a=>a.dt&&a.dt.getFullYear()===y).sort((p,q)=>q.dt-p.dt);
+  const evs=(w.E||[]).map(x=>x.e).filter(e=>e.dt&&e.dt.getFullYear()===y).sort((p,q)=>q.dt-p.dt);
+  const sup=SUPERF.test(norm((ds.lb||'')+' '+(ds.lo||'')+' '+(w.lu||'')));
+  let mo='',mt='';
+  if(acts.length&&(!evs.length||acts[0].dt>=evs[0].dt)){const a=acts[0];mo='Acto Inseguro';mt=`${a.f} – ${a.t||'Acto inseguro'}${a.l?' – '+a.l:''}: ${String(a.h||'').replace(/\s+/g,' ').slice(0,240)}`}
+  else if(evs.length){const e=evs[0];mo='Post-incidente/accidente';mt=`${e.f} – ${e.k==='A'?'Accidente':'Incidente'}${e.cl&&!/^(incidente|accidente)$/i.test(e.cl)?' ('+e.cl+')':''}${e.l?' – '+e.l:''}: ${String(e.de||'').replace(/\s+/g,' ').slice(0,240)}`}
+  return {dni:w.d,n:w.n,c:tit(w.c||''),ar:sup?'Superficie':'Subsuelo',dep:sup?String(w.lu||'SUPERFICIE').toUpperCase():'MINA',act:'MINERIA',ant:antiguedad(w.i),mo,mt}}
 function evaluarPR(d){if(!navigator.onLine){toast('El examen necesita señal');return}
   try{navigator.clipboard&&navigator.clipboard.writeText(d)}catch(e){}
-  window.open(EXAMEN_URL,'_blank');toast(`Examen abierto · DNI ${d} copiado: pégalo en sus datos`)}
+  let h='';try{const j=JSON.stringify(datosPre(d));h=btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}catch(e){}
+  window.open(EXAMEN_URL+(h?'#'+h:''),'_blank');toast(h?'Examen abierto con los datos precargados: verifícalos con el trabajador':`Examen abierto · DNI ${d} copiado: pégalo en sus datos`)}
 async function marcarCurso(d,c,on){
   DATA.CAP=DATA.CAP||{};const k=d+'|'+c;const hoy=new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric'});
   if(on)DATA.CAP[k]=hoy;else delete DATA.CAP[k];abrirFicha(d);
