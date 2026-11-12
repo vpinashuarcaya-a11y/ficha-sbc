@@ -532,6 +532,7 @@ body.wide.vcum #v-ficha{display:none}body.wide #v-cum.on{grid-column:2 / 4}body.
 .vis-adm{display:flex;gap:12px;padding:10px 4px;border-top:1px solid var(--linea);cursor:pointer}.vis-adm .vf{min-width:46px;font-weight:800;font-size:15px;color:#0B4FB8;text-align:center}.vis-adm .vf small{display:block;font-weight:500;font-size:11.5px;color:var(--gris)}.vis-adm .vs{font-size:12.5px;color:var(--gris)}.vis-adm .vt{font-size:13.5px;margin-top:2px}.kpis-m{display:flex;gap:8px;flex-wrap:wrap}.kpis-m>div{flex:1;min-width:90px;background:#F5F8FD;border-radius:12px;padding:8px 10px}.kpis-m b{display:block;font-size:20px}.kpis-m span{font-size:12px;color:var(--gris)}
 .rc-vis{margin-bottom:10px}.rc-vis button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:#EEF4FF;border:1.5px solid #1070E8;border-radius:14px;padding:10px 12px;font:inherit}.rc-vis button:not(.on){background:#fff;border-color:var(--linea)}.rc-vis .ck{flex:none;width:20px;height:20px;border-radius:6px;border:2px solid #1070E8;background:#fff}.rc-vis button.on .ck{background:#1070E8;box-shadow:inset 0 0 0 3px #fff}.rc-vis b{display:block;font-size:14.5px}.rc-vis small{font-size:12.5px;color:var(--gris)}
 .lv-wpp{margin-top:14px;border:1.5px solid #BFD6FB;background:#F5F9FF;border-radius:16px;padding:4px 12px 12px}.lv-cab{font-weight:800;font-size:15px;color:#0B4FB8;margin:10px 0 2px}.lv-cab small{font-weight:600;font-size:12px;color:#fff;background:#1070E8;border-radius:8px;padding:2px 7px;margin-left:6px}
+.lv-con{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}.lv-op{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:#fff;border:1.5px solid var(--linea);border-radius:12px;padding:9px 11px;font:inherit;font-weight:700;font-size:14px}.lv-op small{font-weight:500;color:var(--gris)}.lv-op .ck{flex:none;width:18px;height:18px;border-radius:5px;border:2px solid #1070E8}.lv-op.on{border-color:#1070E8;background:#EEF4FF}.lv-op.on .ck{background:#1070E8;box-shadow:inset 0 0 0 3px #fff}#lv-res .lv-op{margin-top:6px;font-weight:600}
 </style>
 </head>
 <body>
@@ -1622,9 +1623,11 @@ function bajarVisitas(){const ini=VISF==='mes'?new Date(HOY.getFullYear(),HOY.ge
   const n=new Date(),p=x=>String(x).padStart(2,'0');bajarArchivo(libroXlsx([{nombre:'Visitas de campo',filas:F,anchos:[11,7,10,32,22,8,24,26,50]}]),`Visitas_de_campo_${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}.xlsx`)}
 function pintarVisitas(d){const el=$('#vis-'+d);if(!el)return;const L=visitasDe(d);
   el.innerHTML=L.length?L.slice(0,12).map(v=>`<div class="vis"><b>${new Date(v.ts).toLocaleDateString('es-PE')} · ${esc(v.t)}</b>${v.n?`<p>${esc(v.n)}</p>`:''}</div>`).join(''):'<p>Aún no registras visitas de campo a este trabajador.</p>';cargarVisitas()}
-function loVi(d){const w=W[d];const ds=w.ds||{};FOTOS_REP=[];REP_ID='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function loVi(d){const w=W[d];const ds=w.ds||{};FOTOS_REP=[];_lvD=d;REP_ID='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   const nv=/\d/.test(ds.nv||'')?String(ds.nv).replace(/\D/g,''):'',zo=zonaRep(w),lb=/PATERNIDAD|MATERNIDAD|VACACION|DESCANSO|LICENCIA|AUSEN|BAJA|SUBSIDIO/i.test(ds.lb||'')?'':(ds.lb||'');
   abrirHoja(`<div class="hoja-cab"><h2>👁 Lo vi hoy</h2><p>${esc(tit(w.n))} · se guarda en su ficha y, si quieres, sale el reporte de WhatsApp <b>sin su nombre</b>. Funciona sin señal.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form rep-form">
+  <label>¿Con quién más estaba? <small style="font-weight:500;color:var(--gris)">(se guarda en la ficha de cada uno)</small></label><div class="lv-con" id="lv-con">${parejaDe(w).map(x=>btnCon(x,1)).join('')}</div>
+  <input id="lv-bus" placeholder="+ Agregar otro: nombre, DNI o lámpara" autocomplete="off"><div id="lv-res"></div>
   <label>Tipo de visita</label><div class="opciones" id="vis-tipo">${VIS_TIPOS.map((t,i)=>`<button type="button" class="${i?'':'on'}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
   <label for="vis-nota">Nota para su ficha <small style="font-weight:500;color:var(--gris)">(privada, no va al WhatsApp)</small></label><textarea id="vis-nota" rows="3" placeholder="Qué observaste, qué conversaron, compromiso del trabajador…"></textarea>
   <div class="lv-wpp"><div class="lv-cab">📲 Reporte de WhatsApp <small>sin nombre</small></div>
@@ -1637,14 +1640,24 @@ function loVi(d){const w=W[d];const ds=w.ds||{};FOTOS_REP=[];REP_ID='c'+Date.now
   <button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid var(--linea)" onclick="guardarVisita('${d}',0)">💾 Solo guardar en su ficha</button></div>`);
   let edit=false;const upd=()=>{if(!edit)$('#lv-txt').value=textoLoVi()};
   $('#vis-tipo').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#vis-tipo').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));upd()});
+  $('#lv-con').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;b.classList.toggle('on');upd()});
+  $('#lv-bus').addEventListener('input',()=>{const q=norm($('#lv-bus').value.trim());const ya=new Set([d,...[...document.querySelectorAll('#lv-con button')].map(b=>b.dataset.d)]);
+    $('#lv-res').innerHTML=q.length<2?'':Object.values(W).filter(x=>x.e==='ACTIVO'&&!ya.has(x.d)&&(norm(x.n).includes(q)||x.d.includes(q)||String(x.lp||'')===q)).slice(0,5).map(x=>`<button type="button" class="lv-op" data-d="${x.d}">${esc(tit(x.n))} <small>${esc(tit(x.c||''))}</small></button>`).join('')});
+  $('#lv-res').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#lv-con').insertAdjacentHTML('beforeend',btnCon(W[b.dataset.d],1));$('#lv-bus').value='';$('#lv-res').innerHTML='';upd()});
   chipsBind('lv-zo',0,upd);chipsBind('lv-tm',1,upd);['lv-nv','lv-lb','lv-otro'].forEach(i=>$('#'+i).addEventListener('input',upd));$('#lv-txt').addEventListener('input',()=>edit=true);fotosBind('lv-f');upd()}
 const VIS_ACC={'Retroalimentación en campo':'se brindó retroalimentación a un colaborador','Observación de la tarea':'se observó la tarea de un colaborador','Refuerzo positivo':'se brindó refuerzo positivo a un colaborador','Conversación de seguimiento':'se tuvo una conversación de seguimiento con un colaborador'};
 function textoLoVi(){const t=($('#vis-tipo .on')||{}).dataset?$('#vis-tipo .on').dataset.t:VIS_TIPOS[0];const nv=$('#lv-nv').value.trim(),lb=$('#lv-lb').value.trim(),zo=chipsVal('lv-zo');
   const tm=chipsVal('lv-tm',1).concat($('#lv-otro').value.trim()?[$('#lv-otro').value.trim()]:[]);
   const lugar=zo==='Superficie'?(nv?`el NV ${nv} de superficie`:'superficie'):`el NV ${nv||'…'}${zo?' '+zo:''}`;
   const lug=`${lugar}${lb?(zo==='Superficie'?' - ':' ')+lb:''}`,sob=tm.length?' sobre '+juntarTemas(tm):'';
-  if(t==='Seguimiento comportamental')return `Se realizó seguimiento comportamental a un colaborador en ${lug}${tm.length?', donde se le sensibilizó'+sob:''}.`;
-  return `Se realizó seguimiento comportamental en ${lug}, donde ${VIS_ACC[t]||'se realizó seguimiento a un colaborador'}${sob}.`}
+  const G=visGrupo();const n=G.length;const cs=[...new Set(G.map(x=>String(tit(x.c||'')).toLowerCase()).filter(Boolean))];const cg=n>1&&cs.length===n?juntarY(cs):'';const quien=n===1?'un colaborador':`${n} colaboradores${cg?' ('+cg+')':''}`;const le=n===1?'le':'les';
+  const ACC={'Retroalimentación en campo':`se brindó retroalimentación a ${quien}`,'Observación de la tarea':`se observó la tarea de ${quien}`,'Refuerzo positivo':`se brindó refuerzo positivo a ${quien}`,'Conversación de seguimiento':`se tuvo una conversación de seguimiento con ${quien}`};
+  if(t==='Seguimiento comportamental')return `Se realizó seguimiento comportamental a ${quien} en ${lug}${tm.length?', donde se '+le+' sensibilizó'+sob:''}.`;
+  return `Se realizó seguimiento comportamental en ${lug}, donde ${ACC[t]||'se realizó seguimiento a '+quien}${sob}.`}
+function parejaDe(w){const ds=w.ds||{};if(!ds.pa||!ds.lb)return [];return Object.values(W).filter(x=>x!==w&&x.e==='ACTIVO'&&x.ds&&x.ds.pa===ds.pa&&x.ds.lb===ds.lb&&guardiaDe(x)===guardiaDe(w)).slice(0,3)}
+const btnCon=(x,on)=>`<button type="button" class="lv-op ${on?'on':''}" data-d="${x.d}"><span class="ck"></span>${esc(tit(x.n))} <small>${esc(tit(x.c||''))}</small></button>`;
+function visGrupo(){const d0=_lvD;return [W[d0],...[...document.querySelectorAll('#lv-con button.on')].map(b=>W[b.dataset.d])].filter(Boolean)}
+let _lvD=null;
 async function compartirWpp(t,fotos){const files=(fotos||[]).map((u,i)=>dataUrlFile(u,'reporte-'+(i+1)+'.jpg'));
   if(navigator.share){try{if(files.length&&navigator.canShare&&navigator.canShare({files})){await navigator.share({files,text:t});return true}if(!files.length){await navigator.share({text:t});return true}}catch(e){if(e&&e.name==='AbortError')return false}}
   try{await navigator.clipboard.writeText(t)}catch(e){}toast(files.length?'Texto copiado. En la PC, adjunta las fotos en WhatsApp.':'Texto copiado');window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');return true}
@@ -1652,12 +1665,12 @@ async function guardarVisita(d,wpp){const t=($('#vis-tipo .on')||{}).dataset?$('
   const ds=(W[d]&&W[d].ds)||{};const l=[ds.lb,ds.nv?'Nv. '+ds.nv:'',tit(ds.mi||'')].filter(Boolean).join(' · ').replace(/\|/g,'/');
   const txt=$('#lv-txt')?$('#lv-txt').value.trim():'';
   if(wpp&&!$('#lv-nv').value.trim()&&chipsVal('lv-zo')!=='Superficie'){toast('Pon el nivel para el reporte');return}
-  const q=store.get('fsbc_vis',[]);q.push({d,t,n,l,lb:ds.lb||'',nv:ds.nv||'',zo:zonaRep(W[d]),ts:Date.now(),wpp:wpp?1:0});store.set('fsbc_vis',q.slice(-500));registrar('Visita de campo',`${d} | ${t} | ${n} | ${l}`);
+  const G=visGrupo();const ts=Date.now();const q=store.get('fsbc_vis',[]);G.forEach(x=>{q.push({d:x.d,t,n,l,lb:ds.lb||'',nv:ds.nv||'',zo:zonaRep(W[d]),ts,wpp:wpp?1:0});registrar('Visita de campo',`${x.d} | ${t} | ${n} | ${l}`)});store.set('fsbc_vis',q.slice(-500));
   if(wpp){const rq=repQ();const tm=chipsVal('lv-tm',1).concat($('#lv-otro').value.trim()?[$('#lv-otro').value.trim()]:[]);
     rq.push({id:REP_ID,tipo:'SEGUIMIENTO',nivel:$('#lv-nv').value.trim(),zona:chipsVal('lv-zo'),labor:$('#lv-lb').value.trim(),tema:tm.join(' | '),desc:txt,fotos:FOTOS_REP.slice()});
     try{store.set('fsbc_repq',rq)}catch(e){rq[rq.length-1].fotos=[];store.set('fsbc_repq',rq)}setTimeout(enviarRep,1500);
-    const fotos=FOTOS_REP.slice();cerrarHoja();abrirFicha(d);await compartirWpp(txt,fotos);toast('Visita guardada y reporte enviado');return}
-  cerrarHoja();abrirFicha(d);toast('Visita guardada en su ficha')}
+    const fotos=FOTOS_REP.slice();cerrarHoja();abrirFicha(d);await compartirWpp(txt,fotos);toast(G.length>1?`Visita guardada en ${G.length} fichas y reporte enviado`:'Visita guardada y reporte enviado');return}
+  cerrarHoja();abrirFicha(d);toast(G.length>1?`Visita guardada en ${G.length} fichas`:'Visita guardada en su ficha')}
 function zonaRep(w){const ds=(w&&w.ds)||{};const s=norm([ds.mi,ds.ve,ds.lb,ds.lo,w&&w.lu].join(' '));if(SUPERF.test(s))return 'Superficie';if(/ACCHILLA/.test(s))return 'Acchilla';if(/VERITO/.test(s))return 'Verito';if(/ROSARIO/.test(s))return 'Rosario';return ''}
 function visitasHoy(){const h=HOY.toDateString();return todasVisitas().filter(v=>new Date(v.ts).toDateString()===h&&!v.wpp).map(v=>{if(v.nv!==undefined)return v;const w=W[v.d]||{};const ds=w.ds||{};return {...v,lb:ds.lb||'',nv:ds.nv||'',zo:zonaRep(w)}})}
 const VIS_FRASE={'Seguimiento comportamental':'seguimiento comportamental','Retroalimentación en campo':'retroalimentación en campo','Observación de la tarea':'observación de la tarea','Refuerzo positivo':'refuerzo positivo','Conversación de seguimiento':'conversación de seguimiento'};
