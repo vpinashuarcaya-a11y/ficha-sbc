@@ -531,6 +531,7 @@ body.wide.vcum #v-ficha{display:none}body.wide #v-cum.on{grid-column:2 / 4}body.
 .fa-mas .cn-op{width:100%;margin-top:6px}
 .vis-adm{display:flex;gap:12px;padding:10px 4px;border-top:1px solid var(--linea);cursor:pointer}.vis-adm .vf{min-width:46px;font-weight:800;font-size:15px;color:#0B4FB8;text-align:center}.vis-adm .vf small{display:block;font-weight:500;font-size:11.5px;color:var(--gris)}.vis-adm .vs{font-size:12.5px;color:var(--gris)}.vis-adm .vt{font-size:13.5px;margin-top:2px}.kpis-m{display:flex;gap:8px;flex-wrap:wrap}.kpis-m>div{flex:1;min-width:90px;background:#F5F8FD;border-radius:12px;padding:8px 10px}.kpis-m b{display:block;font-size:20px}.kpis-m span{font-size:12px;color:var(--gris)}
 .rc-vis{margin-bottom:10px}.rc-vis button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:#EEF4FF;border:1.5px solid #1070E8;border-radius:14px;padding:10px 12px;font:inherit}.rc-vis button:not(.on){background:#fff;border-color:var(--linea)}.rc-vis .ck{flex:none;width:20px;height:20px;border-radius:6px;border:2px solid #1070E8;background:#fff}.rc-vis button.on .ck{background:#1070E8;box-shadow:inset 0 0 0 3px #fff}.rc-vis b{display:block;font-size:14.5px}.rc-vis small{font-size:12.5px;color:var(--gris)}
+.lv-wpp{margin-top:14px;border:1.5px solid #BFD6FB;background:#F5F9FF;border-radius:16px;padding:4px 12px 12px}.lv-cab{font-weight:800;font-size:15px;color:#0B4FB8;margin:10px 0 2px}.lv-cab small{font-weight:600;font-size:12px;color:#fff;background:#1070E8;border-radius:8px;padding:2px 7px;margin-left:6px}
 </style>
 </head>
 <body>
@@ -1382,7 +1383,7 @@ function reporteCampo(){FOTOS_REP=[];REP_ID='c'+Date.now().toString(36)+Math.ran
   const mes=repTodos().filter(r=>r.tp!=='ACTO'&&r.ur===(USER&&USER.dni)&&(()=>{const d=pf(r.f);return r.pend||d&&d.getMonth()===HOY.getMonth()&&d.getFullYear()===HOY.getFullYear()})());
   const nP=mes.filter(r=>r.tp==='PARADA').length,nS=mes.filter(r=>r.tp==='SEGUIMIENTO').length;
   abrirHoja(`<div class="hoja-cab"><h2>📋 Reporte de campo</h2><p>Este mes: <b>${nS}</b> seguimientos · <b>${nP}</b> paradas. Arma el texto y las fotos, y envíalo al grupo.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form rep-form">
-   ${(()=>{const V=visitasHoy();return V.length?`<div class="rc-vis"><button type="button" id="rc-vis" class="on"><span class="ck"></span><span><b>👁 Incluir mis ${V.length} visita${V.length>1?'s':''} de hoy</b><small>${esc(juntarY([...new Set(V.map(v=>v.lb||'').filter(x=>x&&!/PATERNIDAD|MATERNIDAD|VACACION|DESCANSO|LICENCIA|AUSEN|BAJA|SUBSIDIO/i.test(x)))]))||'labores del día'} · sin nombres</small></span></button></div>`:''})()}
+   ${(()=>{const V=visitasHoy();return V.length?`<div class="rc-vis"><button type="button" id="rc-vis" class="on"><span class="ck"></span><span><b>👁 Incluir ${V.length===1?'la visita':'las '+V.length+' visitas'} de hoy aún no enviada${V.length>1?'s':''}</b><small>${esc(juntarY([...new Set(V.map(v=>v.lb||'').filter(x=>x&&!/PATERNIDAD|MATERNIDAD|VACACION|DESCANSO|LICENCIA|AUSEN|BAJA|SUBSIDIO/i.test(x)))]))||'labores del día'} · sin nombres</small></span></button></div>`:''})()}
    <label>Tipo</label><div class="opciones" id="rc-tp"><button type="button" class="on" data-v="SEGUIMIENTO">Seguimiento comportamental</button><button type="button" data-v="PARADA">Parada de seguridad</button></div>
    <div class="dos-c"><div><label>Nivel</label><input id="rc-nv" inputmode="numeric" placeholder="610"></div><div><label>Labor (opcional)</label><input id="rc-lb" placeholder="CX 024"></div></div>
    <label>Zona</label>${chipsSel('rc-zo',REP_ZONAS)}
@@ -1621,17 +1622,42 @@ function bajarVisitas(){const ini=VISF==='mes'?new Date(HOY.getFullYear(),HOY.ge
   const n=new Date(),p=x=>String(x).padStart(2,'0');bajarArchivo(libroXlsx([{nombre:'Visitas de campo',filas:F,anchos:[11,7,10,32,22,8,24,26,50]}]),`Visitas_de_campo_${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}.xlsx`)}
 function pintarVisitas(d){const el=$('#vis-'+d);if(!el)return;const L=visitasDe(d);
   el.innerHTML=L.length?L.slice(0,12).map(v=>`<div class="vis"><b>${new Date(v.ts).toLocaleDateString('es-PE')} · ${esc(v.t)}</b>${v.n?`<p>${esc(v.n)}</p>`:''}</div>`).join(''):'<p>Aún no registras visitas de campo a este trabajador.</p>';cargarVisitas()}
-function loVi(d){const w=W[d];abrirHoja(`<div class="hoja-cab"><h2>Lo vi hoy</h2><p>${esc(tit(w.n))} · registra tu visita de seguimiento conductual. Funciona sin señal: se envía cuando haya conexión.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">
+function loVi(d){const w=W[d];const ds=w.ds||{};FOTOS_REP=[];REP_ID='c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const nv=/\d/.test(ds.nv||'')?String(ds.nv).replace(/\D/g,''):'',zo=zonaRep(w),lb=/PATERNIDAD|MATERNIDAD|VACACION|DESCANSO|LICENCIA|AUSEN|BAJA|SUBSIDIO/i.test(ds.lb||'')?'':(ds.lb||'');
+  abrirHoja(`<div class="hoja-cab"><h2>👁 Lo vi hoy</h2><p>${esc(tit(w.n))} · se guarda en su ficha y, si quieres, sale el reporte de WhatsApp <b>sin su nombre</b>. Funciona sin señal.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form rep-form">
   <label>Tipo de visita</label><div class="opciones" id="vis-tipo">${VIS_TIPOS.map((t,i)=>`<button type="button" class="${i?'':'on'}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
-  <label for="vis-nota" style="margin-top:12px;display:block">Nota (opcional)</label><textarea id="vis-nota" rows="4" style="width:100%;border-radius:12px;border:1.5px solid var(--linea);padding:10px;font:inherit" placeholder="Qué observaste, qué conversaron, compromiso del trabajador…"></textarea>
-  <button class="btn pri ancho" style="margin-top:12px" onclick="guardarVisita('${d}')">Guardar visita</button></div>`);
-  $('#vis-tipo').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#vis-tipo').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))})}
-function guardarVisita(d){const t=($('#vis-tipo .on')||{}).dataset?$('#vis-tipo .on').dataset.t:VIS_TIPOS[0];const n=($('#vis-nota').value||'').replace(/\s+/g,' ').replace(/\|/g,'/').trim().slice(0,400);
+  <label for="vis-nota">Nota para su ficha <small style="font-weight:500;color:var(--gris)">(privada, no va al WhatsApp)</small></label><textarea id="vis-nota" rows="3" placeholder="Qué observaste, qué conversaron, compromiso del trabajador…"></textarea>
+  <div class="lv-wpp"><div class="lv-cab">📲 Reporte de WhatsApp <small>sin nombre</small></div>
+   <div class="dos-c"><div><label>Nivel</label><input id="lv-nv" inputmode="numeric" value="${esc(nv)}" placeholder="610"></div><div><label>Labor</label><input id="lv-lb" value="${esc(lb)}" placeholder="CX 024"></div></div>
+   <label>Zona</label>${chipsSel('lv-zo',REP_ZONAS,0,zo?[zo]:[])}
+   <label>Tema (opcional)</label>${chipsSel('lv-tm',REP_TEMAS,1)}<input id="lv-otro" placeholder="Otro tema (opcional)" style="margin-top:6px">
+   <label>Fotos (opcional)</label>${fotosInput('lv-f')}
+   <label>Texto que se enviará (puedes editarlo)</label><textarea id="lv-txt" rows="3"></textarea></div>
+  <button class="btn pri ancho" style="margin-top:12px" onclick="guardarVisita('${d}',1)">📲 Guardar y enviar por WhatsApp</button>
+  <button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid var(--linea)" onclick="guardarVisita('${d}',0)">💾 Solo guardar en su ficha</button></div>`);
+  let edit=false;const upd=()=>{if(!edit)$('#lv-txt').value=textoLoVi()};
+  $('#vis-tipo').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#vis-tipo').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));upd()});
+  chipsBind('lv-zo',0,upd);chipsBind('lv-tm',1,upd);['lv-nv','lv-lb','lv-otro'].forEach(i=>$('#'+i).addEventListener('input',upd));$('#lv-txt').addEventListener('input',()=>edit=true);fotosBind('lv-f');upd()}
+const VIS_ACC={'Retroalimentación en campo':'se brindó retroalimentación a un colaborador','Observación de la tarea':'se observó la tarea de un colaborador','Refuerzo positivo':'se brindó refuerzo positivo a un colaborador','Conversación de seguimiento':'se tuvo una conversación de seguimiento con un colaborador'};
+function textoLoVi(){const t=($('#vis-tipo .on')||{}).dataset?$('#vis-tipo .on').dataset.t:VIS_TIPOS[0];const nv=$('#lv-nv').value.trim(),lb=$('#lv-lb').value.trim(),zo=chipsVal('lv-zo');
+  const tm=chipsVal('lv-tm',1).concat($('#lv-otro').value.trim()?[$('#lv-otro').value.trim()]:[]);
+  const lugar=zo==='Superficie'?(nv?`el NV ${nv} de superficie`:'superficie'):`el NV ${nv||'…'}${zo?' '+zo:''}`;
+  return `Se realizó seguimiento comportamental en ${lugar}${lb?(zo==='Superficie'?' - ':' ')+lb:''}, donde ${VIS_ACC[t]||'se realizó seguimiento a un colaborador'}${tm.length?' sobre '+juntarTemas(tm):''}.`}
+async function compartirWpp(t,fotos){const files=(fotos||[]).map((u,i)=>dataUrlFile(u,'reporte-'+(i+1)+'.jpg'));
+  if(navigator.share){try{if(files.length&&navigator.canShare&&navigator.canShare({files})){await navigator.share({files,text:t});return true}if(!files.length){await navigator.share({text:t});return true}}catch(e){if(e&&e.name==='AbortError')return false}}
+  try{await navigator.clipboard.writeText(t)}catch(e){}toast(files.length?'Texto copiado. En la PC, adjunta las fotos en WhatsApp.':'Texto copiado');window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');return true}
+async function guardarVisita(d,wpp){const t=($('#vis-tipo .on')||{}).dataset?$('#vis-tipo .on').dataset.t:VIS_TIPOS[0];const n=($('#vis-nota').value||'').replace(/\s+/g,' ').replace(/\|/g,'/').trim().slice(0,400);
   const ds=(W[d]&&W[d].ds)||{};const l=[ds.lb,ds.nv?'Nv. '+ds.nv:'',tit(ds.mi||'')].filter(Boolean).join(' · ').replace(/\|/g,'/');
-  const q=store.get('fsbc_vis',[]);q.push({d,t,n,l,lb:ds.lb||'',nv:ds.nv||'',zo:zonaRep(W[d]),ts:Date.now()});store.set('fsbc_vis',q.slice(-500));registrar('Visita de campo',`${d} | ${t} | ${n} | ${l}`);abrirFicha(d);
-  const nh=visitasHoy().length;abrirHoja(`<div class="hoja-cab"><h2>✅ Visita registrada</h2><p>Ya está en su ficha (pestaña Psicología) y en Admin → Visitas. Hoy llevas <b>${nh}</b> visita${nh===1?'':'s'}.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form"><button class="btn pri ancho" onclick="reporteCampo()">📋 Armar el reporte de WhatsApp de hoy</button><p class="nota-f" style="text-align:center">Las visitas de hoy se agregan solas al texto, sin nombres: solo labor y nivel.</p><button class="btn ancho" style="margin-top:8px;background:#fff;border:1.5px solid var(--linea)" onclick="cerrarHoja()">Seguir en campo</button></div>`)}
+  const txt=$('#lv-txt')?$('#lv-txt').value.trim():'';
+  if(wpp&&!$('#lv-nv').value.trim()&&chipsVal('lv-zo')!=='Superficie'){toast('Pon el nivel para el reporte');return}
+  const q=store.get('fsbc_vis',[]);q.push({d,t,n,l,lb:ds.lb||'',nv:ds.nv||'',zo:zonaRep(W[d]),ts:Date.now(),wpp:wpp?1:0});store.set('fsbc_vis',q.slice(-500));registrar('Visita de campo',`${d} | ${t} | ${n} | ${l}`);
+  if(wpp){const rq=repQ();const tm=chipsVal('lv-tm',1).concat($('#lv-otro').value.trim()?[$('#lv-otro').value.trim()]:[]);
+    rq.push({id:REP_ID,tipo:'SEGUIMIENTO',nivel:$('#lv-nv').value.trim(),zona:chipsVal('lv-zo'),labor:$('#lv-lb').value.trim(),tema:tm.join(' | '),desc:txt,fotos:FOTOS_REP.slice()});
+    try{store.set('fsbc_repq',rq)}catch(e){rq[rq.length-1].fotos=[];store.set('fsbc_repq',rq)}setTimeout(enviarRep,1500);
+    const fotos=FOTOS_REP.slice();cerrarHoja();abrirFicha(d);await compartirWpp(txt,fotos);toast('Visita guardada y reporte enviado');return}
+  cerrarHoja();abrirFicha(d);toast('Visita guardada en su ficha')}
 function zonaRep(w){const ds=(w&&w.ds)||{};const s=norm([ds.mi,ds.ve,ds.lb,ds.lo,w&&w.lu].join(' '));if(SUPERF.test(s))return 'Superficie';if(/ACCHILLA/.test(s))return 'Acchilla';if(/VERITO/.test(s))return 'Verito';if(/ROSARIO/.test(s))return 'Rosario';return ''}
-function visitasHoy(){const h=HOY.toDateString();return todasVisitas().filter(v=>new Date(v.ts).toDateString()===h).map(v=>{if(v.nv!==undefined)return v;const w=W[v.d]||{};const ds=w.ds||{};return {...v,lb:ds.lb||'',nv:ds.nv||'',zo:zonaRep(w)}})}
+function visitasHoy(){const h=HOY.toDateString();return todasVisitas().filter(v=>new Date(v.ts).toDateString()===h&&!v.wpp).map(v=>{if(v.nv!==undefined)return v;const w=W[v.d]||{};const ds=w.ds||{};return {...v,lb:ds.lb||'',nv:ds.nv||'',zo:zonaRep(w)}})}
 const VIS_FRASE={'Retroalimentación en campo':'retroalimentación en campo','Observación de la tarea':'observación de la tarea','Refuerzo positivo':'refuerzo positivo','Conversación de seguimiento':'conversación de seguimiento'};
 function textoVisitas(L){if(!L.length)return '';const n=L.length;const okL=v=>v.lb&&!/PATERNIDAD|MATERNIDAD|VACACION|DESCANSO|LICENCIA|AUSEN|BAJA|SUBSIDIO/i.test(v.lb);const labs=[...new Set(L.filter(okL).map(v=>[v.lb,/\d/.test(v.nv||'')?'NV '+v.nv:''].filter(Boolean).join(' del ')))];const tps=[...new Set(L.map(v=>VIS_FRASE[v.t]||String(v.t||'').toLowerCase()))];
   return `Además, se realizó seguimiento individual a ${n} colaborador${n>1?'es':''}${labs.length?' en '+juntarY(labs):''}, con ${juntarY(tps)}.`}
