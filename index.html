@@ -1594,7 +1594,7 @@ function pintarTurnoActos(){const el=$('#t-turno');if(!el||!DATA)return;const re
   const tot=c.TD+c.TN+c.DL||1;const m=Math.max(1,c.TD,c.TN,c.DL);const row=(l,n,cl)=>`<div class="br"><span class="lb">${l}</span><span class="tr"><i class="${cl}" style="width:${Math.round(n/m*100)}%"></i></span><b>${n}</b></div>`;
   el.innerHTML=`<div class="barras">${row('☀ Turno día',c.TD,'')}${row('🌙 Turno noche',c.TN,'r')}${c.DL?row('En días libres*',c.DL,''):''}</div><p style="margin-top:8px">${c.TN>c.TD?`De noche se reportan <b>${Math.round(c.TN/tot*100)}%</b> de los actos: refuerza charlas de fatiga y atención en el turno noche.`:`De día se reportan <b>${Math.round(c.TD/tot*100)}%</b> de los actos (en el día también hay más supervisión que reporta).`}${c.DL?' *Actos con fecha en días libres de su guardia: posible cambio de guardia o fecha mal registrada.':''}</p>`}
 // Visitas de campo "Lo vi hoy" (admin): se guardan en la bitácora del servidor y en el equipo
-const VIS_TIPOS=['Retroalimentación en campo','Observación de la tarea','Refuerzo positivo','Conversación de seguimiento'];
+const VIS_TIPOS=['Seguimiento comportamental','Retroalimentación en campo','Observación de la tarea','Refuerzo positivo','Conversación de seguimiento'];
 let VIS_SRV=null;
 // una visita = mismo trabajador, tipo, nota y día (evita duplicados si la bitácora recibió el mismo envío varias veces)
 const visK=v=>[v.d,v.t,String(v.n||'').trim(),new Date(v.ts).toDateString()].join('|');
@@ -1642,7 +1642,9 @@ const VIS_ACC={'Retroalimentación en campo':'se brindó retroalimentación a un
 function textoLoVi(){const t=($('#vis-tipo .on')||{}).dataset?$('#vis-tipo .on').dataset.t:VIS_TIPOS[0];const nv=$('#lv-nv').value.trim(),lb=$('#lv-lb').value.trim(),zo=chipsVal('lv-zo');
   const tm=chipsVal('lv-tm',1).concat($('#lv-otro').value.trim()?[$('#lv-otro').value.trim()]:[]);
   const lugar=zo==='Superficie'?(nv?`el NV ${nv} de superficie`:'superficie'):`el NV ${nv||'…'}${zo?' '+zo:''}`;
-  return `Se realizó seguimiento comportamental en ${lugar}${lb?(zo==='Superficie'?' - ':' ')+lb:''}, donde ${VIS_ACC[t]||'se realizó seguimiento a un colaborador'}${tm.length?' sobre '+juntarTemas(tm):''}.`}
+  const lug=`${lugar}${lb?(zo==='Superficie'?' - ':' ')+lb:''}`,sob=tm.length?' sobre '+juntarTemas(tm):'';
+  if(t==='Seguimiento comportamental')return `Se realizó seguimiento comportamental a un colaborador en ${lug}${tm.length?', donde se le sensibilizó'+sob:''}.`;
+  return `Se realizó seguimiento comportamental en ${lug}, donde ${VIS_ACC[t]||'se realizó seguimiento a un colaborador'}${sob}.`}
 async function compartirWpp(t,fotos){const files=(fotos||[]).map((u,i)=>dataUrlFile(u,'reporte-'+(i+1)+'.jpg'));
   if(navigator.share){try{if(files.length&&navigator.canShare&&navigator.canShare({files})){await navigator.share({files,text:t});return true}if(!files.length){await navigator.share({text:t});return true}}catch(e){if(e&&e.name==='AbortError')return false}}
   try{await navigator.clipboard.writeText(t)}catch(e){}toast(files.length?'Texto copiado. En la PC, adjunta las fotos en WhatsApp.':'Texto copiado');window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');return true}
@@ -1658,7 +1660,7 @@ async function guardarVisita(d,wpp){const t=($('#vis-tipo .on')||{}).dataset?$('
   cerrarHoja();abrirFicha(d);toast('Visita guardada en su ficha')}
 function zonaRep(w){const ds=(w&&w.ds)||{};const s=norm([ds.mi,ds.ve,ds.lb,ds.lo,w&&w.lu].join(' '));if(SUPERF.test(s))return 'Superficie';if(/ACCHILLA/.test(s))return 'Acchilla';if(/VERITO/.test(s))return 'Verito';if(/ROSARIO/.test(s))return 'Rosario';return ''}
 function visitasHoy(){const h=HOY.toDateString();return todasVisitas().filter(v=>new Date(v.ts).toDateString()===h&&!v.wpp).map(v=>{if(v.nv!==undefined)return v;const w=W[v.d]||{};const ds=w.ds||{};return {...v,lb:ds.lb||'',nv:ds.nv||'',zo:zonaRep(w)}})}
-const VIS_FRASE={'Retroalimentación en campo':'retroalimentación en campo','Observación de la tarea':'observación de la tarea','Refuerzo positivo':'refuerzo positivo','Conversación de seguimiento':'conversación de seguimiento'};
+const VIS_FRASE={'Seguimiento comportamental':'seguimiento comportamental','Retroalimentación en campo':'retroalimentación en campo','Observación de la tarea':'observación de la tarea','Refuerzo positivo':'refuerzo positivo','Conversación de seguimiento':'conversación de seguimiento'};
 function textoVisitas(L){if(!L.length)return '';const n=L.length;const okL=v=>v.lb&&!/PATERNIDAD|MATERNIDAD|VACACION|DESCANSO|LICENCIA|AUSEN|BAJA|SUBSIDIO/i.test(v.lb);const labs=[...new Set(L.filter(okL).map(v=>[v.lb,/\d/.test(v.nv||'')?'NV '+v.nv:''].filter(Boolean).join(' del ')))];const tps=[...new Set(L.map(v=>VIS_FRASE[v.t]||String(v.t||'').toLowerCase()))];
   return `Además, se realizó seguimiento individual a ${n} colaborador${n>1?'es':''}${labs.length?' en '+juntarY(labs):''}, con ${juntarY(tps)}.`}
 const juntarY=L=>L.length<2?(L[0]||''):L.slice(0,-1).join(', ')+' y '+L[L.length-1];
