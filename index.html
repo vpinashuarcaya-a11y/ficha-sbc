@@ -529,6 +529,7 @@ body.wide.vcum #v-ficha{display:none}body.wide #v-cum.on{grid-column:2 / 4}body.
 .sol-t{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:4px 0;font-size:14px}
 .aut-lista{border:1px solid var(--linea);border-radius:12px;overflow:hidden;margin-top:6px}.aut-row+.aut-row{border-top:1px solid var(--linea)}.aut-row summary{display:flex;align-items:center;gap:8px;padding:11px 12px;cursor:pointer;list-style:none}.aut-row summary::-webkit-details-marker{display:none}.aut-row .aut-n{flex:1;font-weight:700;font-size:14.5px}.aut-row .aut-v{font-size:12.5px;color:var(--gris);white-space:nowrap}.aut-row[open] summary{background:#F5F8FD}.aut-bd{padding:4px 12px 12px;background:#F5F8FD}.aut-bd .dt{font-size:13.5px}.aut-bd .src{font-size:12.5px;color:var(--gris);margin-top:3px}.aut-bd .acc{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.mas-op{margin-top:10px}.mas-op>summary,.fa-mas>summary,.fa-nota>summary{cursor:pointer;color:#0B4FB8;font-weight:600;font-size:14px;padding:8px 2px}.fa-mas{grid-column:1/-1}.fa-mas[open]>summary{margin-bottom:6px}.fa-nota{margin-top:8px}.fa-3 button{min-height:62px}
 .fa-mas .cn-op{width:100%;margin-top:6px}
+.vis-adm{display:flex;gap:12px;padding:10px 4px;border-top:1px solid var(--linea);cursor:pointer}.vis-adm .vf{min-width:46px;font-weight:800;font-size:15px;color:#0B4FB8;text-align:center}.vis-adm .vf small{display:block;font-weight:500;font-size:11.5px;color:var(--gris)}.vis-adm .vs{font-size:12.5px;color:var(--gris)}.vis-adm .vt{font-size:13.5px;margin-top:2px}.kpis-m{display:flex;gap:8px;flex-wrap:wrap}.kpis-m>div{flex:1;min-width:90px;background:#F5F8FD;border-radius:12px;padding:8px 10px}.kpis-m b{display:block;font-size:20px}.kpis-m span{font-size:12px;color:var(--gris)}
 </style>
 </head>
 <body>
@@ -653,7 +654,7 @@ body.wide.vcum #v-ficha{display:none}body.wide #v-cum.on{grid-column:2 / 4}body.
     <div class="marca"><b>Administración</b></div>
     <div class="titulo-inicio"><p>Seguimiento de evaluaciones, usuarios, bitácora y datos.</p></div>
   </header>
-  <div class="pestanas" id="adm-tab"><button data-k="e" class="on">Por evaluar</button><button data-k="c">Capacitaciones</button><button data-k="p">Perfil</button><button data-k="r">Resultados</button><button data-k="u">Usuarios</button><button data-k="b">Bitácora</button><button data-k="d">Datos</button></div>
+  <div class="pestanas" id="adm-tab"><button data-k="e" class="on">Por evaluar</button><button data-k="c">Capacitaciones</button><button data-k="p">Perfil</button><button data-k="r">Resultados</button><button data-k="u">Usuarios</button><button data-k="v">Visitas</button><button data-k="b">Bitácora</button><button data-k="d">Datos</button></div>
   <div class="bloque" id="adm-cont"></div>
 </section>
 
@@ -1591,8 +1592,25 @@ const VIS_TIPOS=['Retroalimentación en campo','Observación de la tarea','Refue
 let VIS_SRV=null;
 function visitasDe(d){const loc=store.get('fsbc_vis',[]).filter(v=>v.d===d);const srv=(VIS_SRV||[]).filter(v=>v.d===d);const all=[...srv];loc.forEach(v=>{if(!all.some(s=>s.t===v.t&&s.n===v.n))all.push(v)});return all.sort((a,b)=>b.ts-a.ts)}
 async function cargarVisitas(){if(!ADMIN||!navigator.onLine||VIS_SRV)return;const r=await api({a:'bitacora',n:5000});if(!r||!r.ok)return;
-  VIS_SRV=r.filas.filter(f=>f.a==='Visita de campo').map(f=>{const m=String(f.d||'').match(/^(\d{8}) \| ([^|]*) \| (.*?)( \(sin señal\))?$/);if(!m)return null;const ts=new Date(f.f).getTime()||0;return {d:m[1],t:m[2].trim(),n:m[3].trim(),ts}}).filter(Boolean);
-  if(fichaD&&$('#vis-'+fichaD))pintarVisitas(fichaD)}
+  VIS_SRV=r.filas.filter(f=>f.a==='Visita de campo').map(f=>{const m=String(f.d||'').match(/^(\d{8}) \| ([^|]*) \| ([^|]*?)(?: \| ([^|]*?))?( \(sin señal\))?$/);if(!m)return null;const ts=pfBit(f.f);return {d:m[1],t:m[2].trim(),n:m[3].trim(),l:(m[4]||'').trim(),ts,u:f.n||''}}).filter(Boolean);
+  if(fichaD&&W[fichaD]&&$('#v-ficha').classList.contains('on')&&visitasDe(fichaD).length)abrirFicha(fichaD);if(admTab==='v'&&$('#v-admin')&&$('#v-admin').classList.contains('on'))pintarAdmin()}
+function pfBit(s){const m=String(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})\D+(\d{1,2}):(\d{2})/);if(m)return new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5]).getTime();return new Date(s).getTime()||0}
+function todasVisitas(){const srv=VIS_SRV||[];const all=[...srv];store.get('fsbc_vis',[]).forEach(v=>{if(!all.some(s=>s.d===v.d&&s.t===v.t&&s.n===v.n&&Math.abs((s.ts||0)-v.ts)<864e5))all.push(v)});return all.sort((a,b)=>b.ts-a.ts)}
+function tarjVisita(v){return `<div class="tarj k-sbc"><div class="t1"><div><div class="tt">👁 Visita de campo · ${esc(v.t)}</div><div class="sb">${v.l?esc(v.l)+' · ':''}Psicología SBC</div></div></div>${v.n?`<p style="margin:6px 0 0;font-size:14px">${esc(v.n)}</p>`:''}<div class="motivos"><span class="chip b">Visita de campo</span></div></div>`}
+let VISF='mes';
+function pintarVisAdm(c){cargarVisitas();const ini=VISF==='mes'?new Date(HOY.getFullYear(),HOY.getMonth(),1).getTime():VISF==='sem'?HOY.getTime()-7*864e5:0;
+  const L=todasVisitas().filter(v=>v.ts>=ini);const tipos={};L.forEach(v=>tipos[v.t]=(tipos[v.t]||0)+1);const nT=new Set(L.map(v=>v.d)).size;
+  const lab=v=>v.l||((W[v.d]&&W[v.d].ds&&W[v.d].ds.lb)||'');
+  c.innerHTML=`<div class="panel"><h3>👁 Mis visitas de campo</h3><p class="nota-f">Lo que registras con "Lo vi hoy" en la ficha de cada trabajador.</p>
+   <div class="pestanas" id="vis-f" style="margin:10px 0;padding:0">${[['sem','7 días'],['mes','Este mes'],['todo','Todo']].map(([k,n])=>`<button data-v="${k}" class="${VISF===k?'on':''}">${n}</button>`).join('')}</div>
+   <div class="kpis-m"><div><b>${L.length}</b><span>visitas</span></div><div><b>${nT}</b><span>trabajadores</span></div>${Object.entries(tipos).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([k,n])=>`<div><b>${n}</b><span>${esc(k)}</span></div>`).join('')}</div>
+   <button class="btn ancho" style="margin:10px 0;background:#fff;border:1.5px solid #1070E8;color:#0B4FB8" onclick="bajarVisitas()" ${L.length?'':'disabled'}>⬇ Descargar en Excel</button>
+   ${L.length?L.map(v=>{const w=W[v.d]||{n:v.d};return `<div class="vis-adm" onclick="abrirFicha('${v.d}');ir('ficha')"><div class="vf">${new Date(v.ts).toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit'})}<small>${new Date(v.ts).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}</small></div><div><b>${esc(tit(w.n))}</b><div class="vs">${esc(tit(w.c||''))}${guardiaDe(w)?' · Gdia '+esc(guardiaDe(w)):''}${lab(v)?' · '+esc(lab(v)):''}</div><div class="vt">${esc(v.t)}${v.n?' — '+esc(v.n):''}</div></div></div>`}).join(''):'<p class="vacio">Aún no hay visitas en este periodo.</p>'}
+   ${!VIS_SRV&&navigator.onLine?'<p class="nota-f">Cargando las visitas guardadas en el servidor…</p>':''}</div>`;
+  $('#vis-f').onclick=e=>{const b=e.target.closest('button');if(!b)return;VISF=b.dataset.v;pintarVisAdm(c)}}
+function bajarVisitas(){const ini=VISF==='mes'?new Date(HOY.getFullYear(),HOY.getMonth(),1).getTime():VISF==='sem'?HOY.getTime()-7*864e5:0;const L=todasVisitas().filter(v=>v.ts>=ini);
+  const F=[['Fecha','Hora','DNI','Apellidos y nombres','Cargo','Guardia','Labor','Tipo de visita','Nota']].concat(L.map(v=>{const w=W[v.d]||{};const dt=new Date(v.ts);return [dt.toLocaleDateString('es-PE'),dt.toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'}),v.d,w.n||'',w.c||'',guardiaDe(w)||'',v.l||((w.ds&&w.ds.lb)||''),v.t,v.n||'']}));
+  const n=new Date(),p=x=>String(x).padStart(2,'0');bajarArchivo(libroXlsx([{nombre:'Visitas de campo',filas:F,anchos:[11,7,10,32,22,8,24,26,50]}]),`Visitas_de_campo_${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}.xlsx`)}
 function pintarVisitas(d){const el=$('#vis-'+d);if(!el)return;const L=visitasDe(d);
   el.innerHTML=L.length?L.slice(0,12).map(v=>`<div class="vis"><b>${new Date(v.ts).toLocaleDateString('es-PE')} · ${esc(v.t)}</b>${v.n?`<p>${esc(v.n)}</p>`:''}</div>`).join(''):'<p>Aún no registras visitas de campo a este trabajador.</p>';cargarVisitas()}
 function loVi(d){const w=W[d];abrirHoja(`<div class="hoja-cab"><h2>Lo vi hoy</h2><p>${esc(tit(w.n))} · registra tu visita de seguimiento conductual. Funciona sin señal: se envía cuando haya conexión.</p><button class="cerrar" onclick="cerrarHoja()">×</button></div><div class="form">
@@ -1601,7 +1619,8 @@ function loVi(d){const w=W[d];abrirHoja(`<div class="hoja-cab"><h2>Lo vi hoy</h2
   <button class="btn pri ancho" style="margin-top:12px" onclick="guardarVisita('${d}')">Guardar visita</button></div>`);
   $('#vis-tipo').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$('#vis-tipo').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))})}
 function guardarVisita(d){const t=($('#vis-tipo .on')||{}).dataset?$('#vis-tipo .on').dataset.t:VIS_TIPOS[0];const n=($('#vis-nota').value||'').replace(/\s+/g,' ').replace(/\|/g,'/').trim().slice(0,400);
-  const q=store.get('fsbc_vis',[]);q.push({d,t,n,ts:Date.now()});store.set('fsbc_vis',q.slice(-500));registrar('Visita de campo',`${d} | ${t} | ${n}`);cerrarHoja();toast('Visita registrada');pintarVisitas(d)}
+  const ds=(W[d]&&W[d].ds)||{};const l=[ds.lb,ds.nv?'Nv. '+ds.nv:'',tit(ds.mi||'')].filter(Boolean).join(' · ').replace(/\|/g,'/');
+  const q=store.get('fsbc_vis',[]);q.push({d,t,n,l,ts:Date.now()});store.set('fsbc_vis',q.slice(-500));registrar('Visita de campo',`${d} | ${t} | ${n} | ${l}`);cerrarHoja();toast('Visita registrada: la ves en la ficha (pestaña Psicología) y en Admin → Visitas');abrirFicha(d)}
 // Recordatorio de capacitaciones por guardia (admin)
 function capPorGuardia(){return ['A','B','C'].map(g=>{const x=turnoDe(g);let pend=0,ws=0;activos().forEach(w=>{if(guardiaDe(w)!==g)return;const e=ultEval(w);if(!e)return;const p=(e.cur||[]).filter(k=>!(DATA.CAP||{})[w.d+'|'+k.c]).length;if(p){pend+=p;ws++}});
   let txt;if(x.k==='DL'){const v=new Date(x.fin.getFullYear(),x.fin.getMonth(),x.fin.getDate()+1);txt=`De días libres · regresa el ${dd(v)}: programa sus capacitaciones para el ingreso`}else txt=`En mina (${x.k==='TD'?'turno día':'turno noche'}) hasta el ${dd(x.fin)}: buen momento para capacitar`;
@@ -1875,6 +1894,7 @@ function abrirFicha(d){
   fichaD=d;const w=W[d],an=AN[d];const ds=w.ds||{};
   const pareja=ds.pa?Object.values(W).filter(x=>x!==w&&x.ds&&x.ds.pa===ds.pa&&x.ds.lb===ds.lb&&guardiaDe(x)===guardiaDe(w)):[];
   const L=eventosFicha(w,an);
+  if(ADMIN){visitasDe(d).forEach(v=>L.push({dt:new Date(v.ts),k:'sbc',html:tarjVisita(v)}));L.sort((a,b)=>b.dt-a.dt)}
   const cnt={todo:L.length,sbc:L.filter(x=>x.k==='sbc').length,grisli:L.filter(x=>x.k==='grisli'||x.k==='gc').length,ev:L.filter(x=>x.k==='ev').length};
   const ST={r:'Urgente',a:'Vigilar',v:'Estable',n:'Sin registros'};
   const pasos=ESC_C.map((t,i)=>{const k=i+1;let cl=an.evid[i]?'hecho':'';if(k===2&&!an.evaluado&&an.n>0)cl='pend';else if(k===an.toca)cl='ahora';else if(!cl&&k<an.toca&&k!==2)cl='omit';return `<div class="paso ${cl}"><div class="k">${k}</div><div class="h">${t}${cl==='omit'?'<br><small>no aplicado</small>':cl==='pend'?'<br><small>obligatoria · pendiente</small>':''}</div></div>`}).join('');
@@ -2167,6 +2187,7 @@ async function descargar(mostrarCarga,silencioso){
 function usarDatos(){
   DATA=JSON.parse(JSON.stringify(DATA_RAW));
   indexar();calcNuevosRojos();pintarZonas();pintarInicio();pintarNuevosRojos();actualizarBadge();est();
+  if(ADMIN&&!VIS_SRV)setTimeout(()=>{try{cargarVisitas()}catch(e){}},1500);
   if(fichaD&&W[fichaD]&&$('#v-ficha').classList.contains('on'))abrirFicha(fichaD);else if(ANCHO())fichaVacia();
   if(document.body.classList.contains('vmapa'))pintarMapa();
   if(document.body.classList.contains('vtab'))pintarTab();
@@ -2194,6 +2215,7 @@ let admTab='e',limEv=60;
 $('#adm-tab').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;admTab=b.dataset.k;$('#adm-tab').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));pintarAdmin()});
 async function pintarAdmin(){
   const c=$('#adm-cont');
+  if(admTab==='v'){pintarVisAdm(c);return}
   if(admTab==='c'){pintarCap(c);return}
   if(admTab==='p'){pintarPerfil(c);return}
   if(admTab==='r'){pintarResultados(c);return}
