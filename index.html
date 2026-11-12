@@ -1595,12 +1595,15 @@ function pintarTurnoActos(){const el=$('#t-turno');if(!el||!DATA)return;const re
 // Visitas de campo "Lo vi hoy" (admin): se guardan en la bitácora del servidor y en el equipo
 const VIS_TIPOS=['Retroalimentación en campo','Observación de la tarea','Refuerzo positivo','Conversación de seguimiento'];
 let VIS_SRV=null;
-function visitasDe(d){const loc=store.get('fsbc_vis',[]).filter(v=>v.d===d);const srv=(VIS_SRV||[]).filter(v=>v.d===d);const all=[...srv];loc.forEach(v=>{if(!all.some(s=>s.t===v.t&&s.n===v.n))all.push(v)});return all.sort((a,b)=>b.ts-a.ts)}
+// una visita = mismo trabajador, tipo, nota y día (evita duplicados si la bitácora recibió el mismo envío varias veces)
+const visK=v=>[v.d,v.t,String(v.n||'').trim(),new Date(v.ts).toDateString()].join('|');
+function unirVisitas(srv,loc){const M=new Map();loc.forEach(v=>M.set(visK(v),v));srv.forEach(v=>{const k=visK(v);if(!M.has(k))M.set(k,v)});return [...M.values()].sort((a,b)=>b.ts-a.ts)}
+function visitasDe(d){return unirVisitas((VIS_SRV||[]).filter(v=>v.d===d),store.get('fsbc_vis',[]).filter(v=>v.d===d))}
 async function cargarVisitas(){if(!ADMIN||!navigator.onLine||VIS_SRV)return;const r=await api({a:'bitacora',n:5000});if(!r||!r.ok)return;
   VIS_SRV=r.filas.filter(f=>f.a==='Visita de campo').map(f=>{const m=String(f.d||'').match(/^(\d{8}) \| ([^|]*) \| ([^|]*?)(?: \| ([^|]*?))?( \(sin señal\))?$/);if(!m)return null;const ts=pfBit(f.f);return {d:m[1],t:m[2].trim(),n:m[3].trim(),l:(m[4]||'').trim(),ts,u:f.n||''}}).filter(Boolean);
   if(fichaD&&W[fichaD]&&$('#v-ficha').classList.contains('on')&&visitasDe(fichaD).length)abrirFicha(fichaD);if(admTab==='v'&&$('#v-admin')&&$('#v-admin').classList.contains('on'))pintarAdmin()}
 function pfBit(s){const m=String(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})\D+(\d{1,2}):(\d{2})/);if(m)return new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5]).getTime();return new Date(s).getTime()||0}
-function todasVisitas(){const srv=VIS_SRV||[];const all=[...srv];store.get('fsbc_vis',[]).forEach(v=>{if(!all.some(s=>s.d===v.d&&s.t===v.t&&s.n===v.n&&Math.abs((s.ts||0)-v.ts)<864e5))all.push(v)});return all.sort((a,b)=>b.ts-a.ts)}
+function todasVisitas(){return unirVisitas(VIS_SRV||[],store.get('fsbc_vis',[]))}
 function tarjVisita(v){return `<div class="tarj k-sbc"><div class="t1"><div><div class="tt">👁 Visita de campo · ${esc(v.t)}</div><div class="sb">${v.l?esc(v.l)+' · ':''}Psicología SBC</div></div></div>${v.n?`<p style="margin:6px 0 0;font-size:14px">${esc(v.n)}</p>`:''}<div class="motivos"><span class="chip b">Visita de campo</span></div></div>`}
 let VISF='mes';
 function pintarVisAdm(c){cargarVisitas();const ini=VISF==='mes'?new Date(HOY.getFullYear(),HOY.getMonth(),1).getTime():VISF==='sem'?HOY.getTime()-7*864e5:0;
@@ -2110,13 +2113,14 @@ let DATA_RAW=null;
 /* ---------- bitácora (se envía cuando hay señal) ---------- */
 let _logT=null;
 function registrar(acc,det){const q=store.get('fsbc_log',[]);q.push({acc,det:(det||'')+(navigator.onLine?'':' (sin señal)')});store.set('fsbc_log',q.slice(-300));clearTimeout(_logT);_logT=setTimeout(enviarPendientes,4000)}
+let _envLog=false;
 async function enviarPendientes(){
   if(!TOKEN||!navigator.onLine)return;
   try{enviarAut()}catch(e){}
   try{enviarRep()}catch(e){}
   try{enviarSol()}catch(e){}
   try{enviarFotosTrab()}catch(e){}
-  const q=store.get('fsbc_log',[]);if(q.length){const r=await api({a:'log',items:q});if(r.ok)store.set('fsbc_log',[])}
+  if(!_envLog){const q=store.get('fsbc_log',[]);if(q.length){_envLog=true;try{const r=await api({a:'log',items:q});if(r&&r.ok)store.set('fsbc_log',store.get('fsbc_log',[]).slice(q.length))}finally{_envLog=false}}}
   const c=store.get('fsbc_q',[]);if(c.length&&ADMIN){for(const x of c){const r=await api(x);if(r.ok)CONF=r.conf}store.set('fsbc_q',[]);guardarCache()}
 }
 addEventListener('online',enviarPendientes);
